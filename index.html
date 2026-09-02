@@ -787,7 +787,7 @@ img{max-width:100%}
 <div class="scroll-prog"><i id="scrollProg"></i></div>
 
 <!-- NAV -->
-<nav class="nav"><div class="wrap nav-in">
+<nav class="nav" id="mainNav"><div class="wrap nav-in">
   <a href="#top" class="brand"><span class="dot"></span>Accent&nbsp;<em>Studio</em></a>
   <div class="audswitch"><a class="on" href="index.html">Players</a><a href="labs.html">Labs</a></div>
   <div class="links">
@@ -801,7 +801,18 @@ img{max-width:100%}
   <span class="tld">accentstudio.io</span>
   <a href="#join" class="btn btn-p">Start playing</a>
   <button class="tt" id="tt" aria-label="Toggle theme">◐</button>
-</div></nav>
+  <button class="hb" id="hb" aria-label="Menu" aria-expanded="false">☰</button>
+</div>
+<div class="drawer" id="drawer">
+  <div class="audswitch"><a class="on" href="index.html">Players</a><a href="labs.html">Labs</a></div>
+  <a href="#how">How it works</a>
+  <a href="#preview">Hear a scene</a>
+  <a href="#play">Play</a>
+  <a href="#earn">Earn</a>
+  <a href="#labs">For labs</a>
+  <a href="#join" class="btn btn-p">Start playing</a>
+</div>
+</nav>
 
 <div id="top"></div>
 
@@ -1745,6 +1756,37 @@ img{max-width:100%}
       })
       .catch(function(err){wm.style.color='var(--hot)';wm.textContent=(err&&err.message)||"Could not send right now — try again in a moment.";})
       .finally(function(){wbtn.disabled=false;wbtn.style.opacity='';});
+  });
+})();
+
+/* Mobile nav toggle */
+(function(){
+  var nav=document.getElementById('mainNav');
+  var hb=document.getElementById('hb');
+  var drawer=document.getElementById('drawer');
+  if(!nav||!hb||!drawer)return;
+  hb.addEventListener('click',function(e){
+    e.stopPropagation();
+    var open=nav.classList.toggle('open');
+    hb.setAttribute('aria-expanded',open?'true':'false');
+    hb.textContent=open?'✕':'☰';
+    document.body.style.overflow=open?'hidden':'';
+  });
+  drawer.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click',function(){
+      nav.classList.remove('open');
+      hb.setAttribute('aria-expanded','false');
+      hb.textContent='☰';
+      document.body.style.overflow='';
+    });
+  });
+  document.addEventListener('click',function(e){
+    if(nav.classList.contains('open')&&!nav.contains(e.target)){
+      nav.classList.remove('open');
+      hb.setAttribute('aria-expanded','false');
+      hb.textContent='☰';
+      document.body.style.overflow='';
+    }
   });
 })();
 </script>
