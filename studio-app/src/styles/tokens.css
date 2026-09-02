@@ -62,6 +62,11 @@ a {
 button {
   font-family: inherit;
   cursor: pointer;
+  /* Never inherit the browser's light default button chrome on a dark UI.
+     Styled button classes set their own background/border and override this. */
+  background: none;
+  border: none;
+  color: inherit;
 }
 input,
 textarea,
@@ -236,7 +241,7 @@ select {
   border: none;
   font-size: 1.7rem;
   line-height: 1;
-  color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.26);
   transition: transform 0.12s var(--ease), color 0.12s;
   padding: 0;
 }
@@ -300,10 +305,10 @@ select {
   transform: scale(0.9);
 }
 .binary .no {
-  background: var(--coral);
+  background: #cf6f43;
 }
 .binary .yes {
-  background: var(--green);
+  background: #2f9d73;
 }
 
 /* --- forms --- */
@@ -548,9 +553,15 @@ select {
   border: 1px solid var(--line2);
   border-radius: 12px;
   margin-bottom: 7px;
-  color: var(--ink2);
+  background: var(--card);
+  color: var(--ink);
   font-size: 0.92rem;
+  width: 100%;
+  text-align: left;
   transition: border-color 0.2s, background 0.2s;
+}
+.pindex-item:hover {
+  border-color: var(--line);
 }
 .pindex-item:active {
   transform: scale(0.99);
@@ -903,6 +914,74 @@ select {
   font-size: 3rem;
   text-align: center;
   margin-bottom: 8px;
+}
+
+/* word-alignment matching game */
+.amatch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 6px;
+}
+.atok {
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink2);
+  transition: outline 0.12s, transform 0.12s var(--ease), background 0.12s;
+  line-height: 1.2;
+}
+.atok:active {
+  transform: scale(0.96);
+}
+.atok.pending {
+  outline: 2px solid var(--acc);
+  outline-offset: 1px;
+  color: var(--ink);
+}
+.atok.p1 { background: #173226; color: #8ff5c8; border-color: #2c5c46; }
+.atok.p2 { background: #2c2110; color: var(--goldb); border-color: #57431f; }
+.atok.p3 { background: #241d38; color: #a78bfa; border-color: #463670; }
+.atok.p4 { background: #33201a; color: #f0a58a; border-color: #5e3a2c; }
+.atok.p5 { background: #152736; color: #7fc3e3; border-color: #2b4c66; }
+.atok.p6 { background: #241f0f; color: #d9c184; border-color: #4d431f; }
+.atok.nu {
+  background: transparent;
+  color: var(--faint);
+  border: 1px dashed var(--line);
+  font-style: italic;
+}
+.atok input {
+  background: transparent;
+  border: none;
+  color: var(--ink);
+  font: inherit;
+  outline: none;
+  min-width: 40px;
+  width: auto;
+}
+.amode {
+  display: inline-flex;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  padding: 3px;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.amode button {
+  padding: 7px 14px;
+  border-radius: 100px;
+  color: var(--mut);
+}
+.amode button.on {
+  background: var(--acc);
+  color: var(--accink);
+  font-weight: 600;
 }
 
 /* section label */

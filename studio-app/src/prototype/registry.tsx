@@ -38,6 +38,7 @@ import {
   ArenaResult,
   CuttingRoomQueue,
   CuttingRoomVerify,
+  CuttingRoomAlign,
 } from "@/screens/game";
 import { Wallet, Cashout, CashoutConfirm, Ledger } from "@/screens/economy";
 import {
@@ -92,7 +93,8 @@ export const SCREENS: ScreenDef[] = [
   { id: "arena-scene", title: "Arena · live scene", phase: "Game", Component: ArenaScene },
   { id: "arena-result", title: "Arena · result", phase: "Game", Component: ArenaResult },
   { id: "cutting-room-queue", title: "Cutting Room · queue", phase: "Game", Component: CuttingRoomQueue },
-  { id: "cutting-room-verify", title: "Cutting Room · verify", phase: "Game", Component: CuttingRoomVerify },
+  { id: "cutting-room-verify", title: "Cutting Room · fix text", phase: "Game", Component: CuttingRoomVerify },
+  { id: "cutting-room-align", title: "Cutting Room · match words", phase: "Game", Component: CuttingRoomAlign },
 
   // --- Economy ---
   { id: "wallet", title: "Wallet", phase: "Economy", Component: Wallet },

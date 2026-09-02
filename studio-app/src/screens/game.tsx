@@ -329,15 +329,167 @@ export function CuttingRoomVerify({ nav }: { nav: Nav }) {
       </div>
 
       <div className="tile" style={{ marginBottom: 18 }}>
-        <div className="spread"><span className="tlbl" style={{ margin: 0 }}>Reward for this fix</span><span className="mono" style={{ color: "var(--acc2)" }}>+35 AP</span></div>
+        <div className="spread"><span className="tlbl" style={{ margin: 0 }}>Step 1 of 2 · transcript</span><span className="mono" style={{ color: "var(--acc2)" }}>+35 AP</span></div>
+      </div>
+
+      <div className="actionbar">
+        <button className="pill" onClick={() => nav.go("cutting-room-align")}>Next · match the words →</button>
+        <div className="mono center" style={{ fontSize: "0.62rem", color: "var(--faint)", marginTop: 10 }}>
+          Next you'll link each English phrase to your language.
+        </div>
+      </div>
+    </>
+  );
+}
+
+const SRC_TOKENS = ["Good morning.", "I woke up", "and saw that", "₦50,000", "left", "my account"];
+const TGT_TOKENS = ["Good morning.", "I wake up", "see say", "POS commot 50k", "for", "my account!"];
+
+interface Link {
+  color: number; // palette index 0-5, or -1 for null particle
+  src: number[];
+  tgt: number[];
+}
+
+export function CuttingRoomAlign({ nav }: { nav: Nav }) {
+  const [tgt, setTgt] = useState<string[]>(TGT_TOKENS);
+  const [links, setLinks] = useState<Link[]>([]);
+  const [pendSrc, setPendSrc] = useState<number[]>([]);
+  const [pendTgt, setPendTgt] = useState<number[]>([]);
+  const [mode, setMode] = useState<"match" | "edit">("match");
+  const [editing, setEditing] = useState<number | null>(null);
+
+  const linkOfSrc = (i: number) => links.find((l) => l.src.includes(i));
+  const linkOfTgt = (i: number) => links.find((l) => l.tgt.includes(i));
+
+  function srcClass(i: number): string {
+    const l = linkOfSrc(i);
+    if (l) return `atok p${l.color + 1}`;
+    if (pendSrc.includes(i)) return "atok pending";
+    return "atok";
+  }
+  function tgtClass(i: number): string {
+    const l = linkOfTgt(i);
+    if (l) return l.color === -1 ? "atok nu" : `atok p${l.color + 1}`;
+    if (pendTgt.includes(i)) return "atok pending";
+    return "atok";
+  }
+
+  function tapSrc(i: number) {
+    if (mode !== "match" || linkOfSrc(i)) return;
+    setPendSrc((p) => (p.includes(i) ? p.filter((x) => x !== i) : [...p, i]));
+  }
+  function tapTgt(i: number) {
+    if (mode === "edit") {
+      setEditing(i);
+      return;
+    }
+    if (linkOfTgt(i)) return;
+    setPendTgt((p) => (p.includes(i) ? p.filter((x) => x !== i) : [...p, i]));
+  }
+
+  function link() {
+    if (!pendSrc.length || !pendTgt.length) return;
+    setLinks((ls) => [...ls, { color: ls.filter((l) => l.color >= 0).length % 6, src: pendSrc, tgt: pendTgt }]);
+    setPendSrc([]);
+    setPendTgt([]);
+  }
+  function markParticle() {
+    if (pendSrc.length || !pendTgt.length) return;
+    setLinks((ls) => [...ls, { color: -1, src: [], tgt: pendTgt }]);
+    setPendTgt([]);
+  }
+  function undo() {
+    setLinks((ls) => ls.slice(0, -1));
+  }
+  function clearPend() {
+    setPendSrc([]);
+    setPendTgt([]);
+  }
+
+  const allTgtLinked = tgt.every((_, i) => !!linkOfTgt(i));
+  const canLink = pendSrc.length > 0 && pendTgt.length > 0;
+  const canParticle = pendSrc.length === 0 && pendTgt.length > 0;
+
+  return (
+    <>
+      <div className="spread" style={{ marginBottom: 8 }}>
+        <div className="eyebrow" style={{ margin: 0 }}>Cutting Room · step 2 · align</div>
+        <div className="amode">
+          <button className={mode === "match" ? "on" : ""} onClick={() => { setMode("match"); setEditing(null); }}>Match</button>
+          <button className={mode === "edit" ? "on" : ""} onClick={() => { setMode("edit"); clearPend(); }}>Edit</button>
+        </div>
+      </div>
+      <h1 className="h1" style={{ marginBottom: 8, fontSize: "clamp(1.5rem,6vw,2.1rem)" }}>Match the words.</h1>
+      <p className="muted" style={{ fontSize: "0.9rem", marginBottom: 20 }}>
+        {mode === "match"
+          ? "Tap an English phrase, then tap the word(s) in your language that carry it. Languages don't line up 1-to-1, that's the point."
+          : "Tap any word in your take to fix its spelling."}
+      </p>
+
+      <span className="slabel">English source</span>
+      <div className="amatch" style={{ marginBottom: 18 }}>
+        {SRC_TOKENS.map((t, i) => (
+          <button key={i} className={srcClass(i)} onClick={() => tapSrc(i)} disabled={mode === "edit"}>
+            {t}
+          </button>
+        ))}
+      </div>
+
+      <span className="slabel">Your take · {tgt.length} words</span>
+      <div className="amatch" style={{ marginBottom: 18 }}>
+        {tgt.map((t, i) =>
+          editing === i ? (
+            <span key={i} className="atok pending">
+              <input
+                autoFocus
+                value={t}
+                onChange={(e) => setTgt((prev) => prev.map((x, j) => (j === i ? e.target.value : x)))}
+                onBlur={() => setEditing(null)}
+                onKeyDown={(e) => e.key === "Enter" && setEditing(null)}
+                size={Math.max(t.length, 3)}
+              />
+            </span>
+          ) : (
+            <button key={i} className={tgtClass(i)} onClick={() => tapTgt(i)}>
+              {t}
+            </button>
+          )
+        )}
+      </div>
+
+      {mode === "match" && (pendSrc.length > 0 || pendTgt.length > 0) && (
+        <div className="tile" style={{ marginBottom: 14 }}>
+          <div className="spread">
+            <span className="tbody muted" style={{ fontSize: "0.82rem" }}>
+              {canLink ? "Ready to link this pair." : canParticle ? "Target-only. Mark as a particle with no English source?" : "Now pick the matching word(s)."}
+            </span>
+          </div>
+          <div className="btn-row" style={{ marginTop: 10 }}>
+            <button className="pill ghost" style={{ padding: 10, fontSize: "0.66rem" }} onClick={clearPend}>Clear</button>
+            {canParticle && <button className="pill ghost" style={{ padding: 10, fontSize: "0.66rem" }} onClick={markParticle}>No source ·</button>}
+            {canLink && <button className="pill mint" style={{ padding: 10, fontSize: "0.66rem" }} onClick={link}>Link ✓</button>}
+          </div>
+        </div>
+      )}
+
+      <div className="spread" style={{ marginBottom: 18 }}>
+        <span className="mono" style={{ fontSize: "0.68rem", color: allTgtLinked ? "var(--acc2)" : "var(--mut)" }}>
+          {links.length} pairs · {allTgtLinked ? "all words aligned" : "keep matching"}
+        </span>
+        {links.length > 0 && (
+          <button className="mono" style={{ fontSize: "0.68rem", color: "var(--coral)" }} onClick={undo}>undo last</button>
+        )}
       </div>
 
       <div className="actionbar">
         <div className="binary" style={{ marginBottom: 12 }}>
           <button className="no" onClick={() => nav.go("cutting-room-queue")} aria-label="Reject">✕</button>
-          <button className="yes" onClick={() => nav.go("cutting-room-queue")} aria-label="Approve">✓</button>
+          <button className="yes" disabled={!allTgtLinked} style={!allTgtLinked ? { opacity: 0.4 } : undefined} onClick={() => nav.go("cutting-room-queue")} aria-label="Approve">✓</button>
         </div>
-        <div className="mono center" style={{ fontSize: "0.62rem", color: "var(--faint)" }}>Reject sends it back · approve locks it and pays out</div>
+        <div className="mono center" style={{ fontSize: "0.62rem", color: "var(--faint)" }}>
+          {allTgtLinked ? "Approve to lock the aligned take · +35 AP" : "Align every word to approve"}
+        </div>
       </div>
     </>
   );
