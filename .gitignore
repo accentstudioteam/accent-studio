@@ -31,9 +31,11 @@ scratchpad/
 tmp/
 .tmp/
 
-# Node (for when we add tooling)
+# Node / app build
 node_modules/
+dist/
 .env
 .env.local
 .env.*.local
+!studio-app/.env.production
 .vercel
