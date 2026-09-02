@@ -150,7 +150,8 @@ h1 .it{font-style:italic;color:var(--acc);font-weight:700}
 
 /* hero sheet arrangement */
 .hero-stage{position:relative;display:flex;justify-content:center}
-.hero-sheet{width:min(360px,88vw);transform:rotate(2.4deg);position:relative;z-index:2;transition:transform .6s var(--ease)}
+.hero-sheet{width:min(360px,100%);transform:rotate(2.4deg);position:relative;z-index:2;transition:transform .6s var(--ease)}
+.hero-grid>*{min-width:0}
 .hero-stage:hover .hero-sheet{transform:rotate(.6deg) translateY(-6px)}
 .chip{position:absolute;font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;background:var(--card2);border:1px solid var(--line);color:var(--ink2);border-radius:100px;padding:8px 14px;box-shadow:0 14px 34px -14px rgba(0,0,0,.7);animation:float 5.5s ease-in-out infinite;z-index:3}
 .chip b{color:var(--acc);font-weight:600}
