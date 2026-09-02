@@ -2,7 +2,8 @@ import { useState } from "react";
 import type { Nav } from "@/prototype/types";
 import { ScreenHead, Stepper, CheckRow } from "@/prototype/ui";
 import { LOCALES, RAILS } from "@/lib/labels";
-import { AGREEMENTS, IP_CLAUSES } from "@/prototype/mock";
+import { AGREEMENTS } from "@/prototype/mock";
+import { AGREEMENTS_FULL } from "@/prototype/legal";
 
 const ONB_STEPS = 6; // profile, id, docs, payout, training, done
 
@@ -199,63 +200,104 @@ export function DocsOverview({ nav }: { nav: Nav }) {
 }
 
 export function DocSign({ nav }: { nav: Nav }) {
-  const [read, setRead] = useState(false);
+  const [docIdx, setDocIdx] = useState(0);
+  // track which agreements have been scrolled to the end
+  const [readSet, setReadSet] = useState<Set<number>>(new Set());
   const [agree, setAgree] = useState(false);
   const [assign, setAssign] = useState(false);
-  const ready = read && agree && assign;
+
+  const doc = AGREEMENTS_FULL[docIdx];
+  const allRead = readSet.size === AGREEMENTS_FULL.length;
+  const ready = allRead && agree && assign;
+
+  function markRead(i: number) {
+    setReadSet((prev) => {
+      if (prev.has(i)) return prev;
+      const n = new Set(prev);
+      n.add(i);
+      return n;
+    });
+  }
+
   return (
     <>
-      <div className="eyebrow" style={{ marginBottom: 8 }}>Agreement 1 of 3 · IP Assignment v1.2</div>
-      <h1 className="h1" style={{ marginBottom: 16, fontSize: "clamp(1.5rem,6vw,2.1rem)" }}>
-        IP Assignment Agreement.
+      <div className="eyebrow" style={{ marginBottom: 8 }}>Agreements · read all {AGREEMENTS_FULL.length}</div>
+      <h1 className="h1" style={{ marginBottom: 14, fontSize: "clamp(1.4rem,5.5vw,2rem)" }}>
+        {doc.name}.
       </h1>
 
-      <div className="doc" style={{ marginBottom: 16 }} onScroll={(e) => {
-        const el = e.currentTarget;
-        if (el.scrollTop + el.clientHeight >= el.scrollHeight - 24) setRead(true);
-      }}>
-        {IP_CLAUSES.map((c) => (
+      <div className="amode" style={{ display: "flex", marginBottom: 14, width: "100%" }}>
+        {AGREEMENTS_FULL.map((a, i) => (
+          <button
+            key={a.id}
+            className={i === docIdx ? "on" : ""}
+            style={{ flex: 1, fontSize: "0.56rem", padding: "8px 4px" }}
+            onClick={() => setDocIdx(i)}
+          >
+            {readSet.has(i) ? "✓ " : ""}{a.name.split(" ")[0]}
+          </button>
+        ))}
+      </div>
+
+      <div
+        className="doc"
+        style={{ marginBottom: 12, maxHeight: 320 }}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          if (el.scrollTop + el.clientHeight >= el.scrollHeight - 28) markRead(docIdx);
+        }}
+      >
+        <div className="mono" style={{ fontSize: "0.62rem", color: "var(--faint)", marginBottom: 10 }}>
+          {doc.name} · {doc.version} · effective {doc.effective}
+        </div>
+        {doc.sections.map((c) => (
           <div key={c.h}>
             <h5 className="clause">{c.h}</h5>
             <p>{c.body}</p>
           </div>
         ))}
-        <p className="muted" style={{ fontSize: "0.76rem", marginTop: 10 }}>
-          Governed by the laws of the State of Delaware, USA, with local
-          data-protection statutes preserved where you reside. Full executed copy
-          is stored in your account under My Documents.
+        <p className="muted" style={{ fontSize: "0.74rem", marginTop: 12 }}>
+          End of {doc.name}. A countersigned copy is stored in your account under
+          My Documents with its content hash.
         </p>
       </div>
-      {!read && (
-        <div className="mono" style={{ fontSize: "0.66rem", color: "var(--faint)", marginBottom: 14 }}>
-          Scroll to the end of the document to continue.
-        </div>
-      )}
+
+      <div className="mono" style={{ fontSize: "0.64rem", color: allRead ? "var(--acc2)" : "var(--faint)", marginBottom: 14 }}>
+        {allRead
+          ? "✓ All three read in full."
+          : `Read to the end of each · ${readSet.size} of ${AGREEMENTS_FULL.length} done` +
+            (readSet.has(docIdx) ? "" : " · scroll this one to the end")}
+      </div>
 
       <div className="stack" style={{ marginBottom: 18 }}>
         <CheckRow checked={agree} onToggle={() => setAgree(!agree)}>
-          I have read and I accept the IP Assignment Agreement (v1.2).
+          I have read and accept all three agreements: the Voice IP Assignment
+          Agreement (v1.2), the Voice Likeness &amp; Audio Release (v1.1), and the
+          Independent Contractor Agreement (v1.0).
         </CheckRow>
         <CheckRow checked={assign} onToggle={() => setAssign(!assign)}>
           I irrevocably assign ownership of my recordings and roleplay content to
-          Accent Studio, Inc., and confirm I am 18 or older.
+          Accent Studio, Inc., I consent to the processing of my voice as biometric
+          data, and I confirm I am 18 or older.
         </CheckRow>
       </div>
 
       <div className="tile dash" style={{ marginBottom: 18 }}>
-        <div className="tlbl">What gets logged when you accept</div>
-        <pre style={{ background: "transparent", border: "none", padding: 0, margin: 0, fontSize: "0.66rem", color: "var(--mut)" }}>{`{ consent_event: "IP_ASSIGNMENT_V1.2",
-  timestamp_utc: "…", ip_address: "…",
+        <div className="tlbl">Cryptographic consent event recorded on accept</div>
+        <pre style={{ background: "transparent", border: "none", padding: 0, margin: 0, fontSize: "0.64rem", color: "var(--mut)" }}>{`{ consent_event: "CREATOR_AGREEMENTS_2026_09",
+  agreements: ["ip_assignment@v1.2",
+    "voice_release@v1.1", "contractor@v1.0"],
+  timestamp_utc: "…", ip_hash: "sha256:…",
   terms_hash: "sha256:e3b0c442…",
   action: "CHECKBOX_AND_RECORD_BUTTON" }`}</pre>
       </div>
 
       <div className="actionbar">
         <button className="pill mint" disabled={!ready} onClick={() => nav.next()}>
-          {ready ? "Accept & sign all three" : "Read & tick both boxes"}
+          {ready ? "Accept & sign all three" : !allRead ? "Read every agreement first" : "Tick both boxes to sign"}
         </button>
         <div className="mono center" style={{ fontSize: "0.62rem", color: "var(--faint)", marginTop: 10 }}>
-          Signing records a cryptographic consent event for all three agreements.
+          One cryptographic consent event covers all three agreements.
         </div>
       </div>
     </>
