@@ -391,6 +391,51 @@ select {
   color: var(--acc2);
   border: 1px solid rgba(69, 224, 160, 0.25);
 }
+/* --- selectable options (onboarding, pickers) --- */
+.opt-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  color: var(--ink);
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s var(--ease);
+  min-height: 54px;
+}
+.opt:active {
+  transform: scale(0.98);
+}
+.opt.on {
+  border-color: var(--acc);
+  background: color-mix(in srgb, var(--acc) 12%, var(--card));
+}
+.opt .emoji {
+  font-size: 1.1rem;
+}
+.opt .nm {
+  font-family: var(--disp);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.opt .sub {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--mut);
+  letter-spacing: 0.06em;
+  margin-left: auto;
+}
+.opt.on .sub {
+  color: var(--acc2);
+}
+
 .spin {
   width: 22px;
   height: 22px;

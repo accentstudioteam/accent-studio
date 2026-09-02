@@ -1,7 +1,8 @@
 import { useAuth } from "@/auth/AuthProvider";
 import { SignIn } from "@/routes/SignIn";
 import { Blocked } from "@/routes/Blocked";
-import { Home } from "@/routes/Home";
+import { Onboarding } from "@/routes/Onboarding";
+import { Studio } from "@/routes/Studio";
 
 export function App() {
   const { session, profile, loading } = useAuth();
@@ -21,5 +22,8 @@ export function App() {
   // UX, not the security boundary.
   if (!profile?.is_allowlisted) return <Blocked />;
 
-  return <Home />;
+  // First run: no language picked yet. Locale is required to serve prompts.
+  if (!profile.locale) return <Onboarding />;
+
+  return <Studio />;
 }

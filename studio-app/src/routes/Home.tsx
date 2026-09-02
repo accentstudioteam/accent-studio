@@ -1,11 +1,13 @@
 import { useAuth } from "@/auth/AuthProvider";
 import { Sheet, Tile, Waveform } from "@/components/Sheet";
+import { LOCALE_NAME } from "@/lib/labels";
 
 const DEMO_BARS = [55, 32, 78, 44, 68, 88, 52, 72, 38, 58, 48, 34, 64, 40];
 
-export function Home() {
-  const { profile, session, signOut } = useAuth();
+export function Home({ onSettings }: { onSettings: () => void }) {
+  const { profile, session } = useAuth();
   const name = profile?.handle ?? session?.user.email?.split("@")[0] ?? "player";
+  const lang = profile?.locale ? LOCALE_NAME[profile.locale] : null;
 
   return (
     <div className="app">
@@ -15,23 +17,33 @@ export function Home() {
           Accent&nbsp;<em>Studio</em>
         </div>
         <button
-          className="chip"
-          style={{ background: "transparent", cursor: "pointer" }}
-          onClick={() => void signOut()}
+          aria-label="Settings"
+          onClick={onSettings}
+          style={{
+            background: "transparent",
+            border: "1px solid var(--line)",
+            borderRadius: 10,
+            width: 40,
+            height: 40,
+            color: "var(--ink2)",
+            fontSize: "1.1rem",
+          }}
         >
-          sign out
+          ⚙
         </button>
       </div>
 
       <div className="shell">
-        <div className="spread" style={{ marginBottom: 20 }}>
+        <div className="spread" style={{ marginBottom: 20, alignItems: "flex-start" }}>
           <div>
             <div className="eyebrow" style={{ marginBottom: 6 }}>
-              Welcome back
+              {lang ? `Playing in ${lang}` : "Welcome back"}
             </div>
             <h1 className="h1">Hey, {name}.</h1>
           </div>
-          <div className="chip">{profile?.ap_balance ?? 0} AP</div>
+          <div className="chip" style={{ flex: "none" }}>
+            {profile?.ap_balance ?? 0} AP
+          </div>
         </div>
 
         <div className="stack">
