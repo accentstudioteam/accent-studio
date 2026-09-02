@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { Logo } from "../components/Logo";
 
 export function SignIn() {
   const [email, setEmail] = useState("");
@@ -34,10 +35,7 @@ export function SignIn() {
   return (
     <div className="full-center">
       <div style={{ width: "100%", maxWidth: 380 }}>
-        <div className="brand" style={{ marginBottom: 26, fontSize: "1.2rem" }}>
-          <span className="lamp" />
-          Accent&nbsp;<em>Studio</em>
-        </div>
+        <div style={{ marginBottom: 26 }}><Logo height={26} /></div>
         <div className="eyebrow">Private preview</div>
         <h1 className="h1" style={{ marginBottom: 12 }}>
           Sign in to the studio.

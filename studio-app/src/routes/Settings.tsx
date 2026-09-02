@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/auth/AuthProvider";
 import { LOCALES, RAILS } from "@/lib/labels";
 import type { Locale, PayoutRail } from "@/lib/types";
+import { Logo } from "../components/Logo";
 
 export function Settings({ onBack }: { onBack: () => void }) {
   const { profile, session, refresh, signOut } = useAuth();
@@ -44,10 +45,7 @@ export function Settings({ onBack }: { onBack: () => void }) {
             ‹ back
           </span>
         </button>
-        <div className="brand">
-          <span className="lamp" />
-          Accent&nbsp;<em>Studio</em>
-        </div>
+        <Logo height={22} />
       </div>
 
       <div className="shell">

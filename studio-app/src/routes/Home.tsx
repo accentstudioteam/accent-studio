@@ -1,6 +1,7 @@
 import { useAuth } from "@/auth/AuthProvider";
 import { Sheet, Tile, Waveform } from "@/components/Sheet";
 import { LOCALE_NAME } from "@/lib/labels";
+import { Logo } from "../components/Logo";
 
 const DEMO_BARS = [55, 32, 78, 44, 68, 88, 52, 72, 38, 58, 48, 34, 64, 40];
 
@@ -12,10 +13,7 @@ export function Home({ onSettings }: { onSettings: () => void }) {
   return (
     <div className="app">
       <div className="topbar">
-        <div className="brand">
-          <span className="lamp" />
-          Accent&nbsp;<em>Studio</em>
-        </div>
+        <Logo height={22} />
         <button
           aria-label="Settings"
           onClick={onSettings}

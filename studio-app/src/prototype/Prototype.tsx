@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { SCREENS } from "./registry";
 import type { Nav, Phase } from "./types";
+import { Logo } from "../components/Logo";
 
 const PHASE_ORDER: Phase[] = [
   "Apply",
@@ -95,10 +96,7 @@ export function Prototype() {
             className="spread"
             style={{ marginBottom: 22, position: "sticky", top: 0 }}
           >
-            <div className="brand">
-              <span className="lamp" />
-              Accent&nbsp;<em>Studio</em>
-            </div>
+            <Logo height={22} />
             <button className="ico" onClick={() => setIndexOpen(false)} aria-label="Close">
               ✕
             </button>

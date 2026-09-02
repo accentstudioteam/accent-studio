@@ -9,7 +9,10 @@
 <meta property="og:description" content="Voice improv, for real money. Teach AI to talk like home.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://accentstudio.io">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙</text></svg>">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0d0b08">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -66,6 +69,11 @@ body::after{content:"";position:fixed;inset:-50%;z-index:9999;pointer-events:non
 .brand .lamp{width:9px;height:9px;border-radius:50%;background:var(--live);box-shadow:0 0 12px var(--live);animation:lamp 2.4s ease-in-out infinite}
 @keyframes lamp{0%,100%{opacity:1}50%{opacity:.45}}
 .brand em{font-style:normal;color:var(--acc)}
+.brand{flex-shrink:0}
+.brand img{height:26px;width:auto;display:block}
+.foot .brand img{height:30px}
+@media(max-width:760px){.brand img{height:22px}}
+@media(max-width:360px){.brand img{height:19px}}
 .aud{display:flex;background:var(--card);border:1px solid var(--line);border-radius:100px;padding:3px;font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase}
 .aud a{padding:7px 15px;border-radius:100px;color:var(--mut)}
 .aud a.on{background:var(--acc);color:var(--accink);font-weight:600}
@@ -372,7 +380,7 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
 <!-- NAV -->
 <nav class="nav" id="nav" aria-label="Main">
   <div class="wrap nav-in">
-    <a class="brand" href="#top"><span class="lamp"></span>Accent&nbsp;<em>Studio</em></a>
+    <a class="brand" href="#top" aria-label="Accent Studio home"><img src="/brand/svg/lockup/accent-studio-lockup-dark.svg" alt="Accent Studio"></a>
     <div class="aud" role="navigation" aria-label="Audience"><a class="on" href="index.html" aria-current="page">Players</a><a href="labs.html">Labs</a></div>
     <div class="links">
       <a href="#games">The games</a>
@@ -389,7 +397,7 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
 <!-- MOBILE MENU -->
 <div class="menu" id="menu" aria-hidden="true">
   <div class="menu-top">
-    <a class="brand" href="#top"><span class="lamp"></span>Accent&nbsp;<em>Studio</em></a>
+    <a class="brand" href="#top" aria-label="Accent Studio home"><img src="/brand/svg/lockup/accent-studio-lockup-dark.svg" alt="Accent Studio"></a>
     <button class="menu-x" id="menuX" aria-label="Close menu">✕</button>
   </div>
   <div class="menu-links">
@@ -800,7 +808,7 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
   <div class="wrap">
     <div class="foot-grid">
       <div>
-        <a class="brand" href="#top"><span class="lamp"></span>Accent&nbsp;<em>Studio</em></a>
+        <a class="brand" href="#top" aria-label="Accent Studio home"><img src="/brand/svg/lockup/accent-studio-lockup-dark.svg" alt="Accent Studio"></a>
         <p class="blurb">The voice data foundry. Built for the people teaching machines to talk, paid out to the people who play.</p>
       </div>
       <div>

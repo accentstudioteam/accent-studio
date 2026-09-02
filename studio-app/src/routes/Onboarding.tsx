@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/auth/AuthProvider";
 import { LOCALES, RAILS } from "@/lib/labels";
 import type { Locale, PayoutRail } from "@/lib/types";
+import { Logo } from "../components/Logo";
 
 export function Onboarding() {
   const { profile, session, refresh } = useAuth();
@@ -38,10 +39,7 @@ export function Onboarding() {
   return (
     <div className="app">
       <div className="topbar">
-        <div className="brand">
-          <span className="lamp" />
-          Accent&nbsp;<em>Studio</em>
-        </div>
+        <Logo height={22} />
       </div>
 
       <div className="shell">

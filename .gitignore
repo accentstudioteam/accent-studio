@@ -41,3 +41,4 @@ dist/
 .env.*.local
 !studio-app/.env.production
 .vercel
+!brand/print/*.pdf

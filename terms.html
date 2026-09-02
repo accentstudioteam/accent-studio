@@ -1,4 +1,8 @@
 <title>Accent Studio · Terms of Service</title>
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0d0b08">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -10,6 +14,7 @@
 .brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:800;font-size:1.1rem;letter-spacing:-.03em;color:var(--ink);text-decoration:none}
 .brand .dot{width:11px;height:11px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 22%,transparent)}
 .brand em{color:var(--acc);font-style:normal}
+.brand img{height:24px;width:auto;display:block}
 .nav a.back{margin-left:auto;font-family:var(--mono);font-size:.72rem;color:var(--muted);text-decoration:none;letter-spacing:.04em}
 .nav a.back:hover{color:var(--acc)}
 .wrap{max-width:760px;margin:0 auto;padding:56px 28px 100px}
@@ -28,7 +33,7 @@ a{color:var(--acc);text-decoration:underline;text-underline-offset:3px}
 </style>
 
 <nav class="nav">
-  <a class="brand" href="index.html"><span class="dot"></span>Accent&nbsp;<em>Studio</em></a>
+  <a class="brand" href="index.html" aria-label="Accent Studio home"><picture><source srcset="/brand/svg/lockup/accent-studio-lockup-dark.svg" media="(prefers-color-scheme: dark)"><img src="/brand/svg/lockup/accent-studio-lockup-light.svg" alt="Accent Studio"></picture></a>
   <a class="back" href="index.html">← Back to accentstudio.io</a>
 </nav>
 

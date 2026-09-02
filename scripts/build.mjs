@@ -22,6 +22,12 @@ const staticFiles = [
   "privacy.html",
   "terms.html",
   "cookies.html",
+  "favicon.ico",
+  "favicon.svg",
+  "apple-touch-icon.png",
+  "icon-192.png",
+  "icon-512.png",
+  "site.webmanifest",
 ];
 for (const f of staticFiles) {
   const src = join(root, f);
@@ -30,7 +36,7 @@ for (const f of staticFiles) {
     console.log(`[build] + ${f}`);
   }
 }
-for (const d of ["samples", "audio"]) {
+for (const d of ["samples", "audio", "brand"]) {
   const src = join(root, d);
   if (existsSync(src)) {
     cpSync(src, join(dist, d), { recursive: true });
