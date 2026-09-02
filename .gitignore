@@ -1,0 +1,33 @@
+# Internal/company docs, not shipped to the web
+*.pdf
+*.md
+!README.md
+
+# Build-time and preview artifacts
+delivery_full.html
+delivery_sample.html
+AccentAI_PRD_v2.html
+
+# Working assets (design refs, moodboards, exploration)
+inspiration/
+parallax_ref/
+art/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Scratchpad + tmp
+scratchpad/
+tmp/
+.tmp/
+
+# Node (for when we add tooling)
+node_modules/
+.env
+.env.local
+.env.*.local
+.vercel
