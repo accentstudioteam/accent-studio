@@ -714,6 +714,74 @@ img{max-width:100%}
 .lang:hover{border-color:var(--acc);color:var(--acc);transform:translateY(-2px)}
 .lang b{color:var(--acc)}
 .lang.soon{opacity:.55}
+
+/* ============ MOBILE PASS — hamburger nav + tightened spacing ============ */
+.hb{display:none;background:none;border:1px solid var(--line);color:var(--ink);width:40px;height:40px;border-radius:10px;font-size:1.1rem;cursor:pointer;align-items:center;justify-content:center;line-height:1;padding:0}
+.drawer{position:fixed;top:64px;left:0;right:0;background:var(--paper);border-bottom:1px solid var(--line);padding:22px 24px 26px;display:none;flex-direction:column;gap:2px;opacity:0;transform:translateY(-8px);pointer-events:none;transition:opacity .24s,transform .24s cubic-bezier(.16,1,.3,1);z-index:59;max-height:calc(100vh - 64px);overflow-y:auto}
+.nav.open .drawer{opacity:1;transform:translateY(0);pointer-events:auto}
+.drawer a{color:var(--ink);font-size:1.04rem;padding:12px 0;border-bottom:1px solid var(--line-2);text-decoration:none}
+.drawer a:last-of-type{border-bottom:none}
+.drawer .audswitch{display:flex;gap:8px;margin-bottom:14px;padding:0}
+.drawer .audswitch a{border:1px solid var(--line);border-radius:100px;padding:8px 16px;font-size:.85rem;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.drawer .audswitch a.on{background:var(--acc);color:var(--brand);border-color:var(--acc)}
+.drawer .btn{width:100%;text-align:center;margin-top:14px;padding:14px;font-size:1rem}
+
+@media(max-width:720px){
+  .hb{display:flex}
+  .drawer{display:flex}
+  .nav .links,.nav .tld,.nav .audswitch,.nav > .wrap > .btn,.nav .tt{display:none}
+  .nav-in{gap:12px}
+  .brand{font-size:1.02rem}
+
+  /* section spacing */
+  .sec{padding:56px 0}
+  .sec-head{margin-bottom:32px}
+  .wrap{padding:0 18px}
+
+  /* hero */
+  .hero-grid{padding:44px 0 56px;gap:28px}
+  .hero .cta{gap:10px}
+  .hero .btn{padding:13px 22px;font-size:.96rem;flex:1;min-width:0;text-align:center}
+  .hero .proof{gap:14px;font-size:.8rem}
+  .kick{font-size:.72rem}
+
+  /* phones section */
+  .phones-sec{padding:64px 0 72px}
+  .phones-in{gap:32px;padding:0 18px}
+  .phones-copy h2{font-size:clamp(1.7rem,1.4rem+2vw,2.2rem)}
+  .phones-copy p{font-size:.98rem}
+  .phones-stage{height:520px}
+
+  /* marquee */
+  .marq{padding:14px 0}
+
+  /* modes/mechanics/cards default sensible */
+  h2{font-size:clamp(1.7rem,1.4rem+2.2vw,2.4rem)!important}
+  .lead{font-size:1rem}
+
+  /* buttons min touch target */
+  .btn,.p-cta,.cta-solid,.ptab,button{min-height:44px}
+
+  /* footer */
+  .foot{padding:36px 0 24px}
+
+  /* prevent overflow */
+  body{overflow-x:hidden}
+  img,svg,canvas{max-width:100%;height:auto}
+}
+
+@media(max-width:420px){
+  .phone{width:180px!important;height:380px!important}
+  .phone.rating{--px:-84px!important}
+  .phone.editor{--px:84px!important}
+  .phones-stage{height:460px}
+  .hero-grid{padding:32px 0 44px}
+  .hero .btn{width:100%;flex:none}
+  .wrap{padding:0 16px}
+  .sec{padding:44px 0}
+}
+
+@media(min-width:721px){.drawer{display:none!important}}
 </style>
 
 <div class="scroll-prog"><i id="scrollProg"></i></div>
