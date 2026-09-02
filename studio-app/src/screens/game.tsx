@@ -1,11 +1,15 @@
 import { useState } from "react";
 import type { Nav } from "@/prototype/types";
 import { ScreenHead } from "@/prototype/ui";
-import { MOCK_USER, MOCK_PROMPT, MOCK_PARTNER_TAKE, MOCK_QUEUE } from "@/prototype/mock";
+import { MOCK_USER, MOCK_PARTNER_TAKE, MOCK_QUEUE } from "@/prototype/mock";
+import { generateScene } from "@/engines/scenario";
+import { scoreChemistry, chemistryBonus } from "@/engines/chemistry";
+import { typeSpan } from "@/engines/alignment";
 
 const BARS = [55, 32, 78, 44, 68, 88, 52, 72, 38, 58, 48, 34, 64, 40, 60, 30, 70, 46];
 
 export function Home({ nav }: { nav: Nav }) {
+  const [scene] = useState(() => generateScene());
   return (
     <>
       <div className="spread" style={{ marginBottom: 18, alignItems: "flex-start" }}>
@@ -40,8 +44,8 @@ export function Home({ nav }: { nav: Nav }) {
           <div className="handle" />
           <div className="shead"><i className="g" />Ping · ready</div>
           <div className="tile acc">
-            <div className="tlbl">Next up</div>
-            <div className="ttitle">{MOCK_PROMPT.scenario}</div>
+            <div className="tlbl">Next up · {scene.title}</div>
+            <div className="ttitle">{scene.turns[0].personaName}</div>
             <div className="tbody muted" style={{ marginTop: 6 }}>Say the English prompt in your language. A partner rates it.</div>
           </div>
           <button className="pill" onClick={() => nav.go("volley-record")}>Start a rally</button>
@@ -81,17 +85,26 @@ export function Home({ nav }: { nav: Nav }) {
 
 export function VolleyRecord({ nav }: { nav: Nav }) {
   const [state, setState] = useState<"idle" | "rec" | "done">("idle");
+  const [scene, setScene] = useState(() => generateScene());
+  const turn = scene.turns[0];
+  function reroll() {
+    setScene(generateScene());
+    setState("idle");
+  }
   return (
     <>
-      <div className="eyebrow" style={{ marginBottom: 8 }}>Volley · turn 3 · {MOCK_PROMPT.role}</div>
+      <div className="spread" style={{ marginBottom: 8 }}>
+        <div className="eyebrow" style={{ margin: 0 }}>Volley · {turn.role} · {turn.emotion.replace("_", " ")}</div>
+        <button className="mono" style={{ fontSize: "0.64rem", color: "var(--acc2)" }} onClick={reroll}>↻ new scene</button>
+      </div>
       <h1 className="h1" style={{ marginBottom: 18, fontSize: "clamp(1.5rem,6vw,2.1rem)" }}>Say it in your language.</h1>
 
       <div className="sheet" style={{ marginBottom: 20 }}>
         <div className="handle" />
-        <div className="shead"><i className="g" />English prompt</div>
+        <div className="shead"><i className="g" />English prompt · generated</div>
         <div className="tile acc">
-          <div className="tlbl">{MOCK_PROMPT.scenario} · say naturally</div>
-          <div className="ttitle" style={{ fontWeight: 600, lineHeight: 1.4 }}>"{MOCK_PROMPT.english}"</div>
+          <div className="tlbl">{scene.title} · {turn.personaName}</div>
+          <div className="ttitle" style={{ fontWeight: 600, lineHeight: 1.4 }}>"{turn.english}"</div>
         </div>
         <div className="tile" style={{ paddingTop: 18, paddingBottom: 18 }}>
           <div className="recwrap">
@@ -219,37 +232,54 @@ export function ArenaLobby({ nav }: { nav: Nav }) {
   );
 }
 
+const ARENA_SIGNALS = {
+  avgTurnLatencyMs: 380,
+  turnBalance: 0.9,
+  emotionContinuity: 0.86,
+  overlapNaturalness: 0.72,
+  promptAdherence: 0.95,
+  turns: 6,
+};
+
 export function ArenaScene({ nav }: { nav: Nav }) {
+  const [scene] = useState(() => generateScene());
   const [twist, setTwist] = useState(false);
+  const persona = scene.cast[0].persona;
+  const chem = scoreChemistry(ARENA_SIGNALS);
+  const line0 = scene.turns[0];
+  const line1 = scene.turns.find((t) => t.role !== line0.role);
   return (
     <>
       <div className="spread" style={{ marginBottom: 14 }}>
         <span className="badge ok">● live · 02:14</span>
-        <span className="chip" style={{ background: "var(--accdim)" }}>Chemistry 8.7</span>
+        <span className="chip" style={{ background: "var(--accdim)" }}>Chemistry {chem.score}</span>
       </div>
 
       <div className="sheet" style={{ marginBottom: 16 }}>
         <div className="handle" />
         <div className="shead"><i />Your persona</div>
         <div className="tile acc">
-          <div className="tlbl">Play this character</div>
-          <div className="ttitle">The Impatient Exec</div>
-          <div className="tbody muted" style={{ marginTop: 4 }}>customer · fast · clipped</div>
+          <div className="tlbl">Play this character · {scene.title}</div>
+          <div className="ttitle">{persona.name}</div>
+          <div className="tbody muted" style={{ marginTop: 4 }}>{persona.blurb}</div>
         </div>
         <div className="tile">
-          <div className="tlbl">Chemistry</div>
-          <div className="progress" style={{ marginTop: 6 }}><div className="fill" style={{ width: "87%" }} /></div>
+          <div className="spread" style={{ marginBottom: 6 }}>
+            <span className="tlbl" style={{ margin: 0 }}>Chemistry · {chem.band}</span>
+            <span className="mono" style={{ fontSize: "0.7rem", color: "var(--acc2)" }}>{chem.score}/10</span>
+          </div>
+          <div className="progress"><div className="fill" style={{ width: `${chem.score * 10}%` }} /></div>
         </div>
         {twist && (
           <div className="tile dash" style={{ borderColor: "var(--gold)" }}>
             <div className="tlbl" style={{ color: "var(--goldb)" }}>⚡ Twist</div>
-            <div className="tbody">Your partner reveals they know your manager. React.</div>
+            <div className="tbody">{scene.twist.text}</div>
           </div>
         )}
         <div className="tile">
-          <div className="tlbl">Live transcript</div>
-          <div className="tbody"><b>You:</b> Abeg, I need this sorted now-now.</div>
-          <div className="tbody muted" style={{ marginTop: 4 }}><b>Partner:</b> I hear you. Make I check am sharp-sharp.</div>
+          <div className="tlbl">Prompt beats</div>
+          <div className="tbody"><b>{line0.personaName}:</b> {line0.english}</div>
+          {line1 && <div className="tbody muted" style={{ marginTop: 4 }}><b>{line1.personaName}:</b> {line1.english}</div>}
         </div>
       </div>
 
@@ -266,17 +296,31 @@ export function ArenaScene({ nav }: { nav: Nav }) {
 }
 
 export function ArenaResult({ nav }: { nav: Nav }) {
+  const chem = scoreChemistry(ARENA_SIGNALS);
+  const baseAp = 100;
+  const ap = Math.round(baseAp * chemistryBonus(chem.score));
+  const ovation = chem.score >= 7.5;
   return (
     <div className="full-center" style={{ minHeight: "70vh" }}>
       <div className="center" style={{ maxWidth: 360 }}>
-        <div className="hero-emoji">👏</div>
-        <div className="badge ok" style={{ marginBottom: 14 }}>● Standing ovation</div>
-        <h1 className="h1" style={{ marginBottom: 6 }}>Chemistry 8.7</h1>
-        <p className="muted" style={{ marginBottom: 20, fontSize: "0.95rem" }}>A flowing scene. That's premium dual-channel audio, and a bonus for both of you.</p>
-        <div className="row" style={{ marginBottom: 10 }}>
+        <div className="hero-emoji">{ovation ? "👏" : "🎬"}</div>
+        {ovation && <div className="badge ok" style={{ marginBottom: 14 }}>● Standing ovation</div>}
+        <h1 className="h1" style={{ marginBottom: 6 }}>Chemistry {chem.score}</h1>
+        <p className="muted" style={{ marginBottom: 18, fontSize: "0.95rem" }}>
+          {ovation ? "A flowing scene. Premium dual-channel audio, and a bonus for both of you." : "Solid scene. Keep the rhythm tighter next time for the bonus."}
+        </p>
+        <div className="tile" style={{ textAlign: "left", marginBottom: 12 }}>
+          {chem.breakdown.map((b) => (
+            <div className="spread" key={b.label} style={{ padding: "3px 0" }}>
+              <span className="tbody muted" style={{ fontSize: "0.8rem" }}>{b.label}</span>
+              <span className="mono" style={{ fontSize: "0.7rem", color: "var(--acc2)" }}>{b.pts}/{b.max}</span>
+            </div>
+          ))}
+        </div>
+        <div className="row" style={{ marginBottom: 14 }}>
           <span className="ricon">✨</span>
-          <div className="rmain"><div className="rt">Scene reward</div><div className="rs">Base + chemistry bonus</div></div>
-          <span className="rend" style={{ color: "var(--acc2)" }}>+150 AP</span>
+          <div className="rmain"><div className="rt">Scene reward</div><div className="rs">Base {baseAp} × {chemistryBonus(chem.score)} bonus</div></div>
+          <span className="rend" style={{ color: "var(--acc2)" }}>+{ap} AP</span>
         </div>
         <button className="pill mint" onClick={() => nav.go("home")}>Back to home</button>
       </div>
@@ -359,6 +403,24 @@ export function CuttingRoomAlign({ nav }: { nav: Nav }) {
   const [mode, setMode] = useState<"match" | "edit">("match");
   const [editing, setEditing] = useState<number | null>(null);
 
+  // Human-in-the-loop assist: auto-link the confident direct matches, leave
+  // the hard constructions (serial verbs, aspect shifts, null particles) for
+  // the player. Uses the alignment engine's typeSpan.
+  function suggest() {
+    const proposed: Link[] = [];
+    let color = 0;
+    const n = Math.min(SRC_TOKENS.length, tgt.length);
+    for (let i = 0; i < n; i++) {
+      if (typeSpan(SRC_TOKENS[i], tgt[i]) === "direct") {
+        proposed.push({ color: color % 6, src: [i], tgt: [i] });
+        color++;
+      }
+    }
+    setLinks(proposed);
+    setPendSrc([]);
+    setPendTgt([]);
+  }
+
   const linkOfSrc = (i: number) => links.find((l) => l.src.includes(i));
   const linkOfTgt = (i: number) => links.find((l) => l.tgt.includes(i));
 
@@ -420,6 +482,11 @@ export function CuttingRoomAlign({ nav }: { nav: Nav }) {
           <button className={mode === "edit" ? "on" : ""} onClick={() => { setMode("edit"); clearPend(); }}>Edit</button>
         </div>
       </div>
+      {mode === "match" && links.length === 0 && (
+        <button className="mono" style={{ fontSize: "0.64rem", color: "var(--acc2)", marginBottom: 8, alignSelf: "flex-start" }} onClick={suggest}>
+          ✨ Suggest the easy matches
+        </button>
+      )}
       <h1 className="h1" style={{ marginBottom: 8, fontSize: "clamp(1.5rem,6vw,2.1rem)" }}>Match the words.</h1>
       <p className="muted" style={{ fontSize: "0.9rem", marginBottom: 20 }}>
         {mode === "match"

@@ -57,6 +57,7 @@ import {
   PackageBuild,
   ConsentAudit,
   DeliveryReceipt,
+  EngineRoom,
 } from "@/screens/delivery";
 
 /**
@@ -128,4 +129,5 @@ export const SCREENS: ScreenDef[] = [
   { id: "package-build", title: "Foundry · package", phase: "Delivery", Component: PackageBuild },
   { id: "consent-audit", title: "Foundry · consent audit", phase: "Delivery", Component: ConsentAudit },
   { id: "delivery-receipt", title: "Foundry · deliveries", phase: "Delivery", Component: DeliveryReceipt },
+  { id: "engine-room", title: "Foundry · engine room", phase: "Delivery", Component: EngineRoom },
 ];

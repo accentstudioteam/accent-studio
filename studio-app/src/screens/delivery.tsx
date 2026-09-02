@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Nav } from "@/prototype/types";
 import { ScreenHead } from "@/prototype/ui";
 import {
@@ -10,6 +11,12 @@ import {
   CONSENT_EVENTS,
   DELIVERIES,
 } from "@/prototype/mock";
+import { generateScene } from "@/engines/scenario";
+import { tagCodeSwitch } from "@/engines/codeswitch";
+import { autoAlign, ALIGN_TYPE_LABEL } from "@/engines/alignment";
+import { scanPii, PII_LABEL } from "@/engines/pii";
+import { scoreChemistry } from "@/engines/chemistry";
+import { ratingToQuality, qaTier, payoutForHour } from "@/engines/trust";
 
 // The Delivery phase is the internal foundry console: how played scenes become
 // clean, labelled, aligned, packaged corpora shipped to labs. Investor-facing.
@@ -60,6 +67,9 @@ export function FoundryOverview({ nav }: { nav: Nav }) {
         </button>
         <button className="row tap" onClick={() => nav.go("delivery-receipt")}>
           <span className="ricon">🚚</span><div className="rmain"><div className="rt">Deliveries</div><div className="rs">Shipped bundles &amp; receipts</div></div><span className="rend">›</span>
+        </button>
+        <button className="row tap" onClick={() => nav.go("engine-room")}>
+          <span className="ricon">🧠</span><div className="rmain"><div className="rt">Engine room</div><div className="rs">The generators &amp; scorers, live</div></div><span className="rend">›</span>
         </button>
       </div>
     </>
@@ -243,6 +253,114 @@ export function ConsentAudit({ nav: _nav }: { nav: Nav }) {
       <div className="tile dash" style={{ marginTop: 14 }}>
         <div className="tlbl">Air-gapped identity</div>
         <div className="tbody muted">Speaker IDs here are cryptographic only. The mapping to real identity lives in an isolated vault that never ships with the data.</div>
+      </div>
+    </>
+  );
+}
+
+export function EngineRoom({ nav: _nav }: { nav: Nav }) {
+  const [scene, setScene] = useState(() => generateScene());
+
+  const cs = tagCodeSwitch("Oga, I see three unauthorized transactions. I go block am now.", "PCM");
+  const align = autoAlign(
+    ["Good morning.", "I woke up", "and saw that", "₦50,000", "left", "my account"],
+    ["Good morning.", "I wake up", "see say", "POS commot 50k", "for", "my account!"]
+  );
+  const pii = scanPii("Hello, my number is 08031234567 and I sent ₦50,000 to the wrong person.");
+  const chem = scoreChemistry({ avgTurnLatencyMs: 380, turnBalance: 0.9, emotionContinuity: 0.86, overlapNaturalness: 0.72, promptAdherence: 0.95, turns: 6 });
+  const quality = ratingToQuality({ tone: 5, prompt: 4.8, mood: 4.9, clarity: 4.8 });
+  const tier = qaTier(quality);
+  const [lo, hi] = payoutForHour("high_demand", tier.multiplier);
+
+  return (
+    <>
+      <ScreenHead
+        eyebrow="Under the hood"
+        title="The engines, live."
+        lede="No hardcoded demo data here: every block below is computed on the spot by the same dependency-free engines the production app will run."
+      />
+
+      {/* scenario */}
+      <div className="sheet" style={{ marginBottom: 14 }}>
+        <div className="handle" />
+        <div className="shead"><i className="g" />Scenario engine</div>
+        <div className="tile acc">
+          <div className="tlbl">Generated scene · {scene.domain}</div>
+          <div className="ttitle">{scene.title}</div>
+          <div className="tbody muted" style={{ marginTop: 6 }}>
+            {scene.cast.map((c) => `${c.persona.name}`).join(" · ")}
+          </div>
+        </div>
+        <div className="tile">
+          <div className="tlbl">Turn 1 · {scene.turns[0].emotion.replace("_", " ")}</div>
+          <div className="tbody">"{scene.turns[0].english}"</div>
+        </div>
+        <div className="tile dash">
+          <div className="tlbl">⚡ Twist injected at turn {scene.twist.atTurn}</div>
+          <div className="tbody">{scene.twist.text}</div>
+        </div>
+        <button className="pill" onClick={() => setScene(generateScene())}>↻ Generate another</button>
+      </div>
+
+      {/* code-switch */}
+      <div className="sheet" style={{ marginBottom: 14 }}>
+        <div className="handle" />
+        <div className="shead"><i />Code-switch tagger</div>
+        <div className="tile">
+          <div className="tlbl">{cs.switches.join(" · ")} · {Math.round(cs.enRatio * 100)}% English</div>
+          <div className="amatch" style={{ marginBottom: 0 }}>
+            {cs.tags.map((t, i) => (
+              <span key={i} className={t.lang === "EN" ? "atok p5" : "atok p1"}>{t.token}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* alignment */}
+      <div className="sheet" style={{ marginBottom: 14 }}>
+        <div className="handle" />
+        <div className="shead"><i />Alignment typer</div>
+        {align.map((a, i) => (
+          <div className="tile" key={i} style={{ padding: "9px 13px" }}>
+            <div className="spread">
+              <span className="tbody" style={{ fontSize: "0.82rem" }}>
+                {a.src || "∅"} <span style={{ color: "var(--faint)" }}>→</span> {a.tgt || "∅"}
+              </span>
+              <span className="badge ok" style={{ flex: "none" }}>{ALIGN_TYPE_LABEL[a.type]}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* PII */}
+      <div className="sheet" style={{ marginBottom: 14 }}>
+        <div className="handle" />
+        <div className="shead"><i className="g" />PII redaction</div>
+        <div className="tile dash">
+          <div className="tlbl">In</div>
+          <div className="tbody muted">Hello, my number is 08031234567 and I sent ₦50,000 to the wrong person.</div>
+        </div>
+        <div className="tile acc">
+          <div className="tlbl">Out · {pii.spans.length} redaction{pii.spans.length === 1 ? "" : "s"}</div>
+          <div className="tbody">{pii.redacted}</div>
+        </div>
+        <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+          {pii.spans.map((s, i) => <span key={i} className="badge warn">{PII_LABEL[s.type]}</span>)}
+        </div>
+      </div>
+
+      {/* chemistry + economics */}
+      <div className="sheet">
+        <div className="handle" />
+        <div className="shead"><i />Chemistry &amp; payout math</div>
+        <div className="tile">
+          <div className="spread"><span className="tlbl" style={{ margin: 0 }}>Chemistry · {chem.band}</span><span className="mono" style={{ color: "var(--acc2)" }}>{chem.score}/10</span></div>
+          <div className="progress" style={{ marginTop: 6 }}><div className="fill" style={{ width: `${chem.score * 10}%` }} /></div>
+        </div>
+        <div className="tile">
+          <div className="tlbl">Peer quality {Math.round(quality * 100)}% → {tier.tier} ({tier.multiplier}×)</div>
+          <div className="ttitle" style={{ color: "var(--gold)" }}>${lo.toFixed(2)}–${hi.toFixed(2)}<span className="tbody muted"> / verified hour</span></div>
+        </div>
       </div>
     </>
   );
