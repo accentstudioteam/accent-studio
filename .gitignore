@@ -1,7 +1,13 @@
 # Internal/company docs, not shipped to the web
 *.pdf
+!samples/*.pdf
 *.md
 !README.md
+
+# Demo audio ships with the site
+!audio/*.mp3
+!audio/*.m4a
+!audio/*.wav
 
 # Build-time and preview artifacts
 delivery_full.html

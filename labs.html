@@ -28,7 +28,7 @@
   --disp:"Bricolage Grotesque",system-ui,sans-serif;
   --sans:"Hanken Grotesk",system-ui,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,monospace;
-  --maxw:1240px; --pad:clamp(18px,4vw,40px);
+  --maxw:1240px; --pad:clamp(22px,5vw,40px);
   --ease:cubic-bezier(.16,1,.3,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -142,7 +142,7 @@ h1 .it{font-style:italic;color:var(--acc);font-weight:700}
 .ticker .hot{color:var(--ink)}
 
 /* sections */
-.sec{position:relative;padding:clamp(72px,11vh,140px) 0}
+.sec{position:relative;padding:clamp(60px,9vh,116px) 0}
 .sec.tint{background:var(--bg1);border-block:1px solid var(--line2)}
 .ghost{position:absolute;top:clamp(10px,4vh,40px);right:var(--pad);font-family:var(--disp);font-weight:800;font-size:clamp(5rem,16vw,12rem);line-height:1;color:transparent;-webkit-text-stroke:1px var(--line);pointer-events:none;user-select:none}
 .eyebrow{font-family:var(--mono);font-size:.68rem;letter-spacing:.26em;text-transform:uppercase;color:var(--acc);margin-bottom:18px;display:flex;align-items:center;gap:12px}
@@ -251,6 +251,75 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
 .cform .btn{align-self:center;margin-top:8px}
 .cmsg{text-align:center;font-family:var(--mono);font-size:.78rem;margin-top:14px;color:var(--mut);min-height:1.4em}
 
+/* impact */
+.imp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(12px,1.8vw,20px);margin-bottom:clamp(36px,6vh,56px)}
+.imp{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px}
+.imp .n{font-family:var(--disp);font-weight:800;font-size:clamp(1.9rem,3.4vw,2.8rem);color:var(--acc);letter-spacing:-.03em;line-height:1;margin-bottom:10px}
+.imp p{font-size:.82rem;color:var(--mut);line-height:1.55}
+.imp p b{color:var(--ink2)}
+.ctabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
+.ctab{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line);background:transparent;color:var(--mut);border-radius:100px;padding:9px 17px;transition:.25s;min-height:40px}
+.ctab:hover{border-color:var(--acc);color:var(--acc2)}
+.ctab.on{background:var(--acc);color:var(--accink);border-color:var(--acc);font-weight:600}
+.wv-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2vw,24px)}
+.wvc{border-radius:24px;padding:clamp(22px,3vw,32px);border:1px solid var(--line);background:var(--card);transition:opacity .25s}
+.wvc.updating{opacity:.35}
+.wvc .bdg{display:inline-block;font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;border-radius:100px;padding:6px 13px;margin-bottom:16px}
+.wvc.wo .bdg{background:#33201a;color:#f0a58a}
+.wvc.wi .bdg{background:#173226;color:#8ff5c8}
+.wvc.wi{border-color:color-mix(in srgb,var(--acc) 40%,var(--line));background:linear-gradient(150deg,var(--card),#1e180e)}
+.wvc h4{font-family:var(--disp);font-weight:800;font-size:1.25rem;letter-spacing:-.02em;margin-bottom:14px}
+.wvc ul{list-style:none;display:flex;flex-direction:column;gap:9px;font-size:.88rem;color:var(--ink2);margin-bottom:20px}
+.wvc ul li{display:flex;gap:10px}
+.wvc.wo ul li::before{content:"✕";color:#f0a58a;font-family:var(--mono);flex:none;font-size:.78rem;padding-top:2px}
+.wvc.wi ul li::before{content:"✓";color:var(--live);font-family:var(--mono);flex:none;font-size:.78rem;padding-top:2px}
+.wvc ul b{color:var(--ink)}
+.wvm .l{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);display:block;margin-bottom:7px}
+.wvm .track{height:11px;border-radius:100px;background:rgba(255,255,255,.05);overflow:hidden;margin-bottom:7px}
+.wvm .fill{height:100%;border-radius:100px;transition:width .9s var(--ease)}
+.wvc.wo .fill{background:linear-gradient(90deg,#8a4a33,#f0a58a)}
+.wvc.wi .fill{background:linear-gradient(90deg,var(--green),var(--acc2))}
+.wvm .v{font-family:var(--disp);font-weight:800;font-size:1.15rem;color:var(--ink)}
+.wv-call{display:flex;gap:22px;align-items:center;background:var(--card);border:1px solid color-mix(in srgb,var(--acc) 35%,var(--line));border-radius:22px;padding:clamp(20px,2.6vw,30px);margin-top:clamp(14px,2vw,24px)}
+.wv-call .mult{font-family:var(--disp);font-weight:800;font-size:clamp(2.2rem,4.6vw,3.6rem);color:var(--acc);letter-spacing:-.03em;flex:none;line-height:1}
+.wv-call p{font-size:.94rem;color:var(--ink2)}
+.wv-call p b{color:var(--ink)}
+.wv-src{font-size:.74rem;color:var(--faint);margin-top:18px;line-height:1.9;max-width:80ch}
+.wv-src a{color:var(--mut);text-decoration:underline;text-underline-offset:3px}
+.wv-src a:hover{color:var(--acc2)}
+.unlock{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(12px,1.8vw,20px);margin-top:clamp(36px,6vh,54px)}
+.un{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;transition:transform .5s var(--ease),border-color .3s}
+.un:hover{transform:translateY(-5px);border-color:color-mix(in srgb,var(--acc) 40%,var(--line))}
+.un .ic{font-size:1.5rem;display:block;margin-bottom:10px}
+.un h4{font-family:var(--disp);font-weight:700;font-size:1rem;margin-bottom:6px}
+.un .n{font-family:var(--disp);font-weight:800;font-size:1.7rem;color:var(--acc);letter-spacing:-.02em;margin-bottom:8px}
+.un p{font-size:.8rem;color:var(--mut);line-height:1.55}
+
+/* hear the gap · AI vs real playback */
+.hg{background:var(--card);border:1px solid var(--line);border-radius:28px;overflow:clip}
+.hg-tabs{display:flex;border-bottom:1px solid var(--line)}
+.hg-tabs button{flex:1;background:none;border:none;color:var(--mut);font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;padding:17px;border-bottom:2px solid transparent;transition:.2s;min-height:44px}
+.hg-tabs button.on{color:var(--acc);border-bottom-color:var(--acc);background:color-mix(in srgb,var(--acc) 4%,transparent)}
+.hg-body{padding:clamp(24px,3.6vw,46px)}
+.hg-en{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;color:var(--faint);margin-bottom:16px;line-height:1.7}
+.hg-en b{color:var(--mut);letter-spacing:.16em;text-transform:uppercase;font-size:.6rem;display:block;margin-bottom:4px}
+.hg-line{font-family:var(--disp);font-weight:700;font-size:clamp(1.3rem,2.6vw,2.1rem);line-height:1.35;letter-spacing:-.015em;margin-bottom:30px;max-width:26ch}
+.hg-line .w{transition:color .15s,background .15s,box-shadow .15s;border-radius:6px;padding:1px 4px;margin:0 -2px}
+.hg-line .w.ai{background:#33201a;color:#f0a58a;box-shadow:0 0 16px rgba(240,165,138,.25)}
+.hg-line .w.rl{background:#173226;color:#8ff5c8;box-shadow:0 0 16px rgba(143,245,200,.25)}
+.hg-btns{display:flex;gap:14px;flex-wrap:wrap}
+.hg-btn{display:flex;align-items:center;gap:14px;border-radius:18px;border:1px solid var(--line);background:var(--bg1);padding:14px 22px;color:var(--ink);text-align:left;transition:border-color .25s,transform .35s var(--ease);flex:1;min-width:240px}
+.hg-btn:hover{transform:translateY(-3px)}
+.hg-btn .dot{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:1rem;flex:none;transition:transform .3s var(--ease)}
+.hg-btn:hover .dot{transform:scale(1.08)}
+.hg-btn.ai .dot{background:#33201a;color:#f0a58a}
+.hg-btn.rl .dot{background:#173226;color:#8ff5c8}
+.hg-btn.ai:hover,.hg-btn.ai.playing{border-color:#f0a58a}
+.hg-btn.rl:hover,.hg-btn.rl.playing{border-color:var(--live)}
+.hg-btn .t{font-family:var(--disp);font-weight:700;font-size:.98rem;display:block}
+.hg-btn .s{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.hg-note{font-family:var(--mono);font-size:.66rem;color:var(--faint);margin-top:22px;letter-spacing:.05em;border-top:1px dashed var(--line);padding-top:16px}
+
 /* footer */
 .foot{border-top:1px solid var(--line2);background:var(--bg1);padding:clamp(44px,7vh,70px) 0 30px}
 .foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:30px;margin-bottom:44px}
@@ -271,6 +340,9 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
   .skus{grid-template-columns:1fr 1fr}
   .compl{grid-template-columns:1fr 1fr 1fr}
   .foot-grid{grid-template-columns:1fr 1fr}
+  .imp-stats{grid-template-columns:1fr 1fr}
+  .wv-grid{grid-template-columns:1fr}
+  .unlock{grid-template-columns:1fr 1fr}
 }
 @media(max-width:760px){
   .aud{display:none}
@@ -287,7 +359,12 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
   .cta .btn{width:100%;justify-content:center}
   .foot-grid{grid-template-columns:1fr}
   .hero-sheet{transform:rotate(0)}
+  .chip.c1{display:none}
   .compl{grid-template-columns:1fr}
+  .imp-stats{grid-template-columns:1fr}
+  .unlock{grid-template-columns:1fr}
+  .wv-call{flex-direction:column;align-items:flex-start;gap:10px}
+  .hg-btn{min-width:100%}
 }
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}
@@ -308,7 +385,8 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
     <div class="aud" role="navigation" aria-label="Audience"><a href="index.html">Players</a><a class="on" href="labs.html" aria-current="page">Labs</a></div>
     <div class="links">
       <a href="#gap">The gap</a>
-      <a href="#pipeline">Pipeline</a>
+      <a href="#impact">Impact</a>
+      <a href="#hear">Hear it</a>
       <a href="#schema">Deliverable</a>
       <a href="#buy">How to buy</a>
       <a href="#faq">FAQ</a>
@@ -327,11 +405,11 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
   </div>
   <div class="menu-links">
     <a href="#gap">The gap <span>01</span></a>
-    <a href="#pipeline">Pipeline <span>02</span></a>
-    <a href="#schema">Deliverable <span>03</span></a>
-    <a href="#aligned">Alignment <span>04</span></a>
-    <a href="#buy">How to buy <span>05</span></a>
-    <a href="#contact">Contact <span>06</span></a>
+    <a href="#impact">Impact <span>02</span></a>
+    <a href="#hear">Hear it <span>03</span></a>
+    <a href="#schema">Deliverable <span>05</span></a>
+    <a href="#buy">How to buy <span>08</span></a>
+    <a href="#contact">Contact <span>→</span></a>
   </div>
   <div class="menu-foot">
     <div class="aud" style="display:flex"><a href="index.html">Players</a><a class="on" href="labs.html">Labs</a></div>
@@ -428,12 +506,125 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
   </div>
 </section>
 
-<!-- 02 PIPELINE -->
-<section class="sec tint" id="pipeline">
+<!-- 02 IMPACT -->
+<section class="sec tint" id="impact">
   <span class="ghost">02</span>
   <div class="wrap">
     <div class="shead-block rv">
-      <div class="eyebrow">02 · The pipeline</div>
+      <div class="eyebrow">02 · The impact</div>
+      <h2>The <span class="it">billions</span> your AI cannot talk to yet.</h2>
+      <p class="lead">Voice AI trained only on English and Mandarin structurally excludes most of the world. Local-language voice data doesn't just improve accuracy. It defines whether entire populations can use your product at all.</p>
+    </div>
+    <div class="imp-stats stag">
+      <div class="imp"><div class="n">739M</div><p>Adults globally with limited literacy. <b>77% live in Sub-Saharan Africa and Central/Southern Asia.</b> Voice is their only route into AI.</p></div>
+      <div class="imp"><div class="n">2,000+</div><p>African languages, <b>most primarily spoken, not written.</b> Text-first AI excludes them by design.</p></div>
+      <div class="imp"><div class="n">2×</div><p>Older adults are <b>twice as likely</b> to use voice assistants (51%) as text chatbots. Voice reads as natural, screens as intimidating.</p></div>
+      <div class="imp"><div class="n">$53B</div><p>Global voice AI market projected by <b>2030.</b> Non-Western coverage is the biggest unclaimed slice.</p></div>
+    </div>
+    <div class="rv">
+      <div class="eyebrow" style="margin-bottom:10px">Voice agent shipping into <b data-f="ctxCap" style="color:var(--acc2);margin-left:4px">Nigeria</b> today</div>
+      <h3 style="font-family:var(--disp);font-weight:800;font-size:clamp(1.4rem,2.6vw,2rem);letter-spacing:-.02em;margin-bottom:10px">Pick your market. Watch the reach change.</h3>
+      <p class="lead" style="margin-bottom:24px;font-size:.98rem">Same product, same launch budget. One trained only on English, one trained on the country's spoken languages alongside it. The difference is not a rounding error, it is a different company.</p>
+      <div class="ctabs" id="ctabs" role="tablist">
+        <button class="ctab on" data-c="ng">Nigeria</button>
+        <button class="ctab" data-c="ke">Kenya</button>
+        <button class="ctab" data-c="za">South Africa</button>
+        <button class="ctab" data-c="gh">Ghana</button>
+        <button class="ctab" data-c="in">India</button>
+        <button class="ctab" data-c="id">Indonesia</button>
+        <button class="ctab" data-c="br">Brazil</button>
+        <button class="ctab" data-c="eg">Egypt</button>
+      </div>
+      <div class="wv-grid">
+        <div class="wvc wo">
+          <span class="bdg">Without local-language voice data</span>
+          <h4>English-only voice agent</h4>
+          <ul>
+            <li><span><b data-f="engPct">~15–25%</b> of <span data-f="ctx">Nigerians</span> comfortable transacting in English</span></li>
+            <li><span><b data-f="withoutMLbl">~35M</b> addressable customers, out of ~<span data-f="pop">220M</span> population</span></li>
+            <li><span>Elderly, rural and low-literacy users <b>silently drop off</b></span></li>
+            <li><span>CSAT sinks on accented English calls, churn hides as "poor fit"</span></li>
+          </ul>
+          <div class="wvm">
+            <span class="l">Addressable market</span>
+            <div class="track"><div class="fill" data-fill="without" style="width:16%"></div></div>
+            <span class="v" data-f="withoutMLbl">~35M</span>
+          </div>
+        </div>
+        <div class="wvc wi">
+          <span class="bdg">With Accent Studio corpora</span>
+          <h4>Multi-dialect voice agent</h4>
+          <ul>
+            <li><span><b data-f="withPct">~90%+</b> of <span data-f="ctx">Nigerians</span> served in their preferred spoken language</span></li>
+            <li><span><b data-f="withMLbl">~200M</b> addressable customers</span></li>
+            <li><span>Elderly, rural and low-literacy users <b>fully unlocked</b></span></li>
+            <li><span data-f="langLine"><b>Pidgin</b> code-switching handled natively, not filtered out</span></li>
+          </ul>
+          <div class="wvm">
+            <span class="l">Addressable market</span>
+            <div class="track"><div class="fill" data-fill="with" style="width:92%"></div></div>
+            <span class="v" data-f="withMLbl">~200M</span>
+          </div>
+        </div>
+      </div>
+      <div class="wv-call">
+        <span class="mult" data-f="mult">5.7×</span>
+        <p><b>market expansion in <span data-f="ctxCap">Nigeria</span> alone.</b> Add <span data-f="langs">Nigerian Pidgin, Yoruba, Igbo and Hausa</span> and every excluded speaker becomes a served customer. Layer more countries and the math compounds.</p>
+      </div>
+      <p class="wv-src">Conservative addressable-market estimates. Sources: <a href="https://population.un.org/wpp/" target="_blank" rel="noopener">UN World Population Prospects 2024</a> · <a href="https://www.ef.com/epi/" target="_blank" rel="noopener">EF English Proficiency Index 2024</a> · <a href="https://data.worldbank.org/indicator/SE.ADT.LITR.ZS" target="_blank" rel="noopener">World Bank adult literacy data</a> · <a href="https://uis.unesco.org/en/topic/literacy" target="_blank" rel="noopener">UNESCO Institute for Statistics</a> · <a href="https://www.who.int/publications/i/item/9789240063600" target="_blank" rel="noopener">WHO Global Report on Health Equity for Persons with Disabilities</a> · <a href="https://www.grandviewresearch.com/industry-analysis/voice-recognition-market" target="_blank" rel="noopener">Grand View Research, voice AI market</a></p>
+    </div>
+    <div class="rv" style="margin-top:clamp(36px,6vh,54px)">
+      <div class="eyebrow">Who your product finally reaches</div>
+      <h3 style="font-family:var(--disp);font-weight:800;font-size:clamp(1.4rem,2.6vw,2rem);letter-spacing:-.02em">Four populations voice AI can serve <span class="it" style="font-style:italic;color:var(--acc)">only</span> in their own language.</h3>
+    </div>
+    <div class="unlock stag">
+      <div class="un"><span class="ic">👵</span><h4>Elderly</h4><div class="n">130M+</div><p>Africans aged 60+ by 2030. Screen-averse, voice-native, the largest healthcare cost centre.</p></div>
+      <div class="un"><span class="ic">🌾</span><h4>Rural &amp; low-literacy</h4><div class="n">~570M</div><p>Adults across Africa and South Asia with limited literacy. Voice is their only interface, in their own language.</p></div>
+      <div class="un"><span class="ic">♿</span><h4>Accessibility-first</h4><div class="n">1.3B</div><p>People globally with a significant disability (WHO). Voice-first is a primary access modality.</p></div>
+      <div class="un"><span class="ic">📱</span><h4>Mobile-first youth</h4><div class="n">60%+</div><p>Of Africa is under 25. Voice-native from TikTok and WhatsApp, with zero patience for an agent that doesn't get their accent.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 HEAR THE GAP -->
+<section class="sec" id="hear">
+  <span class="ghost">03</span>
+  <div class="wrap">
+    <div class="shead-block rv">
+      <div class="eyebrow">03 · Hear the gap</div>
+      <h2>What AI thinks it sounds like, <span class="it">versus the real thing.</span></h2>
+      <p class="lead">Same line, two takes. First, a state-of-the-art voice model attempting it. Then a native speaker from our studio. Watch the words light up as they're spoken.</p>
+    </div>
+    <div class="hg rv" id="hgBox">
+      <div class="hg-tabs" role="tablist">
+        <button class="on" data-hg="pcm" role="tab" aria-selected="true">Nigerian Pidgin</button>
+        <button data-hg="yo" role="tab" aria-selected="false">Yoruba</button>
+      </div>
+      <div class="hg-body">
+        <div class="hg-en" id="hgEn"><b>English source prompt</b>Good morning. I woke up this morning and saw that ₦50,000 left my account through a POS I never used.</div>
+        <p class="hg-line" id="hgLine" aria-live="off"></p>
+        <div class="hg-btns">
+          <button class="hg-btn ai" id="hgAi">
+            <span class="dot">🤖</span>
+            <span><span class="t">How AI says it</span><span class="s">state-of-the-art TTS attempt</span></span>
+          </button>
+          <button class="hg-btn rl" id="hgRl">
+            <span class="dot">🎙</span>
+            <span><span class="t">How it's actually said</span><span class="s">native speaker · our studio</span></span>
+          </button>
+        </div>
+        <div class="hg-note" id="hgNote">Recordings are being cut now. Until they land, playback is simulated so you can preview the experience.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 PIPELINE -->
+<section class="sec tint" id="pipeline">
+  <span class="ghost">04</span>
+  <div class="wrap">
+    <div class="shead-block rv">
+      <div class="eyebrow">04 · The pipeline</div>
       <h2>Three roles, one <span class="it">clean take.</span></h2>
       <p class="lead">Every session is a small production. Two players improvise, an editor verifies live, and an audit layer samples everything behind them.</p>
     </div>
@@ -460,12 +651,12 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
   </div>
 </section>
 
-<!-- 03 DELIVERABLE -->
+<!-- 05 DELIVERABLE -->
 <section class="sec" id="schema">
-  <span class="ghost">03</span>
+  <span class="ghost">05</span>
   <div class="wrap">
     <div class="shead-block rv">
-      <div class="eyebrow">03 · The deliverable</div>
+      <div class="eyebrow">05 · The deliverable</div>
       <h2>Clean, labelled, <span class="it">licensable.</span><br>Slots into your pipeline on day one.</h2>
     </div>
     <div class="deliv">
@@ -503,20 +694,24 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
         </div>
         <div class="sample-cta">
           <h4>See a full delivery before you spend a dollar.</h4>
-          <p>Our 35-page sample bundle: 10 sessions, 118 verified turns across 6 locales, schema reference, evaluation baselines and the signed consent register.</p>
-          <a class="btn btn-a" href="#contact">Request the sample bundle <span class="ar">→</span></a>
+          <p>Our 35-page sample bundle: 10 sessions, 118 verified turns across 6 locales, schema reference, evaluation baselines and the signed consent register. Audio ships on request.</p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <a class="btn btn-a" href="samples/Accent_Studio_Sample_Delivery.pdf" download>Download the sample <span class="ar">↓</span></a>
+            <a class="btn btn-g" href="#contact">Request audio access</a>
+          </div>
+          <p style="font-family:var(--mono);font-size:.64rem;color:var(--faint);margin:12px 0 0;letter-spacing:.06em">PDF · 35 pages · 2.1 MB · no email required</p>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 04 ALIGNED -->
+<!-- 06 ALIGNED -->
 <section class="sec tint" id="aligned">
-  <span class="ghost">04</span>
+  <span class="ghost">06</span>
   <div class="wrap">
     <div class="shead-block rv">
-      <div class="eyebrow">04 · Aligned corpus tier</div>
+      <div class="eyebrow">06 · Aligned corpus tier</div>
       <h2>Word-level alignment, <span class="it">source to target.</span></h2>
       <p class="lead">Every translated span links back to its English source, typed by phenomenon. Serial verbs, aspect shifts, null particles, the constructions that make these languages hard, mapped for you.</p>
     </div>
@@ -534,12 +729,12 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
   </div>
 </section>
 
-<!-- 05 COVERAGE -->
+<!-- 07 COVERAGE -->
 <section class="sec" id="coverage">
-  <span class="ghost">05</span>
+  <span class="ghost">07</span>
   <div class="wrap">
     <div class="shead-block rv">
-      <div class="eyebrow">05 · Coverage</div>
+      <div class="eyebrow">07 · Coverage</div>
       <h2>Locales and domains we <span class="it">record in.</span></h2>
     </div>
     <div class="cov stag">
@@ -559,12 +754,12 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
   </div>
 </section>
 
-<!-- 06 BUY -->
+<!-- 08 BUY -->
 <section class="sec tint" id="buy">
-  <span class="ghost">06</span>
+  <span class="ghost">08</span>
   <div class="wrap">
     <div class="shead-block rv">
-      <div class="eyebrow">06 · How to buy</div>
+      <div class="eyebrow">08 · How to buy</div>
       <h2>Four ways in, <span class="it">no lock-in.</span></h2>
       <p class="lead">Non-exclusive by default, exclusivity negotiable. Pricing scales with hours, locales and tier. Talk to us for a quote.</p>
     </div>
@@ -598,7 +793,7 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
 </section>
 
 <!-- COMPLIANCE -->
-<section class="sec" id="compliance" style="padding-top:0">
+<section class="sec" id="compliance" style="padding-top:0;padding-bottom:clamp(44px,6vh,72px)">
   <div class="wrap">
     <div class="shead-block rv" style="margin-bottom:30px">
       <div class="eyebrow">Compliance</div>
@@ -692,6 +887,7 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
           <li><a href="#schema">Deliverable</a></li>
           <li><a href="#aligned">Aligned corpus</a></li>
           <li><a href="#buy">How to buy</a></li>
+          <li><a href="samples/Accent_Studio_Sample_Delivery.pdf" download>Sample bundle (PDF)</a></li>
         </ul>
       </div>
       <div>
@@ -749,6 +945,111 @@ var gio=new IntersectionObserver(function(es){
 },{threshold:.35});
 var gc=document.getElementById('gapChart');
 if(gc)gio.observe(gc);
+
+/* country selector (impact) */
+var CTRY={
+  ng:{ctx:'Nigerians',ctxCap:'Nigeria',pop:'220M',engPct:'~15–25%',withPct:'~90%+',withoutMLbl:'~35M',withMLbl:'~200M',withoutFill:16,withFill:92,mult:'5.7×',langs:'Nigerian Pidgin, Yoruba, Igbo and Hausa',langLine:'<b>Pidgin</b> code-switching handled natively, not filtered out'},
+  ke:{ctx:'Kenyans',ctxCap:'Kenya',pop:'55M',engPct:'~20–30%',withPct:'~95%+',withoutMLbl:'~14M',withMLbl:'~52M',withoutFill:26,withFill:95,mult:'3.7×',langs:'Swahili and Sheng',langLine:'<b>Swahili</b> plus <b>Sheng</b> mix rendered without loss'},
+  za:{ctx:'South Africans',ctxCap:'South Africa',pop:'60M',engPct:'~30%',withPct:'~95%+',withoutMLbl:'~18M',withMLbl:'~57M',withoutFill:30,withFill:95,mult:'3.2×',langs:'Zulu, Xhosa, Afrikaans and 8 more official languages',langLine:'<b>Zulu, Xhosa, Afrikaans</b> and 8 more official languages spoken natively'},
+  gh:{ctx:'Ghanaians',ctxCap:'Ghana',pop:'33M',engPct:'~30%',withPct:'~90%+',withoutMLbl:'~10M',withMLbl:'~30M',withoutFill:30,withFill:91,mult:'3.0×',langs:'Twi, Ewe and Ga',langLine:'<b>Twi, Ewe, Ga</b> served alongside English fluidly'},
+  in:{ctx:'Indians',ctxCap:'India',pop:'1.42B',engPct:'~10–15%',withPct:'~85%+',withoutMLbl:'~180M',withMLbl:'~1.2B',withoutFill:13,withFill:85,mult:'6.7×',langs:'Hindi, Bengali, Tamil, Telugu, Marathi and Gujarati',langLine:'<b>Hindi, Tamil, Telugu, Bengali</b> plus 4 more Indic voices'},
+  id:{ctx:'Indonesians',ctxCap:'Indonesia',pop:'275M',engPct:'~20%',withPct:'~95%+',withoutMLbl:'~55M',withMLbl:'~260M',withoutFill:20,withFill:95,mult:'4.7×',langs:'Bahasa, Javanese and Sundanese',langLine:'<b>Bahasa, Javanese, Sundanese</b> rendered natively'},
+  br:{ctx:'Brazilians',ctxCap:'Brazil',pop:'215M',engPct:'~5%',withPct:'~99%',withoutMLbl:'~10M',withMLbl:'~213M',withoutFill:5,withFill:99,mult:'21×',langs:'Brazilian Portuguese and indigenous voices',langLine:'<b>Brazilian Portuguese</b> plus indigenous voices, no English fallback needed'},
+  eg:{ctx:'Egyptians',ctxCap:'Egypt',pop:'110M',engPct:'~15–20%',withPct:'~98%',withoutMLbl:'~20M',withMLbl:'~108M',withoutFill:18,withFill:98,mult:'5.4×',langs:'Egyptian Arabic and regional dialects',langLine:'<b>Egyptian Arabic</b> plus regional dialects, no translation friction'}
+};
+var ctabs=document.getElementById('ctabs');
+if(ctabs){
+  ctabs.addEventListener('click',function(e){
+    var b=e.target.closest('.ctab');if(!b)return;
+    ctabs.querySelectorAll('.ctab').forEach(function(x){x.classList.remove('on');});
+    b.classList.add('on');
+    var d=CTRY[b.dataset.c];if(!d)return;
+    var scope=document.getElementById('impact');
+    scope.querySelectorAll('.wvc').forEach(function(c){c.classList.add('updating');});
+    setTimeout(function(){
+      Object.keys(d).forEach(function(f){
+        scope.querySelectorAll('[data-f="'+f+'"]').forEach(function(el){
+          if(f==='langLine')el.innerHTML=d[f];else el.textContent=d[f];
+        });
+      });
+      scope.querySelectorAll('[data-fill="without"]').forEach(function(el){el.style.width=d.withoutFill+'%';});
+      scope.querySelectorAll('[data-fill="with"]').forEach(function(el){el.style.width=d.withFill+'%';});
+      scope.querySelectorAll('.wvc').forEach(function(c){c.classList.remove('updating');});
+    },220);
+  });
+}
+
+/* hear the gap · AI vs real word-sync playback
+   Drop real recordings at:
+     audio/gap_pcm_ai.mp3   audio/gap_pcm_real.mp3
+     audio/gap_yo_ai.mp3    audio/gap_yo_real.mp3
+   Playback syncs word highlights to audio duration automatically.
+   Until files exist, playback is simulated at reading pace. */
+var HG={
+  pcm:{en:'Good morning. I woke up this morning and saw that ₦50,000 left my account through a POS I never used.',
+       line:'Good morning. I wake up this morning see say POS commot 50k for my account!',
+       ai:'audio/gap_pcm_ai.mp3',real:'audio/gap_pcm_real.mp3'},
+  yo:{en:'Good morning. I bought this phone from your shop last week, but it stopped working.',
+      line:'Ẹ káàrọ̀ o. Mo ra fóònù yìí ní ilé ìtajà yin ní ọ̀sẹ̀ tó kọjá, ṣùgbọ́n kò ṣiṣẹ́ mọ́.',
+      ai:'audio/gap_yo_ai.mp3',real:'audio/gap_yo_real.mp3'}
+};
+var hgCur='pcm',hgAudio=null,hgTimer=null,hgWords=[],hgNote=document.getElementById('hgNote'),
+    hgLine=document.getElementById('hgLine'),hgEn=document.getElementById('hgEn'),
+    hgAiBtn=document.getElementById('hgAi'),hgRlBtn=document.getElementById('hgRl'),hgBox=document.getElementById('hgBox');
+function hgRender(key){
+  hgCur=key;hgStop();
+  hgEn.innerHTML='<b>English source prompt</b>'+HG[key].en;
+  hgLine.innerHTML=HG[key].line.split(' ').map(function(w){return '<span class="w">'+w+'</span>';}).join(' ');
+  hgWords=hgLine.querySelectorAll('.w');
+}
+function hgStop(){
+  if(hgAudio){hgAudio.pause();hgAudio=null;}
+  clearInterval(hgTimer);hgTimer=null;
+  if(hgWords)hgWords.forEach(function(w){w.classList.remove('ai','rl');});
+  hgAiBtn.classList.remove('playing');hgRlBtn.classList.remove('playing');
+}
+function hgHighlight(idx,cls){
+  hgWords.forEach(function(w,i){w.classList.toggle(cls,i<=idx);w.classList.remove(cls==='ai'?'rl':'ai');});
+}
+function hgPlay(kind){
+  var was=(kind==='ai'?hgAiBtn:hgRlBtn).classList.contains('playing');
+  hgStop();
+  if(was)return;
+  var btn=kind==='ai'?hgAiBtn:hgRlBtn,cls=kind==='ai'?'ai':'rl',
+      src=kind==='ai'?HG[hgCur].ai:HG[hgCur].real,n=hgWords.length;
+  btn.classList.add('playing');
+  var a=new Audio(src);
+  a.addEventListener('canplaythrough',function(){
+    hgAudio=a;a.play();
+    hgNote.textContent='Playing. Words light up as they are spoken.';
+    hgTimer=setInterval(function(){
+      if(!hgAudio)return;
+      var p=hgAudio.currentTime/(hgAudio.duration||1);
+      hgHighlight(Math.min(n-1,Math.floor(p*n)),cls);
+      if(hgAudio.ended)hgStop();
+    },80);
+  },{once:true});
+  a.addEventListener('error',function(){
+    var i=0,pace=kind==='ai'?520:340;
+    hgNote.textContent='Simulated preview. Real '+(kind==='ai'?'AI attempt':'studio recording')+' lands here soon.';
+    hgTimer=setInterval(function(){
+      hgHighlight(i,cls);i++;
+      if(i>=n){clearInterval(hgTimer);setTimeout(hgStop,900);}
+    },pace);
+  },{once:true});
+  a.load();
+}
+hgAiBtn.addEventListener('click',function(){hgPlay('ai');});
+hgRlBtn.addEventListener('click',function(){hgPlay('real');});
+hgBox.querySelectorAll('.hg-tabs button').forEach(function(b){
+  b.addEventListener('click',function(){
+    hgBox.querySelectorAll('.hg-tabs button').forEach(function(x){x.classList.remove('on');x.setAttribute('aria-selected','false');});
+    b.classList.add('on');b.setAttribute('aria-selected','true');
+    hgRender(b.dataset.hg);
+    hgNote.textContent='Recordings are being cut now. Until they land, playback is simulated so you can preview the experience.';
+  });
+});
+hgRender('pcm');
 
 /* mobile menu */
 var burger=document.getElementById('burger'),menu=document.getElementById('menu'),menuX=document.getElementById('menuX');
