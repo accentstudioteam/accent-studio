@@ -3,9 +3,16 @@ import { SignIn } from "@/routes/SignIn";
 import { Blocked } from "@/routes/Blocked";
 import { Onboarding } from "@/routes/Onboarding";
 import { Studio } from "@/routes/Studio";
+import { Prototype } from "@/prototype/Prototype";
 
 export function App() {
   const { session, profile, loading } = useAuth();
+
+  // Click-through prototype of every screen, activated via /studio?proto.
+  // Renders before the auth gate so flows can be reviewed without signing in.
+  if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("proto")) {
+    return <Prototype />;
+  }
 
   if (loading) {
     return (

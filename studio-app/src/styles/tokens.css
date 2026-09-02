@@ -456,6 +456,466 @@ select {
   padding: var(--pad);
 }
 
+/* ============================================================
+   PROTOTYPE + FLOW PRIMITIVES
+   Shared building blocks for the applicant / compliance / game
+   screens. All on the same Midnight Studio token set.
+   ============================================================ */
+
+/* prototype top navigator */
+.pbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px var(--pad);
+  border-bottom: 1px solid var(--line2);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: color-mix(in srgb, var(--bg0) 82%, transparent);
+  backdrop-filter: blur(12px);
+}
+.pbar .ico {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: transparent;
+  color: var(--ink2);
+  font-size: 1.05rem;
+  display: grid;
+  place-items: center;
+  transition: border-color 0.2s, color 0.2s;
+}
+.pbar .ico:active {
+  transform: scale(0.94);
+}
+.pbar .ttl {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mut);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pbar .ph {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  color: var(--faint);
+  letter-spacing: 0.1em;
+}
+
+/* screen index overlay */
+.pindex {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: var(--bg0);
+  overflow-y: auto;
+  padding: var(--pad);
+  padding-bottom: 60px;
+}
+.pindex-grp {
+  margin-bottom: 22px;
+}
+.pindex-grp h4 {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--acc);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pindex-grp h4::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.pindex-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border: 1px solid var(--line2);
+  border-radius: 12px;
+  margin-bottom: 7px;
+  color: var(--ink2);
+  font-size: 0.92rem;
+  transition: border-color 0.2s, background 0.2s;
+}
+.pindex-item:active {
+  transform: scale(0.99);
+}
+.pindex-item .n {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  color: var(--faint);
+  flex: none;
+}
+.pindex-item .arr {
+  margin-left: auto;
+  color: var(--faint);
+}
+
+/* stepper (flow progress) */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 22px;
+}
+.stepper .dot {
+  height: 4px;
+  flex: 1;
+  border-radius: 100px;
+  background: var(--line);
+  transition: background 0.4s var(--ease);
+}
+.stepper .dot.on {
+  background: var(--acc);
+}
+.stepper .dot.done {
+  background: color-mix(in srgb, var(--acc) 45%, var(--line));
+}
+
+/* big display number / stat */
+.bignum {
+  font-family: var(--disp);
+  font-weight: 800;
+  font-size: clamp(2.4rem, 12vw, 3.6rem);
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--acc);
+}
+.bignum.gold {
+  color: var(--gold);
+}
+
+/* requirement / feature list */
+.rlist {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.rlist li {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  font-size: 0.92rem;
+  color: var(--ink2);
+}
+.rlist li .rico {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  font-size: 0.7rem;
+  background: var(--accdim);
+  color: var(--acc);
+  margin-top: 1px;
+}
+.rlist li .rico.gold {
+  background: color-mix(in srgb, var(--gold) 18%, transparent);
+  color: var(--gold);
+}
+
+/* legal document scroll box */
+.doc {
+  background: var(--sheet);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px 18px;
+  max-height: 300px;
+  overflow-y: auto;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  color: var(--ink2);
+}
+.doc h5 {
+  font-family: var(--disp);
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--ink);
+  margin: 14px 0 6px;
+  text-transform: none;
+  letter-spacing: -0.01em;
+}
+.doc h5:first-child {
+  margin-top: 0;
+}
+.doc p {
+  margin-bottom: 8px;
+}
+.doc .clause {
+  color: var(--acc2);
+  font-weight: 600;
+}
+
+/* checkbox consent row */
+.checkrow {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.checkrow.on {
+  border-color: var(--acc);
+  background: color-mix(in srgb, var(--acc) 8%, var(--card));
+}
+.checkrow .box {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.5px solid var(--line);
+  display: grid;
+  place-items: center;
+  font-size: 0.8rem;
+  color: var(--accink);
+  margin-top: 1px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.checkrow.on .box {
+  background: var(--acc);
+  border-color: var(--acc);
+}
+.checkrow .lbl {
+  font-size: 0.88rem;
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+/* upload / capture dropzone */
+.dropzone {
+  border: 1.5px dashed var(--line);
+  border-radius: 16px;
+  padding: 30px 18px;
+  text-align: center;
+  background: var(--card);
+  transition: border-color 0.2s, background 0.2s;
+  cursor: pointer;
+}
+.dropzone.on {
+  border-color: var(--acc);
+  border-style: solid;
+  background: color-mix(in srgb, var(--acc) 7%, var(--card));
+}
+.dropzone .ic {
+  font-size: 1.8rem;
+  display: block;
+  margin-bottom: 10px;
+}
+.dropzone .t {
+  font-family: var(--disp);
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+.dropzone .s {
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  color: var(--mut);
+  letter-spacing: 0.04em;
+}
+
+/* big record button */
+.recwrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+}
+.recbtn {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  border: 3px solid var(--line);
+  background: var(--card);
+  display: grid;
+  place-items: center;
+  transition: transform 0.2s var(--ease), border-color 0.2s;
+}
+.recbtn .core {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--coral);
+  transition: all 0.25s var(--ease);
+}
+.recbtn.rec {
+  border-color: var(--coral);
+}
+.recbtn.rec .core {
+  border-radius: 7px;
+  width: 26px;
+  height: 26px;
+}
+.recbtn:active {
+  transform: scale(0.95);
+}
+.rectime {
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  color: var(--ink);
+  letter-spacing: 0.06em;
+}
+
+/* row list (documents, ledger, queue) */
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  transition: border-color 0.2s, transform 0.25s var(--ease);
+}
+.row.tap {
+  cursor: pointer;
+}
+.row.tap:active {
+  transform: scale(0.99);
+}
+.row .ricon {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 1.05rem;
+  background: var(--card2);
+}
+.row .rmain {
+  flex: 1;
+  min-width: 0;
+}
+.row .rt {
+  font-family: var(--disp);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+}
+.row .rs {
+  font-size: 0.78rem;
+  color: var(--mut);
+  margin-top: 1px;
+}
+.row .rend {
+  flex: none;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--ink2);
+}
+
+/* status badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 100px;
+  border: 1px solid transparent;
+}
+.badge.pending {
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+  color: var(--goldb);
+  border-color: color-mix(in srgb, var(--gold) 30%, transparent);
+}
+.badge.ok {
+  background: var(--accdim);
+  color: var(--acc2);
+  border-color: rgba(69, 224, 160, 0.3);
+}
+.badge.warn {
+  background: var(--coraldim, #2a1812);
+  color: #f0a58a;
+  border-color: rgba(224, 138, 92, 0.3);
+}
+
+/* progress bar */
+.progress {
+  height: 8px;
+  border-radius: 100px;
+  background: var(--line);
+  overflow: hidden;
+}
+.progress .fill {
+  height: 100%;
+  border-radius: 100px;
+  background: linear-gradient(90deg, var(--green), var(--acc));
+  transition: width 0.7s var(--ease);
+}
+
+/* two buttons in a row */
+.btn-row {
+  display: flex;
+  gap: 10px;
+}
+.btn-row > * {
+  flex: 1;
+}
+
+/* sticky bottom action bar */
+.actionbar {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  padding-top: 14px;
+  background: linear-gradient(
+    to top,
+    var(--bg0) 60%,
+    transparent
+  );
+}
+
+/* fake celebratory burst */
+.hero-emoji {
+  font-size: 3rem;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+/* section label */
+.slabel {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mut);
+  margin-bottom: 10px;
+  display: block;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
