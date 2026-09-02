@@ -48,6 +48,16 @@ import {
   ConsentCenter,
   DataPrivacy,
 } from "@/screens/account";
+import {
+  FoundryOverview,
+  CorpusBuilder,
+  SessionDetail,
+  PipelineStages,
+  ManifestView,
+  PackageBuild,
+  ConsentAudit,
+  DeliveryReceipt,
+} from "@/screens/delivery";
 
 /**
  * Ordered screen registry. `nav.next()` walks this list; the index
@@ -108,4 +118,14 @@ export const SCREENS: ScreenDef[] = [
   { id: "my-documents", title: "My documents", phase: "Account", Component: MyDocuments },
   { id: "consent-center", title: "Consent center", phase: "Account", Component: ConsentCenter },
   { id: "data-privacy", title: "Data & privacy", phase: "Account", Component: DataPrivacy },
+
+  // --- Delivery / Foundry (internal ops, investor-facing) ---
+  { id: "foundry-overview", title: "Foundry · overview", phase: "Delivery", Component: FoundryOverview },
+  { id: "corpus-builder", title: "Foundry · corpora", phase: "Delivery", Component: CorpusBuilder },
+  { id: "session-detail", title: "Foundry · session", phase: "Delivery", Component: SessionDetail },
+  { id: "pipeline-stages", title: "Foundry · pipeline", phase: "Delivery", Component: PipelineStages },
+  { id: "manifest-view", title: "Foundry · manifest", phase: "Delivery", Component: ManifestView },
+  { id: "package-build", title: "Foundry · package", phase: "Delivery", Component: PackageBuild },
+  { id: "consent-audit", title: "Foundry · consent audit", phase: "Delivery", Component: ConsentAudit },
+  { id: "delivery-receipt", title: "Foundry · deliveries", phase: "Delivery", Component: DeliveryReceipt },
 ];

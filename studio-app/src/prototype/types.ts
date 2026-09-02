@@ -20,7 +20,8 @@ export type Phase =
   | "Onboarding"
   | "Game"
   | "Economy"
-  | "Account";
+  | "Account"
+  | "Delivery";
 
 export interface ScreenDef {
   id: string;

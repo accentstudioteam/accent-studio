@@ -9,6 +9,7 @@ const PHASE_ORDER: Phase[] = [
   "Game",
   "Economy",
   "Account",
+  "Delivery",
 ];
 
 /**
