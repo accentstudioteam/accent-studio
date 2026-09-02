@@ -19,7 +19,7 @@ export function SignIn() {
     setMsg("Sending your magic link…");
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/studio/` },
+      options: { emailRedirectTo: `${window.location.origin}/studio` },
     });
     setBusy(false);
     if (error) {
