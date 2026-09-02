@@ -3,6 +3,7 @@
 !samples/*.pdf
 *.md
 !README.md
+!studio-app/*.md
 
 # Demo audio ships with the site
 !audio/*.mp3
