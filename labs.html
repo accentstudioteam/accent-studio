@@ -1,1218 +1,781 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Accent Studio · For Labs</title>
+<meta name="description" content="Clean, multi-turn, dual-channel conversational audio in the accents Big Tech hasn't covered. Editor verified, consent signed, ready for your training pipeline.">
+<meta property="og:title" content="Accent Studio · The voice data your model is starving for">
+<meta property="og:description" content="Born-digital conversational audio in Pidgin, Yoruba, Swahili, Zulu and more. Dual channel, editor verified, consent signed.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://accentstudio.io/labs">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,600&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
-/* Linear-inspired dark canvas · LABS · gold accent · playful colored elements preserved */
+/* ============================================================
+   ACCENT STUDIO · MIDNIGHT STUDIO EDITION · labs (amber)
+   ============================================================ */
 :root{
-  --bg:#08080a; --paper:#0e0e10; --paper-2:#121215; --paper-3:#17171b;
-  --ink:#f2f2f5; --ink-2:#a8a8b3; --muted:#7c7c88; --faint:#54545e;
-  --line:#22222a; --line-2:#191921;
-  --acc:#e0a24e; --acc-b:#f0b866; --acc-soft:#2a2113;
-  --brand:#0d4a3d; --brand-2:#062421; --brand-ink:#e9f2ec;
-  --hot:#e58a5c; --good:#4fc99a; --info:#8b5cf6;
-  --gold:#e0a24e;
-  --shadow:0 1px 2px rgba(0,0,0,.5),0 10px 34px -16px rgba(0,0,0,.7);
-  --lift:0 2px 8px rgba(0,0,0,.6),0 32px 66px -24px rgba(0,0,0,.85);
-  --r:14px; --maxw:1180px;
-  --serif:"Bricolage Grotesque","Trebuchet MS",sans-serif;
+  --bg0:#0d0b08; --bg1:#121009; --card:#17140e; --card2:#1d1913;
+  --line:#2b2418; --line2:#221d13;
+  --ink:#f4eee1; --ink2:#c9bfad; --mut:#96897a; --faint:#6b6152;
+  --acc:#f0a84b; --acc2:#ffc66e; --accink:#1d1204; --accdim:#2c2110;
+  --live:#45e0a0;
+  --gold:#e0a24e; --goldb:#f0b866; --coral:#e08a5c; --green:#3ec392;
+  --vio:#a78bfa; --blu:#7fc3e3;
+  --disp:"Bricolage Grotesque",system-ui,sans-serif;
   --sans:"Hanken Grotesk",system-ui,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --maxw:1240px; --pad:clamp(18px,4vw,40px);
+  --ease:cubic-bezier(.16,1,.3,1);
 }
-:root[data-theme="light"]{
-  --bg:#f4f4f6;--paper:#ffffff;--paper-2:#fafafb;--paper-3:#f1f1f3;
-  --ink:#0e0e12;--ink-2:#3a3a44;--muted:#65656e;--faint:#95959c;
-  --line:#e4e4e8;--line-2:#eeeef1;
-  --acc:#a5620d;--acc-b:#c47a17;--acc-soft:#faf1e0;
-  --brand:#0d4a3d;--brand-2:#082a24;--brand-ink:#e9f2ec;
-  --hot:#c15a2b;--good:#2f8a67;--info:#5b3ecf;
-  --gold:#a5620d;
-  --shadow:0 1px 2px rgba(15,26,22,.05),0 8px 30px -14px rgba(15,26,22,.22);
-  --lift:0 2px 8px rgba(15,26,22,.08),0 30px 66px -24px rgba(15,26,22,.34);
-}
-*{box-sizing:border-box}html{scroll-behavior:smooth}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
-h1,h2,h3,h4{font-family:var(--serif);font-weight:700;line-height:1.05;margin:0;letter-spacing:-.025em;text-wrap:balance}
-p{margin:0 0 1em}a{color:inherit;text-decoration:none}
-.mono{font-family:var(--mono)}.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
-::selection{background:var(--acc);color:#fff}
-:focus-visible{outline:3px solid var(--acc);outline-offset:2px;border-radius:6px}
-
-/* reveal on scroll */
-.rv{opacity:0;transform:translateY(60px);transition:opacity .9s cubic-bezier(.16,1,.3,1),transform 1s cubic-bezier(.16,1,.3,1)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg0);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:var(--acc);color:var(--accink)}
+a{color:inherit;text-decoration:none}
+img,svg,canvas{max-width:100%;height:auto}
+button{font-family:inherit;cursor:pointer}
+body::after{content:"";position:fixed;inset:-50%;z-index:9999;pointer-events:none;opacity:.045;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain 9s steps(6) infinite}
+@keyframes grain{0%,100%{transform:translate(0,0)}20%{transform:translate(-2%,2%)}40%{transform:translate(2%,-1%)}60%{transform:translate(-1%,-2%)}80%{transform:translate(1%,2%)}}
+.wrap{max-width:var(--maxw);margin:0 auto;padding-left:var(--pad);padding-right:var(--pad)}
+.mono{font-family:var(--mono)}
+.skip{position:absolute;left:-9999px;top:0;background:var(--acc);color:var(--accink);padding:10px 18px;z-index:200;border-radius:0 0 10px 0}
+.skip:focus{left:0}
+.rv{opacity:0;transform:translateY(34px);transition:opacity .8s var(--ease),transform .9s var(--ease)}
 .rv.in{opacity:1;transform:none}
-.rv.d1{transition-delay:.12s}.rv.d2{transition-delay:.22s}.rv.d3{transition-delay:.32s}
-.rev-stag > *{opacity:0;transform:translateY(30px) scale(.97);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1)}
-.rev-stag.in > *:nth-child(1){opacity:1;transform:none;transition-delay:.05s}
-.rev-stag.in > *:nth-child(2){opacity:1;transform:none;transition-delay:.15s}
-.rev-stag.in > *:nth-child(3){opacity:1;transform:none;transition-delay:.25s}
-.rev-stag.in > *:nth-child(4){opacity:1;transform:none;transition-delay:.35s}
-.rev-stag.in > *:nth-child(5){opacity:1;transform:none;transition-delay:.45s}
-.rev-stag.in > *:nth-child(6){opacity:1;transform:none;transition-delay:.55s}
+.stag>*{opacity:0;transform:translateY(30px);transition:opacity .7s var(--ease),transform .8s var(--ease)}
+.stag.in>*{opacity:1;transform:none}
+.stag.in>*:nth-child(1){transition-delay:.04s}.stag.in>*:nth-child(2){transition-delay:.14s}
+.stag.in>*:nth-child(3){transition-delay:.24s}.stag.in>*:nth-child(4){transition-delay:.34s}
+.stag.in>*:nth-child(5){transition-delay:.44s}.stag.in>*:nth-child(6){transition-delay:.54s}
 
-/* ======= NAV ======= */
-.nav{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);transition:box-shadow .3s,background .3s}
-.nav.scrolled{box-shadow:0 8px 28px -18px rgba(0,0,0,.55)}
-.nav-in{display:flex;align-items:center;gap:16px;height:64px}
-.brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:800;font-size:1.16rem;letter-spacing:-.03em}
-.brand .dot{width:11px;height:11px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 22%,transparent)}
-.brand em{color:var(--acc);font-style:normal}
-.audswitch{display:flex;align-items:center;gap:0;margin-left:10px;background:var(--paper);border:1px solid var(--line);border-radius:100px;padding:3px;font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
-.audswitch a{padding:7px 14px;border-radius:100px;color:var(--muted);transition:.15s;font-weight:600}
-.audswitch a:hover{color:var(--ink)}
-.audswitch a.on{background:var(--brand);color:var(--brand-ink)}
-.nav .links{display:flex;gap:22px;margin-left:18px;font-size:.9rem;color:var(--muted);white-space:nowrap}
-.nav .links a{white-space:nowrap}
-.nav .links a:hover{color:var(--ink)}
-@media(max-width:1280px){.nav .links{gap:16px;font-size:.86rem}}
-@media(max-width:1180px){.nav .tld{display:none}}
-@media(max-width:1080px){.nav .links{display:none}}
-.nav .sp{flex:1}
-.nav .tld{font-family:var(--mono);font-size:.72rem;color:var(--faint);letter-spacing:.04em}
-.btn{font-family:var(--sans);font-weight:700;font-size:.9rem;border-radius:100px;padding:10px 18px;border:1px solid transparent;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:transform .15s,box-shadow .15s,background .15s,border-color .15s;white-space:nowrap;text-decoration:none}
-.btn:active{transform:scale(.97)}
-.btn-p{background:var(--acc);color:var(--brand);font-weight:800}
-.btn-p:hover{background:var(--acc-b);box-shadow:0 8px 22px -8px color-mix(in srgb,var(--acc) 70%,transparent)}
-.btn-g{background:transparent;border-color:var(--line);color:var(--ink)}
-.btn-g:hover{border-color:var(--acc);color:var(--acc)}
-.btn-brand{background:var(--brand);color:var(--brand-ink)}.btn-brand:hover{filter:brightness(1.08)}
-.tt{margin-left:2px;background:var(--paper);border:1px solid var(--line);color:var(--ink);width:38px;height:38px;border-radius:100px;cursor:pointer;font-size:.9rem;display:grid;place-items:center}
-.tt:hover{border-color:var(--acc);color:var(--acc)}
-@media(max-width:1080px){.nav .links{display:none}.nav .tld{display:none}}
-@media(max-width:640px){.audswitch{margin-left:auto}}
+/* nav */
+.nav{position:sticky;top:0;z-index:80;background:color-mix(in srgb,var(--bg0) 78%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line2)}
+.nav-in{display:flex;align-items:center;gap:22px;height:68px}
+.brand{font-family:var(--disp);font-weight:800;font-size:1.16rem;letter-spacing:-.02em;display:flex;align-items:center;gap:9px;white-space:nowrap}
+.brand .lamp{width:9px;height:9px;border-radius:50%;background:var(--live);box-shadow:0 0 12px var(--live);animation:lamp 2.4s ease-in-out infinite}
+@keyframes lamp{0%,100%{opacity:1}50%{opacity:.45}}
+.brand em{font-style:normal;color:var(--acc)}
+.aud{display:flex;background:var(--card);border:1px solid var(--line);border-radius:100px;padding:3px;font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase}
+.aud a{padding:7px 15px;border-radius:100px;color:var(--mut)}
+.aud a.on{background:var(--acc);color:var(--accink);font-weight:600}
+.links{display:flex;gap:26px;font-size:.94rem;color:var(--ink2);margin-left:8px}
+.links a{position:relative;padding:4px 0}
+.links a::after{content:"";position:absolute;left:0;bottom:0;height:1.5px;width:0;background:var(--acc);transition:width .3s var(--ease)}
+.links a:hover{color:var(--ink)}.links a:hover::after{width:100%}
+.sp{flex:1}
+.btn{display:inline-flex;align-items:center;gap:10px;border-radius:100px;font-weight:700;font-size:.98rem;padding:14px 26px;border:1px solid transparent;transition:transform .3s var(--ease),box-shadow .3s,background .2s,color .2s;min-height:44px}
+.btn .ar{transition:transform .3s var(--ease);display:inline-block}
+.btn:hover .ar{transform:translateX(5px)}
+.btn-a{background:var(--acc);color:var(--accink);box-shadow:0 10px 34px -12px color-mix(in srgb,var(--acc) 65%,transparent)}
+.btn-a:hover{transform:translateY(-2px)}
+.btn-g{border-color:var(--line);color:var(--ink);background:transparent}
+.btn-g:hover{border-color:var(--acc);color:var(--acc2)}
+.nav .btn{padding:10px 20px;font-size:.9rem}
+.burger{display:none;width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:1.15rem;align-items:center;justify-content:center}
+.menu{position:fixed;inset:0;z-index:120;background:var(--bg0);display:flex;flex-direction:column;padding:26px var(--pad) 40px;opacity:0;pointer-events:none;transition:opacity .35s var(--ease)}
+.menu.open{opacity:1;pointer-events:auto}
+.menu-top{display:flex;align-items:center;justify-content:space-between}
+.menu-x{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:1.1rem}
+.menu-links{margin:auto 0;display:flex;flex-direction:column;gap:4px}
+.menu-links a{font-family:var(--disp);font-weight:800;font-size:clamp(1.8rem,8vw,2.7rem);letter-spacing:-.03em;padding:10px 0;border-bottom:1px solid var(--line2);display:flex;justify-content:space-between;align-items:center;transform:translateY(24px);opacity:0;transition:opacity .5s var(--ease),transform .6s var(--ease)}
+.menu.open .menu-links a{opacity:1;transform:none}
+.menu.open .menu-links a:nth-child(1){transition-delay:.08s}.menu.open .menu-links a:nth-child(2){transition-delay:.15s}
+.menu.open .menu-links a:nth-child(3){transition-delay:.22s}.menu.open .menu-links a:nth-child(4){transition-delay:.29s}
+.menu.open .menu-links a:nth-child(5){transition-delay:.36s}.menu.open .menu-links a:nth-child(6){transition-delay:.43s}
+.menu-links a span{font-family:var(--mono);font-size:.7rem;color:var(--faint);letter-spacing:.14em}
+.menu-foot{display:flex;flex-direction:column;gap:14px}
+.menu-foot .aud{align-self:flex-start}
+.menu-foot .btn{justify-content:center}
 
-/* scroll progress */
-.scroll-prog{position:fixed;top:0;left:0;right:0;height:3px;z-index:100;pointer-events:none;background:transparent}
-.scroll-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--acc))}
+/* hero */
+.hero{position:relative;overflow:clip;border-bottom:1px solid var(--line2)}
+.hero-glow{position:absolute;width:640px;height:640px;border-radius:50%;filter:blur(120px);opacity:.13;background:var(--acc);top:-260px;right:-160px;pointer-events:none}
+.hero-grid{position:relative;display:grid;grid-template-columns:1fr .95fr;gap:clamp(30px,5vw,72px);align-items:center;padding:clamp(56px,9vh,110px) 0 clamp(70px,10vh,120px)}
+.kick{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:26px}
+.onair{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink);border:1px solid var(--line);border-radius:100px;padding:8px 15px;background:var(--card)}
+.onair i{width:7px;height:7px;border-radius:50%;background:var(--live);box-shadow:0 0 10px var(--live);animation:lamp 1.8s ease-in-out infinite}
+.kick .tag{font-family:var(--mono);font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--mut)}
+h1{font-family:var(--disp);font-weight:800;font-size:clamp(2.7rem,6.6vw,5.6rem);line-height:.99;letter-spacing:-.04em;margin-bottom:26px;text-wrap:balance}
+h1 .it{font-style:italic;color:var(--acc);font-weight:700}
+.sub{font-size:clamp(1.02rem,1.4vw,1.26rem);color:var(--ink2);max-width:50ch;margin-bottom:34px}
+.cta{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:36px}
+.proof{display:flex;gap:10px 26px;flex-wrap:wrap;font-size:.86rem;color:var(--mut)}
+.proof b{color:var(--ink);font-weight:600}
+.proof span{display:inline-flex;align-items:center;gap:8px}
+.proof span::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--acc)}
+.eq{display:flex;align-items:flex-end;gap:3px;height:56px;position:absolute;left:0;right:0;bottom:0;padding:0 var(--pad);opacity:.45;pointer-events:none;mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.eq i{flex:1;background:var(--acc);border-radius:2px 2px 0 0;height:16%;animation:eq 1.5s ease-in-out infinite;transform-origin:bottom}
+@keyframes eq{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
 
-/* ======= HERO ======= */
-.hero{position:relative;overflow:hidden;background:linear-gradient(160deg,var(--brand) 0%,var(--brand-2) 62%,#062421 100%);color:var(--brand-ink);isolation:isolate}
-.hero::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(1200px 700px at var(--mx,20%) var(--my,15%),color-mix(in srgb,var(--acc) 20%,transparent),transparent 55%);transition:background .1s linear}
-.hero::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:80px 80px;mask-image:radial-gradient(1000px 600px at 50% 30%,black,transparent 70%)}
-.hero-wave{position:absolute;inset:0;z-index:0;opacity:1}
-.hero-in{position:relative;z-index:3;display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center;padding:80px 0 88px}
-@media(max-width:960px){.hero-in{grid-template-columns:1fr;padding:56px 0 60px;gap:36px}}
-.kick{display:inline-flex;align-items:center;gap:12px;font-family:var(--mono);font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--acc-b);margin-bottom:22px}
-.onair{display:inline-flex;align-items:center;gap:7px;border:1px solid color-mix(in srgb,var(--acc-b) 55%,transparent);border-radius:100px;padding:4px 11px;background:rgba(224,162,78,.1)}
-.onair i{width:7px;height:7px;border-radius:50%;background:var(--acc-b);animation:pulse 2.1s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
-.hero h1{font-family:var(--serif);font-size:clamp(2.5rem,1.2rem+4.4vw,4.3rem);font-weight:800;letter-spacing:-.035em;line-height:1;margin:0 0 22px;text-wrap:balance;color:var(--brand-ink)}
-.hero h1 .hl{color:var(--acc-b)}
-.hero .sub{font-size:clamp(1.05rem,.98rem+.4vw,1.22rem);color:color-mix(in srgb,var(--brand-ink) 82%,transparent);max-width:46ch;margin:0 0 30px;line-height:1.55}
-.hero .cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px}
-.hero .btn{padding:13px 22px;font-size:1rem}
-.hero .btn-g{border-color:color-mix(in srgb,var(--brand-ink) 26%,transparent);color:var(--brand-ink)}
-.hero .btn-g:hover{border-color:var(--acc-b);color:var(--acc-b)}
-.hero .proof{display:flex;gap:26px;flex-wrap:wrap;font-size:.85rem;color:color-mix(in srgb,var(--brand-ink) 70%,transparent)}
-.hero .proof b{color:var(--brand-ink);font-weight:700}
-.hero .proof .prf-dot{width:5px;height:5px;border-radius:50%;background:var(--acc-b);display:inline-block;margin-right:8px;vertical-align:2px}
+/* code sheet */
+.sheet{background:#0b0a09;border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 40px 90px -30px rgba(0,0,0,.85),inset 0 1px 0 rgba(255,255,255,.05);display:flex;flex-direction:column}
+.sheet .shead{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.6);padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sheet .shead i{width:5px;height:5px;border-radius:50%;background:var(--live);box-shadow:0 0 8px rgba(69,224,160,.7)}
+.sheet .shead .fn{margin-left:auto;color:rgba(255,255,255,.35);letter-spacing:.06em;text-transform:none}
+.code{font-family:var(--mono);font-size:.72rem;line-height:1.75;padding:18px 22px;color:#d8d2c4;overflow-x:auto;white-space:pre}
+.code .k{color:var(--acc2)}
+.code .s{color:#9ed4b4}
+.code .n{color:#e8b06a}
+.code .c{color:#6f6a5c;font-style:italic}
+.hero-stage{position:relative}
+.hero-sheet{transform:rotate(1.6deg);transition:transform .6s var(--ease)}
+.hero-stage:hover .hero-sheet{transform:rotate(.3deg) translateY(-6px)}
+.chip{position:absolute;font-family:var(--mono);font-size:.64rem;letter-spacing:.08em;background:var(--card2);border:1px solid var(--line);color:var(--ink2);border-radius:100px;padding:8px 14px;box-shadow:0 14px 34px -14px rgba(0,0,0,.7);animation:float 5.5s ease-in-out infinite;z-index:3}
+.chip b{color:var(--acc);font-weight:600}
+.chip.c1{top:-16px;left:-8px;animation-delay:.2s}
+.chip.c2{bottom:-14px;right:6%;animation-delay:1.4s}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 
-/* ======= DATA MANIFEST CARD (hero right) ======= */
-.dm-card{background:#082a24;border:1px solid color-mix(in srgb,var(--acc-b) 30%,transparent);border-radius:20px;box-shadow:var(--lift);overflow:hidden;position:relative}
-.dm-header{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.2)}
-.dm-header .live-t{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--acc-b);display:flex;align-items:center;gap:7px}
-.dm-header .live-t i{width:7px;height:7px;border-radius:50%;background:var(--acc-b);animation:pulse 1.6s infinite}
-.dm-header .fname{margin-left:auto;font-family:var(--mono);font-size:.66rem;color:color-mix(in srgb,var(--brand-ink) 60%,transparent);letter-spacing:.02em}
-.dm-preview{padding:16px 18px 8px}
-.dm-audio{display:flex;align-items:center;gap:12px;padding:12px;background:rgba(0,0,0,.2);border-radius:12px;margin-bottom:14px}
-.dm-play{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--acc-b),var(--acc));color:var(--brand);border:none;font-size:.9rem;display:grid;place-items:center;box-shadow:0 4px 12px -4px rgba(224,162,78,.5);flex:none;cursor:pointer}
-.dm-tracks{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
-.dm-track{display:flex;align-items:center;gap:8px;height:14px}
-.dm-track .lbl{font-family:var(--mono);font-size:.56rem;color:color-mix(in srgb,var(--brand-ink) 60%,transparent);width:14px}
-.dm-wave{flex:1;display:flex;align-items:center;gap:2px;height:100%}
-.dm-wave i{flex:1;max-width:3px;background:var(--acc-b);border-radius:100px;opacity:.75;animation:dmbob 1.5s ease-in-out infinite}
-@keyframes dmbob{0%,100%{height:22%;opacity:.55}50%{height:82%;opacity:1}}
-.dm-time{font-family:var(--mono);font-size:.62rem;color:color-mix(in srgb,var(--brand-ink) 55%,transparent)}
-.dm-code{padding:0 18px 16px;overflow:hidden}
-.dm-code pre{margin:0;font-family:var(--mono);font-size:.66rem;line-height:1.75;color:#d7e5dd;white-space:pre;overflow-x:auto}
-.dm-code .k{color:var(--acc-b)}.dm-code .s{color:#9ed4b4}.dm-code .n{color:var(--acc)}.dm-code .c{color:#6f8a7f;font-style:italic}
-.dm-tags{display:flex;flex-wrap:wrap;gap:6px;padding:0 18px 16px}
-.dm-tag{font-family:var(--mono);font-size:.62rem;letter-spacing:.04em;padding:4px 9px;border-radius:100px;background:rgba(224,162,78,.16);color:var(--acc-b);border:1px solid rgba(224,162,78,.28)}
+/* ticker */
+.ticker{border-block:1px solid var(--line2);background:var(--bg1);overflow:hidden;padding:15px 0}
+.ticker-in{display:flex;white-space:nowrap;animation:tick 36s linear infinite;width:max-content}
+.ticker:hover .ticker-in{animation-play-state:paused}
+@keyframes tick{to{transform:translateX(-50%)}}
+.ticker span{font-family:var(--mono);font-size:.74rem;letter-spacing:.24em;text-transform:uppercase;color:var(--mut);padding:0 26px;display:inline-flex;align-items:center;gap:26px}
+.ticker span::after{content:"◆";color:var(--acc);font-size:.6rem}
+.ticker .hot{color:var(--ink)}
 
-/* ======= SECTIONS ======= */
-.sec{padding:96px 0;position:relative;overflow:hidden}
-.sec.alt{background:var(--paper-2);border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2)}
-.sec.dark{background:linear-gradient(180deg,var(--brand),var(--brand-2));color:var(--brand-ink)}
-.sec.dark .eyebrow{color:var(--acc-b)}
-.sec.dark .lead{color:color-mix(in srgb,var(--brand-ink) 82%,transparent)}
-.sec-head{max-width:62ch;margin-bottom:44px}
-.sec-head.center{margin-left:auto;margin-right:auto;text-align:center}
-.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--acc);margin-bottom:16px;display:inline-flex;align-items:center;gap:10px}
-.sec h2{font-family:var(--serif);font-size:clamp(1.9rem,1.2rem+2.4vw,3rem);font-weight:800;margin-bottom:16px;letter-spacing:-.035em;line-height:1.02;color:var(--ink)}
-.sec h2 em{font-style:normal;color:var(--acc);font-weight:800}
-.sec.dark h2{color:var(--brand-ink)}
-.sec.dark h2 em{color:var(--acc-b)}
-.sec .lead{font-size:1.1rem;color:var(--ink-2);line-height:1.55}
+/* sections */
+.sec{position:relative;padding:clamp(72px,11vh,140px) 0}
+.sec.tint{background:var(--bg1);border-block:1px solid var(--line2)}
+.ghost{position:absolute;top:clamp(10px,4vh,40px);right:var(--pad);font-family:var(--disp);font-weight:800;font-size:clamp(5rem,16vw,12rem);line-height:1;color:transparent;-webkit-text-stroke:1px var(--line);pointer-events:none;user-select:none}
+.eyebrow{font-family:var(--mono);font-size:.68rem;letter-spacing:.26em;text-transform:uppercase;color:var(--acc);margin-bottom:18px;display:flex;align-items:center;gap:12px}
+.eyebrow::before{content:"";width:26px;height:1px;background:var(--acc)}
+h2{font-family:var(--disp);font-weight:800;font-size:clamp(1.9rem,4.2vw,3.3rem);letter-spacing:-.035em;line-height:1.04;margin-bottom:18px;text-wrap:balance}
+h2 .it{font-style:italic;color:var(--acc);font-weight:700}
+.lead{font-size:clamp(1rem,1.3vw,1.18rem);color:var(--ink2);max-width:62ch}
+.shead-block{max-width:72ch;margin-bottom:clamp(34px,6vh,64px)}
 
-/* ======= THE GAP ======= */
-.gap-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:44px;align-items:center}
-@media(max-width:900px){.gap-grid{grid-template-columns:1fr}}
-.gap-copy p{color:var(--ink-2);font-size:1rem;line-height:1.6;margin-bottom:14px}
-.gap-copy .stat{font-family:var(--serif);font-weight:800;font-size:3rem;letter-spacing:-.03em;color:var(--acc);line-height:1;margin-bottom:6px}
-.gap-copy .stat-l{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:20px}
-.gap-chart{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:24px 24px 22px;box-shadow:var(--shadow)}
-.gap-chart .gc-t{font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
-.gap-row{display:grid;grid-template-columns:110px 1fr 62px;gap:12px;align-items:center;margin-bottom:9px;font-size:.85rem}
-.gap-row .lang{color:var(--ink);font-weight:600}
-.gap-row .bar{height:10px;border-radius:100px;background:var(--paper-3);position:relative;overflow:hidden}
-.gap-row .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:100px;background:linear-gradient(90deg,var(--brand),var(--good))}
-.gap-row.thin .bar i{background:linear-gradient(90deg,var(--hot),var(--acc))}
-.gap-row .n{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;color:var(--muted);font-size:.78rem}
-.gap-row.thin .n{color:var(--hot);font-weight:600}
-.gap-chart .cite{margin-top:14px;font-family:var(--mono);font-size:.6rem;color:var(--faint);letter-spacing:.02em;line-height:1.5}
+/* gap chart */
+.gap-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:clamp(26px,4vw,60px);align-items:center}
+.bignum{font-family:var(--disp);font-weight:800;font-size:clamp(4rem,9vw,7.5rem);line-height:1;color:var(--acc);letter-spacing:-.05em}
+.bignum-sub{font-family:var(--mono);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--mut);max-width:34ch;line-height:2;margin-top:10px}
+.gap-note{color:var(--ink2);font-size:.96rem;margin-top:22px;max-width:44ch}
+.gap-chart{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:clamp(20px,3vw,34px)}
+.gap-chart .cth{font-family:var(--mono);font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;color:var(--mut);margin-bottom:22px}
+.grow{display:grid;grid-template-columns:110px 1fr 64px;align-items:center;gap:14px;margin-bottom:13px}
+.grow .lb{font-size:.85rem;font-weight:600;color:var(--ink2)}
+.grow .track{height:12px;border-radius:100px;background:rgba(255,255,255,.05);overflow:hidden}
+.grow .bar{height:100%;border-radius:100px;width:0;transition:width 1.3s var(--ease)}
+.grow .bar.big{background:#3d382d}
+.grow .bar.hot{background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.grow .v{font-family:var(--mono);font-size:.68rem;color:var(--mut);text-align:right}
+.grow.hotrow .lb{color:var(--acc2)}
+.grow.hotrow .v{color:var(--acc)}
+.gap-src{font-size:.68rem;font-family:var(--mono);color:var(--faint);margin-top:18px;letter-spacing:.04em}
 
-/* ======= IMPACT SECTION ======= */
-.imp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-@media(max-width:960px){.imp-stats{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:520px){.imp-stats{grid-template-columns:1fr}}
-.imp-stat{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:22px 22px 20px;box-shadow:var(--shadow);transition:transform .2s,border-color .2s}
-.imp-stat:hover{transform:translateY(-3px);border-color:var(--acc)}
-.imp-stat .imp-n{font-family:var(--serif);font-weight:800;font-size:clamp(2.2rem,1.4rem+1.6vw,2.8rem);letter-spacing:-.035em;color:var(--acc);line-height:1;margin-bottom:12px}
-.imp-stat .imp-l{color:var(--ink-2);font-size:.9rem;line-height:1.5}
-.imp-stat .imp-l b{color:var(--ink);font-weight:700}
+/* pipeline */
+.pipe{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,24px);counter-reset:step}
+.pstep{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:clamp(24px,3vw,36px);position:relative;transition:transform .5s var(--ease),border-color .3s}
+.pstep:hover{transform:translateY(-6px);border-color:color-mix(in srgb,var(--acc) 40%,var(--line))}
+.pstep .num{font-family:var(--disp);font-weight:800;font-size:3.2rem;line-height:1;color:transparent;-webkit-text-stroke:1px var(--faint);margin-bottom:16px}
+.pstep h3{font-family:var(--disp);font-weight:800;font-size:1.35rem;letter-spacing:-.02em;margin-bottom:10px}
+.pstep p{color:var(--ink2);font-size:.93rem;margin-bottom:14px}
+.pstep .tg{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--acc);border-top:1px dashed var(--line);padding-top:12px;display:block}
 
-/* Without / With comparison */
-.wv-wrap{background:linear-gradient(180deg,var(--paper) 0%,var(--paper-2) 100%);border:1px solid var(--line);border-radius:20px;padding:34px 34px 30px;box-shadow:var(--lift);position:relative;overflow:hidden}
-@media(max-width:640px){.wv-wrap{padding:24px 20px 22px}}
-.wv-head{margin-bottom:22px;max-width:64ch}
-.wv-title{font-family:var(--serif);font-weight:800;font-size:clamp(1.5rem,1.2rem+1vw,2rem);letter-spacing:-.025em;line-height:1.1;margin-bottom:8px}
-.wv-lead{color:var(--ink-2);font-size:.98rem;line-height:1.5;margin:0}
-.wv-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
-@media(max-width:760px){.wv-grid{grid-template-columns:1fr}}
-.wv-card{border:1px solid var(--line);border-radius:14px;padding:22px 22px 20px;display:flex;flex-direction:column;gap:14px;position:relative;background:var(--paper)}
-.wv-card.wv-without{opacity:.85;border-style:dashed}
-.wv-card.wv-with{border:2px solid var(--acc);box-shadow:0 20px 44px -22px color-mix(in srgb,var(--acc) 60%,transparent);background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 4%,var(--paper)),var(--paper))}
-.wv-badge{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;padding:4px 10px;border-radius:100px;background:var(--paper-3);color:var(--muted);align-self:flex-start}
-.wv-with .wv-badge{background:var(--acc);color:#fff}
-.wv-card h4{font-family:var(--serif);font-weight:800;font-size:1.15rem;letter-spacing:-.02em;line-height:1.1;margin:0}
-.wv-card ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
-.wv-card ul li{position:relative;padding-left:20px;color:var(--ink-2);font-size:.9rem;line-height:1.45}
-.wv-card ul li::before{content:"";position:absolute;left:4px;top:.55em;width:7px;height:7px;border-radius:2px;background:var(--hot);transform:rotate(45deg)}
-.wv-with ul li::before{background:var(--acc)}
-.wv-card ul li b{color:var(--ink);font-weight:700}
-.wv-metric{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center;padding-top:12px;border-top:1px dashed var(--line);margin-top:auto}
-.wv-metric-l{grid-column:1/-1;font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
-.wv-metric-v{font-family:var(--serif);font-weight:800;font-size:1.3rem;letter-spacing:-.02em;color:var(--ink);text-align:right}
-.wv-with .wv-metric-v b{color:var(--acc)}
-.wv-bar{height:10px;background:var(--paper-3);border-radius:100px;overflow:hidden;position:relative}
-.wv-fill{height:100%;border-radius:100px;transition:width .7s cubic-bezier(.16,1,.3,1)}
-.wv-note{font-family:var(--mono);font-size:.62rem;color:var(--faint);letter-spacing:.02em;margin-top:14px;line-height:1.5}
-/* Country tab strip */
-.ctry-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px}
-.ctry-tab{font-family:var(--sans);font-weight:600;font-size:.82rem;padding:8px 14px;border-radius:100px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink-2);cursor:pointer;transition:all .18s;white-space:nowrap}
-.ctry-tab:hover{border-color:var(--acc);color:var(--acc);transform:translateY(-1px)}
-.ctry-tab.on{background:var(--brand);color:var(--brand-ink);border-color:transparent;box-shadow:0 4px 12px -4px color-mix(in srgb,var(--brand) 60%,transparent)}
-.wv-card ul li b,.wv-card ul li span,.wv-metric-v b,.wv-metric-v,.wv-mult{transition:opacity .25s ease}
-.wv-card.updating ul li b,.wv-card.updating ul li span,.wv-card.updating .wv-metric-v,.wv-card.updating .wv-metric-v b{opacity:.35}
-.wv-callout{display:flex;align-items:center;gap:18px;margin-top:22px;padding:20px 24px;background:linear-gradient(135deg,var(--brand),var(--brand-2));color:var(--brand-ink);border-radius:14px;box-shadow:var(--shadow)}
-@media(max-width:520px){.wv-callout{flex-direction:column;align-items:flex-start;gap:8px}}
-.wv-mult{font-family:var(--serif);font-weight:800;font-size:3rem;letter-spacing:-.03em;color:var(--acc-b);line-height:1;flex:none;text-shadow:0 0 22px rgba(58,127,220,.35)}
-.wv-callout div{font-size:.95rem;line-height:1.5;color:color-mix(in srgb,var(--brand-ink) 88%,transparent)}
-.wv-callout b{color:var(--brand-ink);font-weight:800}
+/* deliverable */
+.deliv{display:grid;grid-template-columns:1fr 1fr;gap:clamp(20px,3vw,40px);align-items:start}
+.spec-list{display:flex;flex-direction:column;gap:12px}
+.spec{display:flex;justify-content:space-between;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 20px;transition:border-color .3s,transform .4s var(--ease)}
+.spec:hover{border-color:color-mix(in srgb,var(--acc) 40%,var(--line));transform:translateX(6px)}
+.spec .k{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);flex:none;padding-top:2px}
+.spec .v{font-size:.9rem;color:var(--ink);text-align:right}
+.sample-cta{background:linear-gradient(120deg,var(--card),#1e1810);border:1px solid var(--line);border-radius:22px;padding:26px;margin-top:16px}
+.sample-cta h4{font-family:var(--disp);font-weight:800;font-size:1.2rem;margin-bottom:8px}
+.sample-cta p{color:var(--ink2);font-size:.9rem;margin-bottom:18px}
 
-/* Populations unlocked */
-.unlock-head{max-width:62ch;margin-bottom:20px}
-.unlock-title{font-family:var(--serif);font-weight:800;font-size:clamp(1.4rem,1.1rem+1vw,1.9rem);letter-spacing:-.025em;line-height:1.1}
-.unlock-title em{font-style:normal;color:var(--acc)}
-.unlock-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-@media(max-width:960px){.unlock-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:520px){.unlock-grid{grid-template-columns:1fr}}
-.unlock-cell{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px 20px 22px;box-shadow:var(--shadow);transition:transform .2s}
-.unlock-cell:hover{transform:translateY(-3px);border-color:var(--acc)}
-.unlock-cell .unlock-i{width:38px;height:38px;border-radius:10px;background:var(--acc-soft);display:grid;place-items:center;font-size:1.2rem;margin-bottom:12px}
-.unlock-cell h4{font-family:var(--serif);font-weight:800;font-size:1.02rem;letter-spacing:-.01em;margin:0 0 6px}
-.unlock-cell .unlock-stat{font-family:var(--serif);font-weight:800;font-size:1.6rem;letter-spacing:-.02em;color:var(--acc);line-height:1;margin-bottom:8px}
-.unlock-cell .unlock-l{color:var(--ink-2);font-size:.84rem;line-height:1.5}
+/* alignment demo */
+.align-sheet{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:clamp(22px,3.4vw,44px)}
+.al-lb{font-family:var(--mono);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--mut);margin-bottom:12px}
+.al-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:26px}
+.tok{font-size:.94rem;padding:6px 12px;border-radius:10px;border:1px solid transparent;transition:transform .25s var(--ease),box-shadow .25s;cursor:default}
+.tok:hover{transform:translateY(-3px)}
+.tok.p1{background:#173226;color:#8ff5c8;border-color:#2c5c46}
+.tok.p2{background:#2c2110;color:var(--acc2);border-color:#57431f}
+.tok.p3{background:#241d38;color:var(--vio);border-color:#463670}
+.tok.p4{background:#33201a;color:#f0a58a;border-color:#5e3a2c}
+.tok.p5{background:#152736;color:var(--blu);border-color:#2b4c66}
+.tok.nul{background:transparent;color:var(--faint);border:1px dashed var(--line);font-style:italic}
+.al-note{font-size:.86rem;color:var(--mut);border-top:1px dashed var(--line);padding-top:16px;max-width:70ch}
+.al-note b{color:var(--acc)}
 
-/* Market imbalance bars */
-.mi-wrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:44px;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:34px 34px 30px;box-shadow:var(--shadow)}
-@media(max-width:900px){.mi-wrap{grid-template-columns:1fr;gap:26px;padding:26px 22px}}
-.mi-copy p{color:var(--ink-2);font-size:.95rem;line-height:1.55;margin:0}
-.mi-title{font-family:var(--serif);font-weight:800;font-size:clamp(1.4rem,1.1rem+1.2vw,1.95rem);letter-spacing:-.025em;line-height:1.1;margin:6px 0 14px}
-.mi-title em{font-style:normal;color:var(--acc)}
-.mi-bars{display:flex;flex-direction:column;gap:12px}
-.mi-row{display:grid;grid-template-columns:170px 1fr 70px;gap:12px;align-items:center;font-size:.86rem}
-@media(max-width:560px){.mi-row{grid-template-columns:1fr 1fr;gap:6px}.mi-row .mi-bar{grid-column:1/-1;order:3}}
-.mi-lbl{color:var(--ink-2)}
-.mi-bar{height:12px;border-radius:100px;background:var(--paper-3);overflow:hidden}
-.mi-bar i{display:block;height:100%;border-radius:100px}
-.mi-n{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;color:var(--acc);font-weight:700}
-.mi-note{grid-column:1/-1;font-family:var(--mono);font-size:.62rem;color:var(--faint);letter-spacing:.02em;margin-top:10px;line-height:1.5}
+/* coverage */
+.cov{display:grid;grid-template-columns:1fr 1fr;gap:clamp(18px,3vw,30px)}
+.cov-col{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:clamp(22px,3vw,34px)}
+.cov-col h4{font-family:var(--mono);font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:var(--mut);margin-bottom:18px}
+.chips{display:flex;flex-wrap:wrap;gap:9px}
+.chp{font-size:.86rem;font-weight:600;border:1px solid var(--line);border-radius:100px;padding:8px 15px;color:var(--ink2);transition:border-color .25s,color .25s,transform .3s var(--ease)}
+.chp:hover{border-color:var(--acc);color:var(--acc2);transform:translateY(-2px)}
+.chp b{color:var(--acc);font-weight:600}
+.chp.soon{opacity:.5}
 
-/* ======= PIPELINE ======= */
-.pipe{display:grid;grid-template-columns:repeat(3,1fr);gap:0;position:relative}
-@media(max-width:900px){.pipe{grid-template-columns:1fr;gap:20px}}
-.pipe-step{padding:26px 28px;border-right:1px dashed rgba(255,255,255,.14);position:relative}
-.pipe-step:last-child{border-right:none}
-@media(max-width:900px){.pipe-step{border-right:none;border-bottom:1px dashed rgba(255,255,255,.14);padding:20px 0}.pipe-step:last-child{border-bottom:none}}
-.pipe-step .num{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;color:var(--acc-b);text-transform:uppercase;margin-bottom:10px}
-.pipe-step h3{font-family:var(--serif);font-weight:800;font-size:1.35rem;letter-spacing:-.02em;margin-bottom:8px;color:var(--brand-ink)}
-.pipe-step p{color:color-mix(in srgb,var(--brand-ink) 76%,transparent);font-size:.93rem;line-height:1.5;margin-bottom:16px}
-.pipe-visual{background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px}
-.pipe-visual .pv-l{font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--acc-b);margin-bottom:8px}
-.pipe-visual .pv-body{font-family:var(--mono);font-size:.72rem;color:color-mix(in srgb,var(--brand-ink) 85%,transparent);line-height:1.55}
-.pipe-visual .pv-body .g{color:var(--good)}
-.pipe-visual .pv-body .a{color:var(--acc-b)}
-.pipe-visual .pv-body .s{color:#9ed4b4}
-.pipe-visual .pv-body del{color:rgba(255,180,180,.55);text-decoration:line-through wavy rgba(255,120,120,.4)}
+/* buy */
+.skus{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(12px,1.8vw,20px)}
+.sku{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:clamp(20px,2.6vw,30px);display:flex;flex-direction:column;gap:12px;transition:transform .5s var(--ease),border-color .3s}
+.sku:hover{transform:translateY(-6px);border-color:color-mix(in srgb,var(--acc) 45%,var(--line))}
+.sku .k{font-family:var(--mono);font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--acc)}
+.sku h3{font-family:var(--disp);font-weight:800;font-size:1.22rem;letter-spacing:-.02em}
+.sku p{font-size:.86rem;color:var(--ink2);flex:1}
+.sku .ft{font-family:var(--mono);font-size:.64rem;color:var(--mut);border-top:1px dashed var(--line);padding-top:10px;letter-spacing:.06em}
 
-/* ======= SAMPLE CORPORA ======= */
-.samples-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
-@media(max-width:820px){.samples-grid{grid-template-columns:1fr}}
-.samp{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px;transition:transform .2s,box-shadow .2s,border-color .2s}
-.samp:hover{transform:translateY(-3px);box-shadow:var(--lift);border-color:var(--acc)}
-.samp-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
-.samp-locale{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--acc);background:var(--acc-soft);padding:4px 9px;border-radius:100px}
-.samp-title{font-family:var(--serif);font-weight:800;font-size:1.25rem;letter-spacing:-.02em}
-.samp-meta{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);font-size:.72rem;color:var(--muted);letter-spacing:.02em}
-.samp-meta b{color:var(--ink);font-weight:700}
-.samp-audio{display:flex;align-items:center;gap:12px;background:var(--brand);color:var(--brand-ink);border-radius:12px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--brand) 60%,#000)}
-.samp-play{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--acc-b),var(--acc));color:var(--brand);border:none;display:grid;place-items:center;font-size:.82rem;cursor:pointer;flex:none;box-shadow:0 4px 10px -3px rgba(224,162,78,.4)}
-.samp-wave{flex:1;display:flex;align-items:center;gap:2px;height:22px}
-.samp-wave i{flex:1;max-width:3px;background:var(--acc-b);border-radius:100px;opacity:.7;animation:dmbob 1.4s ease-in-out infinite}
-.samp-time{font-family:var(--mono);font-size:.66rem;color:color-mix(in srgb,var(--brand-ink) 60%,transparent);flex:none}
-.samp-tags{display:flex;flex-wrap:wrap;gap:6px}
-.samp-tag{font-family:var(--mono);font-size:.62rem;padding:3px 9px;border-radius:100px;background:var(--paper-3);border:1px solid var(--line-2);color:var(--muted);letter-spacing:.02em}
-.samp-cta{margin-top:auto;display:flex;gap:8px;padding-top:10px;border-top:1px dashed var(--line)}
-.samp-cta a{font-family:var(--mono);font-size:.72rem;color:var(--acc);letter-spacing:.04em;text-transform:uppercase;font-weight:600;padding:6px 0}
-.samp-cta a:hover{color:var(--brand)}
+/* compliance */
+.compl{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(10px,1.6vw,18px)}
+.cm{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;text-align:center}
+.cm .t{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin-bottom:6px}
+.cm p{font-size:.78rem;color:var(--mut)}
 
-/* ======= WHAT SHIPS (schema + files + api) ======= */
-.ships-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:22px;align-items:start}
-@media(max-width:960px){.ships-grid{grid-template-columns:1fr}}
-.ship-code2{background:var(--brand-2);border-radius:14px;overflow:hidden;box-shadow:var(--lift);border:1px solid color-mix(in srgb,var(--brand) 60%,#000)}
-.ship-code2 .cbar{display:flex;align-items:center;gap:8px;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,.08);font-family:var(--mono);font-size:.7rem;color:var(--acc-b);letter-spacing:.06em}
-.ship-code2 .cbar .dots{display:flex;gap:5px;margin-right:6px}
-.ship-code2 .cbar .dots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.15)}
-.ship-code2 pre{margin:0;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:.75rem;line-height:1.72;color:#d7e5dd}
-.ship-code2 .k{color:var(--acc-b)}.ship-code2 .s{color:#9ed4b4}.ship-code2 .n{color:var(--acc)}.ship-code2 .c{color:#6f8a7f;font-style:italic}
-.ships-side{display:flex;flex-direction:column;gap:12px}
-.ship-file2{display:flex;align-items:center;gap:12px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
-.ship-icon2{width:40px;height:40px;border-radius:10px;background:var(--acc-soft);display:grid;place-items:center;font-size:1.15rem;flex:none}
-.ship-name2{font-family:var(--mono);font-size:.82rem;color:var(--ink);font-weight:600;letter-spacing:-.01em}
-.ship-meta2{font-family:var(--mono);font-size:.64rem;color:var(--muted);letter-spacing:.02em;margin-top:2px}
+/* faq */
+.faq{max-width:780px}
+.faq details{border-bottom:1px solid var(--line);padding:4px 0}
+.faq summary{font-family:var(--disp);font-weight:700;font-size:clamp(1.02rem,1.5vw,1.24rem);letter-spacing:-.015em;padding:20px 40px 20px 0;cursor:pointer;list-style:none;position:relative;transition:color .2s}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";position:absolute;right:4px;top:50%;transform:translateY(-50%);font-family:var(--mono);color:var(--acc);font-size:1.3rem;transition:transform .3s var(--ease)}
+.faq details[open] summary::after{transform:translateY(-50%) rotate(45deg)}
+.faq details[open] summary{color:var(--acc2)}
+.faq .a{padding:0 0 22px;color:var(--ink2);font-size:.95rem;max-width:64ch}
 
-/* ======= ALIGNED CORPUS ======= */
-.align-grid{display:grid;grid-template-columns:1fr 1.15fr;gap:44px;align-items:center}
-@media(max-width:960px){.align-grid{grid-template-columns:1fr}}
-.align-copy .badge-new{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);background:var(--acc-soft);padding:5px 12px;border-radius:100px;margin-bottom:14px;border:1px solid color-mix(in srgb,var(--acc) 40%,transparent)}
-.align-copy .badge-new::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--acc);animation:pulse 1.8s infinite}
-.align-copy .bullets{list-style:none;padding:0;margin:20px 0}
-.align-copy .bullets li{position:relative;padding-left:26px;margin-bottom:10px;color:var(--ink-2);font-size:.96rem}
-.align-copy .bullets li::before{content:"";position:absolute;left:6px;top:.6em;width:8px;height:8px;background:var(--acc);border-radius:2px;transform:rotate(45deg)}
-.align-mock{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:26px;box-shadow:var(--lift);position:relative}
-.align-mock .amk-h{font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);margin-bottom:16px;display:flex;align-items:center;gap:10px}
-.align-mock .amk-h i{width:7px;height:7px;border-radius:50%;background:var(--acc);animation:pulse 1.8s infinite}
-.align-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
-.align-lbl{font-family:var(--mono);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);flex-basis:100%;margin-bottom:4px}
-.align-tok{display:inline-block;padding:6px 12px;border-radius:9px;font-size:.9rem;background:var(--paper-3);border:1.5px solid transparent;cursor:pointer;transition:all .18s;font-family:var(--sans);color:var(--ink);position:relative}
-.align-tok:hover{border-color:var(--acc);transform:translateY(-1px)}
-.align-tok.p1{background:color-mix(in srgb,var(--acc) 22%,transparent);border-color:var(--acc);color:var(--acc)}
-.align-tok.p2{background:color-mix(in srgb,var(--good) 22%,transparent);border-color:var(--good);color:var(--good)}
-.align-tok.p3{background:color-mix(in srgb,var(--gold) 22%,transparent);border-color:var(--gold);color:#8a5a1a}
-.align-tok.p4{background:color-mix(in srgb,var(--info) 22%,transparent);border-color:var(--info);color:var(--info)}
-.align-tok.null{opacity:.5;font-style:italic}
-.align-connects{margin:14px 0 6px;padding:12px;background:var(--paper-2);border-radius:10px;font-family:var(--mono);font-size:.66rem;line-height:1.7;color:var(--muted)}
-.align-connects b{color:var(--ink)}
-.align-connects .c1{color:var(--acc)}.align-connects .c2{color:var(--good)}.align-connects .c3{color:#8a5a1a}.align-connects .c4{color:var(--info)}
+/* contact */
+.contact{position:relative;overflow:clip}
+.contact-glow{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);width:720px;height:480px;background:var(--acc);opacity:.06;filter:blur(120px);border-radius:50%}
+.cform{max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:14px;position:relative;z-index:2}
+.cform .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cform input,.cform textarea{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 20px;color:var(--ink);font-family:var(--sans);font-size:.98rem;outline:none;transition:border-color .2s;width:100%}
+.cform input:focus,.cform textarea:focus{border-color:var(--acc)}
+.cform textarea{min-height:120px;resize:vertical}
+.cform .btn{align-self:center;margin-top:8px}
+.cmsg{text-align:center;font-family:var(--mono);font-size:.78rem;margin-top:14px;color:var(--mut);min-height:1.4em}
 
-/* ======= ENTERPRISE GRID ======= */
-.ent-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-@media(max-width:960px){.ent-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:520px){.ent-grid{grid-template-columns:1fr}}
-.ent-cell{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;transition:transform .2s,border-color .2s;color:var(--brand-ink)}
-.ent-cell:hover{transform:translateY(-3px);border-color:var(--acc-b)}
-.ent-cell .ent-i{width:42px;height:42px;border-radius:11px;background:rgba(224,162,78,.15);border:1px solid rgba(224,162,78,.28);display:grid;place-items:center;font-size:1.15rem;margin-bottom:14px;color:var(--acc-b)}
-.ent-cell h4{font-family:var(--serif);font-weight:800;font-size:1.05rem;color:var(--brand-ink);margin-bottom:6px;letter-spacing:-.01em}
-.ent-cell p{color:color-mix(in srgb,var(--brand-ink) 70%,transparent);font-size:.82rem;line-height:1.5;margin:0}
+/* footer */
+.foot{border-top:1px solid var(--line2);background:var(--bg1);padding:clamp(44px,7vh,70px) 0 30px}
+.foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:30px;margin-bottom:44px}
+.foot .blurb{color:var(--mut);font-size:.9rem;max-width:30ch;margin-top:14px}
+.foot h5{font-family:var(--mono);font-size:.64rem;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);margin-bottom:16px}
+.foot ul{list-style:none;display:flex;flex-direction:column;gap:10px;font-size:.92rem;color:var(--ink2)}
+.foot ul a:hover{color:var(--acc2)}
+.foot .bottom{border-top:1px solid var(--line2);padding-top:22px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:.78rem;color:var(--faint)}
 
-/* ======= COVERAGE MATRIX ======= */
-.cov-matrix{background:var(--paper);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow-x:auto;padding:8px}
-.cov-matrix table{border-collapse:collapse;width:100%;min-width:680px;font-family:var(--mono);font-size:.72rem}
-.cov-matrix th,.cov-matrix td{padding:11px 14px;border-bottom:1px solid var(--line-2);text-align:left;letter-spacing:.02em}
-.cov-matrix th{background:var(--paper-3);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;position:sticky;top:0}
-.cov-matrix td.lang{color:var(--ink);font-weight:700;font-family:var(--sans);letter-spacing:-.01em}
-.cov-cell{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:5px;font-size:.62rem}
-.cov-cell.live{background:var(--good);color:#fff}
-.cov-cell.soon{background:var(--acc-soft);color:var(--acc)}
-.cov-cell.plan{background:var(--paper-3);color:var(--faint);border:1px dashed var(--line)}
-.cov-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;font-family:var(--mono);font-size:.66rem;color:var(--muted);letter-spacing:.02em}
-.cov-legend span{display:inline-flex;align-items:center;gap:6px}
-
-/* ======= WHY US COMPARISON ======= */
-.why-table{background:var(--paper);border:1px solid var(--line);border-radius:16px;overflow-x:auto;box-shadow:var(--shadow);margin-top:6px}
-.why-table table{border-collapse:collapse;width:100%;min-width:720px;font-size:.88rem}
-.why-table th,.why-table td{padding:14px 18px;border-bottom:1px solid var(--line-2);text-align:left;vertical-align:top}
-.why-table thead th{background:var(--paper-3);font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
-.why-table tbody th{font-family:var(--sans);font-weight:700;color:var(--ink);width:180px}
-.why-table td strong{color:var(--acc);font-weight:800}
-.why-table .col-us{background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 5%,transparent),transparent);border-left:3px solid var(--acc)}
-
-/* ======= SKUs ======= */
-.sku-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-@media(max-width:960px){.sku-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:520px){.sku-grid{grid-template-columns:1fr}}
-.sku-card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px;position:relative}
-.sku-card.feat{border-color:var(--acc);box-shadow:var(--lift)}
-.sku-card.new{border-color:var(--info);box-shadow:0 20px 40px -18px color-mix(in srgb,var(--info) 40%,transparent)}
-.sku-card .sk-tier{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.sku-card.feat .sk-tier{color:var(--acc)}
-.sku-card.new .sk-tier{color:var(--info)}
-.sku-card .sk-name{font-family:var(--serif);font-weight:800;font-size:1.18rem;letter-spacing:-.02em;line-height:1.1}
-.sku-card ul{list-style:none;padding:0;margin:0;font-size:.84rem;color:var(--ink-2);flex:1}
-.sku-card ul li{padding-left:20px;position:relative;margin-bottom:7px;line-height:1.4}
-.sku-card ul li::before{content:"";position:absolute;left:4px;top:.55em;width:7px;height:7px;background:var(--acc);border-radius:2px;transform:rotate(45deg)}
-.sku-card.new ul li::before{background:var(--info)}
-.sku-card .sk-badge{position:absolute;top:-9px;right:16px;font-family:var(--mono);font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:4px 10px;border-radius:100px}
-.sku-card.feat .sk-badge{background:var(--acc);color:var(--brand)}
-.sku-card.new .sk-badge{background:var(--info);color:#fff}
-
-/* ======= COMPLIANCE BADGES ======= */
-.badges{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
-.badge2{font-family:var(--mono);font-size:.74rem;letter-spacing:.06em;border:1px solid var(--line);border-radius:100px;padding:9px 16px;color:var(--muted);background:var(--paper)}
-.badge2 b{color:var(--acc)}
-
-/* ======= LAB FAQ ======= */
-.faq{max-width:820px;margin:0 auto}
-.qa{border-bottom:1px solid var(--line);padding:4px 0}
-.qa summary{cursor:pointer;list-style:none;padding:20px 4px;font-family:var(--serif);font-weight:700;font-size:1.08rem;display:flex;align-items:center;gap:14px}
-.qa summary::-webkit-details-marker{display:none}
-.qa summary .pl{margin-left:auto;color:var(--acc);transition:transform .25s;font-size:1.2rem}
-.qa[open] summary .pl{transform:rotate(45deg)}
-.qa p{padding:0 4px 20px;color:var(--ink-2);margin:0;font-size:.96rem;line-height:1.6}
-
-/* ======= SALES CONTACT FORM ======= */
-.contact-wrap{max-width:820px;margin:0 auto;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:40px 40px 34px}
-@media(max-width:640px){.contact-wrap{padding:26px 22px 24px}}
-.contact-h{text-align:center;margin-bottom:26px}
-.contact-h h2{font-size:clamp(1.7rem,1.2rem+1.4vw,2.3rem);color:var(--brand-ink);margin-bottom:10px}
-.contact-h p{color:color-mix(in srgb,var(--brand-ink) 76%,transparent);margin:0;max-width:52ch;margin:0 auto}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media(max-width:640px){.form-grid{grid-template-columns:1fr}}
-.form-grid .full{grid-column:1/-1}
-.field{display:flex;flex-direction:column;gap:6px}
-.field label{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--acc-b)}
-.field input,.field select,.field textarea{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:12px 14px;color:var(--brand-ink);font-family:var(--sans);font-size:.95rem;transition:border-color .2s,background .2s}
-.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--acc-b);background:rgba(255,255,255,.12)}
-.field input::placeholder,.field textarea::placeholder{color:color-mix(in srgb,var(--brand-ink) 45%,transparent)}
-.field select option{background:var(--brand-2);color:var(--brand-ink)}
-.field textarea{min-height:110px;resize:vertical;font-family:var(--sans)}
-.form-actions{margin-top:22px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
-.form-actions .note{font-family:var(--mono);font-size:.66rem;color:color-mix(in srgb,var(--brand-ink) 60%,transparent);letter-spacing:.02em}
-.form-actions .btn{padding:13px 26px;font-size:1rem}
-.form-msg{grid-column:1/-1;margin-top:6px;font-family:var(--mono);font-size:.78rem;color:var(--acc-b);min-height:1.2em;text-align:center}
-
-/* ======= FOOTER ======= */
-.foot{padding:48px 0 40px;color:var(--muted);font-size:.86rem;background:var(--paper-2);border-top:1px solid var(--line)}
-.foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:30px;margin-bottom:30px}
-@media(max-width:760px){.foot-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:480px){.foot-grid{grid-template-columns:1fr}}
-.foot h5{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin:0 0 12px}
-.foot a{display:block;color:var(--muted);margin-bottom:8px}
-.foot a:hover{color:var(--acc)}
-.foot .bottom{border-top:1px solid var(--line);padding-top:20px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:.78rem}
-.foot .bottom a:hover{color:var(--acc)}
-
-/* Cookie consent banner */
-.cc-banner{position:fixed;left:16px;right:16px;bottom:16px;max-width:640px;margin:0 auto;z-index:200;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px 20px;box-shadow:0 20px 40px -12px rgba(14,22,32,.35),0 4px 10px -4px rgba(14,22,32,.15);display:flex;gap:16px;align-items:center;flex-wrap:wrap;transform:translateY(20px);opacity:0;transition:transform .5s cubic-bezier(.16,1,.3,1),opacity .4s;pointer-events:none}
-.cc-banner.show{transform:none;opacity:1;pointer-events:auto}
-.cc-body{flex:1;min-width:220px;font-size:.88rem;color:var(--ink-2);line-height:1.5}
-.cc-body b{color:var(--ink)}
-.cc-body a{color:var(--acc);text-decoration:underline;text-underline-offset:2px}
-.cc-btns{display:flex;gap:8px;flex-wrap:wrap}
-.cc-btn{font-family:var(--sans);font-weight:700;font-size:.82rem;padding:9px 16px;border-radius:100px;border:1.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;transition:.15s}
-.cc-btn:hover{border-color:var(--acc);color:var(--acc)}
-.cc-btn.cc-primary{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:800}
-.cc-btn.cc-primary:hover{background:var(--acc-b);border-color:var(--acc-b)}
-@media(max-width:520px){.cc-banner{padding:14px 16px}.cc-btns{width:100%}.cc-btn{flex:1}}
+/* responsive */
+@media(max-width:1020px){
+  .links{display:none}
+  .hero-grid{grid-template-columns:1fr;gap:50px}
+  .gap-grid{grid-template-columns:1fr}
+  .pipe{grid-template-columns:1fr}
+  .deliv{grid-template-columns:1fr}
+  .cov{grid-template-columns:1fr}
+  .skus{grid-template-columns:1fr 1fr}
+  .compl{grid-template-columns:1fr 1fr 1fr}
+  .foot-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:760px){
+  .aud{display:none}
+  .nav .btn{display:none}
+  .burger{display:flex}
+  .grow{grid-template-columns:86px 1fr 56px;gap:10px}
+  .cform .row2{grid-template-columns:1fr}
+  .skus{grid-template-columns:1fr}
+  .compl{grid-template-columns:1fr 1fr}
+  .code{font-size:.62rem}
+}
+@media(max-width:480px){
+  body{font-size:15.5px}
+  .cta .btn{width:100%;justify-content:center}
+  .foot-grid{grid-template-columns:1fr}
+  .hero-sheet{transform:rotate(0)}
+  .compl{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}
+  html{scroll-behavior:auto}
+  body::after{display:none}
+  .rv,.stag>*{opacity:1;transform:none}
+  .grow .bar{transition:none}
+}
 </style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
 
-<div class="scroll-prog"><i id="scrollProg"></i></div>
-
-<!-- ============ NAV ============ -->
-<nav class="nav"><div class="wrap nav-in">
-  <a href="index.html" class="brand"><span class="dot"></span>Accent&nbsp;<em>Studio</em></a>
-  <div class="audswitch"><a href="index.html">Players</a><a class="on" href="labs.html">Labs</a></div>
-  <div class="links">
-    <a href="#gap">Gap</a>
-    <a href="#impact">Impact</a>
-    <a href="#pipeline">Pipeline</a>
-    <a href="#samples">Samples</a>
-    <a href="#aligned">Aligned</a>
-    <a href="#skus">Tiers</a>
+<!-- NAV -->
+<nav class="nav" aria-label="Main">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top"><span class="lamp"></span>Accent&nbsp;<em>Studio</em></a>
+    <div class="aud" role="navigation" aria-label="Audience"><a href="index.html">Players</a><a class="on" href="labs.html" aria-current="page">Labs</a></div>
+    <div class="links">
+      <a href="#gap">The gap</a>
+      <a href="#pipeline">Pipeline</a>
+      <a href="#schema">Deliverable</a>
+      <a href="#buy">How to buy</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="sp"></div>
+    <a class="btn btn-a" href="#contact">Request a sample <span class="ar">→</span></a>
+    <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false">☰</button>
   </div>
-  <div class="sp"></div>
-  <span class="tld">accentstudio.io / for-labs</span>
-  <a href="#contact" class="btn btn-p">Request a sample ▸</a>
-  <button class="tt" id="tt" aria-label="Toggle theme">◐</button>
-</div></nav>
+</nav>
 
-<!-- ============ HERO ============ -->
+<!-- MOBILE MENU -->
+<div class="menu" id="menu" aria-hidden="true">
+  <div class="menu-top">
+    <a class="brand" href="#top"><span class="lamp"></span>Accent&nbsp;<em>Studio</em></a>
+    <button class="menu-x" id="menuX" aria-label="Close menu">✕</button>
+  </div>
+  <div class="menu-links">
+    <a href="#gap">The gap <span>01</span></a>
+    <a href="#pipeline">Pipeline <span>02</span></a>
+    <a href="#schema">Deliverable <span>03</span></a>
+    <a href="#aligned">Alignment <span>04</span></a>
+    <a href="#buy">How to buy <span>05</span></a>
+    <a href="#contact">Contact <span>06</span></a>
+  </div>
+  <div class="menu-foot">
+    <div class="aud" style="display:flex"><a href="index.html">Players</a><a class="on" href="labs.html">Labs</a></div>
+    <a class="btn btn-a" href="#contact">Request a sample <span class="ar">→</span></a>
+  </div>
+</div>
+
+<div id="top"></div>
+
+<main id="main">
+<!-- HERO -->
 <header class="hero">
-  <canvas class="hero-wave" id="wave" aria-hidden="true"></canvas>
-  <div class="wrap hero-in">
+  <div class="hero-glow"></div>
+  <div class="wrap hero-grid">
     <div>
-      <div class="kick"><span class="onair"><i></i>On Air</span><span>Voice data foundry · for labs</span></div>
-      <h1>The voice data your model is <span class="hl">starving</span> for.<span aria-hidden="true" style="display:block;height:0"></span></h1>
+      <div class="kick">
+        <span class="onair"><i></i>On air</span>
+        <span class="tag">Voice data foundry · for labs</span>
+      </div>
+      <h1>The voice data your model is <span class="it">starving for.</span></h1>
       <p class="sub">Born-digital, dual-channel conversational audio in the accents Big Tech hasn't covered. Pidgin, Yoruba, Swahili, Zulu and more, verified by native-speaker editors, zero PII by design, ready for your training pipeline.</p>
       <div class="cta">
-        <a href="#contact" class="btn btn-p">Request a sample corpus ▸</a>
-        <a href="#schema" class="btn btn-g">See the schema</a>
+        <a class="btn btn-a" href="#contact">Request a sample corpus <span class="ar">→</span></a>
+        <a class="btn btn-g" href="#schema">See the schema</a>
       </div>
       <div class="proof">
-        <span><span class="prf-dot"></span><b>WAV/FLAC + JSONL + Parquet</b> · HF-compatible</span>
-        <span><span class="prf-dot"></span><b>SOC 2 · GDPR · NDPA · POPIA</b> aligned</span>
+        <span><b>WAV + JSONL + Parquet</b> · HF compatible</span>
+        <span><b>GDPR · NDPA · POPIA</b> aligned</span>
+        <span><b>Consent</b> cryptographically logged</span>
       </div>
     </div>
-    <div>
-      <div class="dm-card">
-        <div class="dm-header">
-          <span class="live-t"><i></i>Live corpus</span>
-          <span class="fname">acc_sess_20260828_pcm_00892.jsonl</span>
-        </div>
-        <div class="dm-preview">
-          <div class="dm-audio">
-            <button class="dm-play" aria-label="Play sample">▶</button>
-            <div class="dm-tracks">
-              <div class="dm-track"><span class="lbl">A</span><div class="dm-wave" data-w="A"></div></div>
-              <div class="dm-track"><span class="lbl">B</span><div class="dm-wave" data-w="B"></div></div>
-            </div>
-            <span class="dm-time">3:04</span>
-          </div>
-        </div>
-        <div class="dm-code"><pre>{
+    <div class="hero-stage">
+      <div class="chip c1">zero PII · <b>consent signed</b></div>
+      <div class="chip c2">24 kHz · dual channel · <b>editor verified</b></div>
+      <div class="sheet hero-sheet">
+        <div class="shead"><i></i>Live corpus <span class="fn">acc_sess_20260828_pcm_00892.jsonl</span></div>
+        <div class="code">{
   <span class="k">"locale"</span>: <span class="s">"pcm-NG"</span>,
   <span class="k">"duration_seconds"</span>: <span class="n">184.5</span>,
   <span class="k">"channels"</span>: <span class="n">2</span>,
   <span class="k">"sample_rate_hz"</span>: <span class="n">24000</span>,
   <span class="k">"turns"</span>: [
     { <span class="k">"speaker"</span>: <span class="s">"customer"</span>, <span class="k">"emotion"</span>: <span class="s">"frustrated"</span>,
-      <span class="k">"verified_text"</span>: <span class="s">"Good morning. I wake up see say POS commot 50k…"</span>,
+      <span class="k">"verified_text"</span>: <span class="s">"Good morning. I wake up see say
+       POS commot 50k for my account!"</span>,
+      <span class="k">"english_source"</span>: <span class="s">"I woke up and saw ₦50,000
+       leave my account…"</span>,
       <span class="k">"inter_turn_latency_ms"</span>: <span class="n">350</span> },
-    <span class="c">/* 11 more turns */</span>
+    <span class="c">// 11 more turns, all aligned + tagged</span>
   ]
-}</pre></div>
-        <div class="dm-tags">
-          <span class="dm-tag">🎙 pcm-NG</span>
-          <span class="dm-tag">😠 emotion</span>
-          <span class="dm-tag">⚡ latency map</span>
-          <span class="dm-tag">🔀 code-switch</span>
-          <span class="dm-tag">📐 24kHz stereo</span>
-          <span class="dm-tag">✎ editor-verified</span>
-        </div>
+}</div>
       </div>
     </div>
   </div>
+  <div class="eq" id="heroEq" aria-hidden="true"></div>
 </header>
 
-<!-- ============ THE GAP ============ -->
-<section class="sec" id="gap"><div class="wrap">
-  <div class="sec-head rv">
-    <div class="eyebrow">◆ The gap</div>
-    <h2>Voice AI has an <em>accent problem.</em> We fix the supply.</h2>
-    <p class="lead">The world's most spoken languages are also the most under-served in training data. Voice-to-voice models fumble the moment they meet a Nigerian customer or a Nairobi merchant. That gap is a supply problem, and it's what we build.</p>
-  </div>
-  <div class="gap-grid">
-    <div class="gap-copy rv">
-      <div class="stat">80%+</div>
-      <div class="stat-l">of open voice-AI training hours are English or Mandarin</div>
-      <p>Everyone builds voice agents. Almost no one builds them for accents outside Silicon Valley. Legacy call-center data is dirty and PII-laden. Common Voice is single-utterance and monotone. What labs need — <b>real conversational, dual-channel, dialectal audio</b> — barely exists at scale.</p>
-      <p style="color:var(--muted);font-size:.9rem">We generate it born-digital: gamified crowd, native-speaker verification, word-level alignment on tap.</p>
-    </div>
-    <div class="gap-chart rv d1">
-      <div class="gc-t">Open voice-AI training hours · sampled corpora</div>
-      <div class="gap-row"><span class="lang">English</span><div class="bar"><i style="width:96%"></i></div><span class="n">~30k hrs</span></div>
-      <div class="gap-row"><span class="lang">Mandarin</span><div class="bar"><i style="width:64%"></i></div><span class="n">~18k hrs</span></div>
-      <div class="gap-row"><span class="lang">Spanish</span><div class="bar"><i style="width:32%"></i></div><span class="n">~9k hrs</span></div>
-      <div class="gap-row"><span class="lang">Arabic</span><div class="bar"><i style="width:18%"></i></div><span class="n">~5k hrs</span></div>
-      <div class="gap-row thin"><span class="lang">Swahili</span><div class="bar"><i style="width:6%"></i></div><span class="n">~1.5k hrs</span></div>
-      <div class="gap-row thin"><span class="lang">Yoruba</span><div class="bar"><i style="width:3%"></i></div><span class="n">~800 hrs</span></div>
-      <div class="gap-row thin"><span class="lang">Pidgin (NG)</span><div class="bar"><i style="width:1.5%"></i></div><span class="n">~400 hrs</span></div>
-      <div class="gap-row thin"><span class="lang">Zulu</span><div class="bar"><i style="width:1%"></i></div><span class="n">~200 hrs</span></div>
-      <div class="cite">Aggregated across Common Voice, VoxPopuli, MLS, LibriSpeech and public corpora as of 2026. Non-Western dialects rounded to nearest 100 hrs.</div>
-    </div>
-  </div>
-</div></section>
-
-<!-- ============ IMPACT · who this unlocks ============ -->
-<section class="sec alt" id="impact"><div class="wrap">
-  <div class="sec-head rv">
-    <div class="eyebrow">◆ The impact</div>
-    <h2>The <em>billions</em> your AI cannot talk to yet.</h2>
-    <p class="lead">Voice AI trained only on English and Mandarin structurally excludes most of the world. Local-language voice data does not just improve accuracy — it defines whether entire populations can use your product at all.</p>
-  </div>
-
-  <!-- Opening big-stat strip -->
-  <div class="imp-stats rev-stag rv">
-    <div class="imp-stat">
-      <div class="imp-n">739M</div>
-      <div class="imp-l">Adults globally with limited literacy. <b>77% live in Sub-Saharan Africa &amp; Central/Southern Asia.</b> Voice is their only route into AI.</div>
-    </div>
-    <div class="imp-stat">
-      <div class="imp-n">2,000+</div>
-      <div class="imp-l">African languages, <b>most primarily spoken, not written.</b> Text-first AI excludes them by design.</div>
-    </div>
-    <div class="imp-stat">
-      <div class="imp-n">2×</div>
-      <div class="imp-l">Older adults are <b>twice as likely</b> to use voice assistants (51%) as text chatbots. Voice reads as natural, screens as intimidating.</div>
-    </div>
-    <div class="imp-stat">
-      <div class="imp-n">$53B</div>
-      <div class="imp-l">Global voice AI market projected by <b>2030</b> ($7.7B → $21.8B core generators alone). Non-Western coverage is the biggest unclaimed slice.</div>
-    </div>
-  </div>
-
-  <!-- Interactive country selector: without vs with us -->
-  <div class="wv-wrap rv" style="margin-top:44px">
-    <div class="wv-head">
-      <div class="eyebrow" style="margin-bottom:8px">◆ Voice agent shipping into <b data-f="ctxCap" style="color:var(--acc)">Nigeria</b> today</div>
-      <h3 class="wv-title">Pick your market. Watch the reach change.</h3>
-      <p class="wv-lead">Same product, same launch budget. One trained only on English. One trained on the country's local voice languages alongside English. The reach is not a rounding error, it is a different company.</p>
-    </div>
-
-    <!-- Country tab strip -->
-    <div class="ctry-tabs" id="ctryTabs" role="tablist">
-      <button class="ctry-tab on" data-c="ng">Nigeria</button>
-      <button class="ctry-tab" data-c="ke">Kenya</button>
-      <button class="ctry-tab" data-c="za">South Africa</button>
-      <button class="ctry-tab" data-c="gh">Ghana</button>
-      <button class="ctry-tab" data-c="in">India</button>
-      <button class="ctry-tab" data-c="id">Indonesia</button>
-      <button class="ctry-tab" data-c="br">Brazil</button>
-      <button class="ctry-tab" data-c="eg">Egypt</button>
-    </div>
-
-    <div class="wv-grid">
-      <div class="wv-card wv-without">
-        <div class="wv-badge">Without local-language voice data</div>
-        <h4>English-only voice agent</h4>
-        <ul>
-          <li><b data-f="engPct">~15–25%</b> of <span data-f="ctx">Nigerians</span> comfortable transacting in English</li>
-          <li><b data-f="withoutMLbl">~35M</b> addressable customers (out of ~<span data-f="pop">220M</span> pop.)</li>
-          <li>Elderly, rural and low-literacy users <b>silently drop off</b></li>
-          <li>CSAT plummets on accented English calls (industry-known)</li>
-          <li>Churn hidden as "poor product-market fit"</li>
-        </ul>
-        <div class="wv-metric">
-          <span class="wv-metric-l">Addressable market</span>
-          <div class="wv-bar"><div class="wv-fill" data-fill="without" style="width:16%;background:linear-gradient(90deg,var(--hot),#e88a5c)"></div></div>
-          <span class="wv-metric-v" data-f="withoutMLbl">~35M</span>
-        </div>
-      </div>
-      <div class="wv-card wv-with">
-        <div class="wv-badge">With Accent Studio corpora</div>
-        <h4>Multi-dialect voice agent</h4>
-        <ul>
-          <li><b data-f="withPct">~90%+</b> of <span data-f="ctx">Nigerians</span> served in their preferred spoken language</li>
-          <li><b data-f="withMLbl">~200M</b> addressable customers</li>
-          <li>Elderly, rural and low-literacy users <b>fully unlocked</b></li>
-          <li data-f="langLine"><b>Pidgin</b> code-switching handled natively, not filtered out</li>
-          <li>Retention driven by delight, not English fluency</li>
-        </ul>
-        <div class="wv-metric">
-          <span class="wv-metric-l">Addressable market</span>
-          <div class="wv-bar"><div class="wv-fill" data-fill="with" style="width:92%;background:linear-gradient(90deg,var(--good),var(--acc))"></div></div>
-          <span class="wv-metric-v"><b data-f="withMLbl">~200M</b></span>
-        </div>
-      </div>
-    </div>
-    <div class="wv-callout">
-      <span class="wv-mult" data-f="mult">5.7×</span>
-      <div>
-        <b>market expansion in <span data-f="ctxCap">Nigeria</span> alone.</b> Add <span data-f="langs">Nigerian Pidgin, Yoruba, Igbo and Hausa</span> and every excluded speaker becomes a served customer. Layer more countries and the math compounds.
-      </div>
-    </div>
-    <div class="wv-note">Conservative addressable-market estimates. Population figures from UN 2024 medium-variant. English fluency rates draw on the EF English Proficiency Index 2024 and World Bank literacy data.</div>
-  </div>
-
-  <!-- Populations unlocked -->
-  <div class="unlock-head rv" style="margin-top:52px">
-    <div class="eyebrow">◆ Who your product finally reaches</div>
-    <h3 class="unlock-title">Four populations that voice AI can serve <em>only</em> in their own language.</h3>
-  </div>
-  <div class="unlock-grid rev-stag rv">
-    <div class="unlock-cell">
-      <div class="unlock-i">👵</div>
-      <h4>Elderly</h4>
-      <div class="unlock-stat">130M+</div>
-      <div class="unlock-l">Africans aged 60+ by 2030. Screen-averse, voice-native, largest healthcare cost centre.</div>
-    </div>
-    <div class="unlock-cell">
-      <div class="unlock-i">🌾</div>
-      <h4>Rural &amp; low-literacy</h4>
-      <div class="unlock-stat">~570M</div>
-      <div class="unlock-l">Adults across Africa &amp; South Asia with limited literacy. Voice is their only interface, in their own language.</div>
-    </div>
-    <div class="unlock-cell">
-      <div class="unlock-i">♿</div>
-      <h4>Accessibility-first</h4>
-      <div class="unlock-stat">1.3B</div>
-      <div class="unlock-l">People globally with a significant disability (WHO). Voice-first is a primary access modality — accented voice-first even more so.</div>
-    </div>
-    <div class="unlock-cell">
-      <div class="unlock-i">📱</div>
-      <h4>Mobile-first youth</h4>
-      <div class="unlock-stat">60%+</div>
-      <div class="unlock-l">Of Africa is under 25. Voice-native from TikTok/WhatsApp. Will not tolerate an agent that "doesn't get" their accent.</div>
-    </div>
-  </div>
-
-  <!-- Market imbalance -->
-  <div class="mi-wrap rv" style="margin-top:52px">
-    <div class="mi-copy">
-      <div class="eyebrow">◆ The revenue gap</div>
-      <h3 class="mi-title">MEA has <em>2×</em> LatAm's population and <em>&lt;½</em> its voice AI revenue.</h3>
-      <p>Not because the demand isn't there. Because the training data isn't. Every year that gap persists is a compounding transfer of AI value out of the region. Closing it starts with the voice data underneath.</p>
-    </div>
-    <div class="mi-bars">
-      <div class="mi-row"><span class="mi-lbl">LatAm voice &amp; speech recognition · 2024</span><div class="mi-bar"><i style="width:100%;background:linear-gradient(90deg,var(--brand),var(--good))"></i></div><span class="mi-n">$480M</span></div>
-      <div class="mi-row"><span class="mi-lbl">Middle East + Africa combined · 2024</span><div class="mi-bar"><i style="width:40%;background:linear-gradient(90deg,var(--hot),var(--acc))"></i></div><span class="mi-n">$192M</span></div>
-      <div class="mi-row"><span class="mi-lbl">MEA population vs LatAm</span><div class="mi-bar"><i style="width:100%;background:linear-gradient(90deg,var(--info),var(--acc-b))"></i></div><span class="mi-n">2.0×</span></div>
-      <div class="mi-note">Sources: MarketsandMarkets · Straits Research · iAfrica.com (2026). Population from UN 2024 medium-variant estimates.</div>
-    </div>
-  </div>
-
-  <div class="imp-cta rv" style="margin-top:44px;text-align:center">
-    <a href="#contact" class="btn btn-p" style="padding:14px 26px;font-size:1rem">Reach the users your model is missing ▸</a>
-    <div style="font-family:var(--mono);font-size:.68rem;color:var(--faint);margin-top:12px;letter-spacing:.04em">Sources · MarketsandMarkets · UNESCO · AVODA Group · Frontiers in Psychology · WHO · WAXAL/Google Research 2026</div>
-  </div>
-</div></section>
-
-<!-- ============ PIPELINE ============ -->
-<section class="sec dark" id="pipeline"><div class="wrap">
-  <div class="sec-head rv">
-    <div class="eyebrow">◆ How we produce</div>
-    <h2>Three roles, one clean pipeline.</h2>
-    <p class="lead">Not scraped. Not scripted. Generated live, verified live, packaged automatically.</p>
-  </div>
-  <div class="pipe rev-stag rv">
-    <div class="pipe-step">
-      <div class="num">Step 01 · Record</div>
-      <h3>Live improv, dual-track</h3>
-      <p>Two anonymously-paired players hold a real conversation in the target language, guided by scenario cards. Recorded on separate WebRTC tracks so speakers never bleed into each other.</p>
-      <div class="pipe-visual">
-        <div class="pv-l">Live scene · Banking Wahala</div>
-        <div class="pv-body"><span class="a">Speaker A</span> · frustrated<br><span class="s">"I wake up see say POS commot 50k…"</span><br><span class="a">Speaker B</span> · empathetic<br><span class="s">"I am so sorry — make I check am."</span></div>
-      </div>
-    </div>
-    <div class="pipe-step">
-      <div class="num">Step 02 · Verify</div>
-      <h3>Editor polishes live</h3>
-      <p>A third player, a vetted native speaker, corrects slang and Pidgin the STT misheard, tags emotion, timing, and code-switches. Silent auditors sample their work to keep quality honest.</p>
-      <div class="pipe-visual">
-        <div class="pv-l">Cutting Room · turn 1</div>
-        <div class="pv-body"><del>good morning i wake up see say pos commot 50k</del><br><span class="s">Good morning. I wake up see say POS commot 50k for my account!</span><br><span class="a">✎ code-switch · frustrated · 350ms</span></div>
-      </div>
-    </div>
-    <div class="pipe-step">
-      <div class="num">Step 03 · Ship</div>
-      <h3>Packaged for training</h3>
-      <p>Dual-channel WAV + JSONL manifest + Parquet index, delivered via presigned S3, direct IAM sync, or into your AWS/Snowflake Clean Room. Zero PII, ready for HF or PyTorch on day one.</p>
-      <div class="pipe-visual">
-        <div class="pv-l">Locked · shipping</div>
-        <div class="pv-body"><span class="g">✓</span> audio_dual.wav <span style="color:var(--faint)">· 24kHz stereo</span><br><span class="g">✓</span> manifest.jsonl <span style="color:var(--faint)">· 12 turns</span><br><span class="g">✓</span> index.parquet <span style="color:var(--faint)">· searchable</span><br><span class="a">→ s3://labs/…</span></div>
-      </div>
-    </div>
-  </div>
-</div></section>
-
-<!-- ============ SAMPLES ============ -->
-<section class="sec alt" id="samples"><div class="wrap">
-  <div class="sec-head rv">
-    <div class="eyebrow">◆ Sample corpora</div>
-    <h2>Hear what your model would train on.</h2>
-    <p class="lead">Small starter samples across our first four production locales. Each ships with the full metadata schema so your team can validate fit before you buy volume.</p>
-  </div>
-  <div class="samples-grid rev-stag rv">
-    <div class="samp">
-      <div class="samp-h"><span class="samp-title">Banking Wahala</span><span class="samp-locale">pcm-NG</span></div>
-      <div class="samp-meta"><span><b>12</b> hrs</span><span><b>3,240</b> turns</span><span><b>82</b> unique speakers</span></div>
-      <div class="samp-audio">
-        <button class="samp-play" aria-label="Play sample">▶</button>
-        <div class="samp-wave" data-samp></div>
-        <span class="samp-time">3:04</span>
-      </div>
-      <div class="samp-tags"><span class="samp-tag">retail-banking</span><span class="samp-tag">fraud-dispute</span><span class="samp-tag">code-switch EN/PCM</span></div>
-      <div class="samp-cta"><a href="#contact">Download 60s sample →</a><a href="#contact">See manifest →</a></div>
-    </div>
-    <div class="samp">
-      <div class="samp-h"><span class="samp-title">Market Day</span><span class="samp-locale">pcm-NG</span></div>
-      <div class="samp-meta"><span><b>8</b> hrs</span><span><b>2,010</b> turns</span><span><b>64</b> unique speakers</span></div>
-      <div class="samp-audio">
-        <button class="samp-play" aria-label="Play sample">▶</button>
-        <div class="samp-wave" data-samp></div>
-        <span class="samp-time">2:41</span>
-      </div>
-      <div class="samp-tags"><span class="samp-tag">retail-market</span><span class="samp-tag">haggle-flow</span><span class="samp-tag">high-overlap</span></div>
-      <div class="samp-cta"><a href="#contact">Download 60s sample →</a><a href="#contact">See manifest →</a></div>
-    </div>
-    <div class="samp">
-      <div class="samp-h"><span class="samp-title">Fintech Onboarding</span><span class="samp-locale">sw-KE</span></div>
-      <div class="samp-meta"><span><b>15</b> hrs</span><span><b>3,890</b> turns</span><span><b>91</b> unique speakers</span></div>
-      <div class="samp-audio">
-        <button class="samp-play" aria-label="Play sample">▶</button>
-        <div class="samp-wave" data-samp></div>
-        <span class="samp-time">2:22</span>
-      </div>
-      <div class="samp-tags"><span class="samp-tag">fintech</span><span class="samp-tag">KYC-flow</span><span class="samp-tag">Sheng code-switch</span></div>
-      <div class="samp-cta"><a href="#contact">Download 60s sample →</a><a href="#contact">See manifest →</a></div>
-    </div>
-    <div class="samp">
-      <div class="samp-h"><span class="samp-title">Retail Support</span><span class="samp-locale">yo-NG</span></div>
-      <div class="samp-meta"><span><b>6</b> hrs</span><span><b>1,520</b> turns</span><span><b>48</b> unique speakers</span></div>
-      <div class="samp-audio">
-        <button class="samp-play" aria-label="Play sample">▶</button>
-        <div class="samp-wave" data-samp></div>
-        <span class="samp-time">2:56</span>
-      </div>
-      <div class="samp-tags"><span class="samp-tag">retail-support</span><span class="samp-tag">return-flow</span><span class="samp-tag">tonal-dialect</span></div>
-      <div class="samp-cta"><a href="#contact">Download 60s sample →</a><a href="#contact">See manifest →</a></div>
-    </div>
-  </div>
-</div></section>
-
-<!-- ============ WHAT SHIPS · SCHEMA ============ -->
-<section class="sec" id="schema"><div class="wrap">
-  <div class="sec-head rv">
-    <div class="eyebrow">◆ What ships to you</div>
-    <h2>Clean, labelled, licensable. <em>Every row.</em></h2>
-    <p class="lead">Dual-channel audio plus a JSONL manifest with every turn's speaker, timing, emotion, latency and verified text. Parquet index for fast query. Hugging Face Datasets and PyTorch DataLoader compatible out of the box.</p>
-  </div>
-  <div class="ships-grid rv">
-    <div class="ship-code2">
-      <div class="cbar"><span class="dots"><i></i><i></i><i></i></span>manifest.jsonl · one row per session</div>
-<pre>{
-  <span class="k">"session_id"</span>: <span class="s">"acc_sess_20260828_pcm_00892"</span>,
-  <span class="k">"locale"</span>: <span class="s">"pcm-NG"</span>,
-  <span class="k">"scenario"</span>: <span class="s">"retail_banking_fraud"</span>,
-  <span class="k">"duration_seconds"</span>: <span class="n">184.5</span>,
-  <span class="k">"channels"</span>: <span class="n">2</span>,
-  <span class="k">"sample_rate_hz"</span>: <span class="n">24000</span>,
-  <span class="k">"participants"</span>: [
-    { <span class="k">"speaker_id"</span>: <span class="s">"spk_9801_f"</span>, <span class="k">"channel"</span>: <span class="n">0</span>, <span class="k">"role"</span>: <span class="s">"customer"</span>,
-      <span class="k">"accent_region"</span>: <span class="s">"Lagos_NG"</span> },
-    { <span class="k">"speaker_id"</span>: <span class="s">"spk_4412_m"</span>, <span class="k">"channel"</span>: <span class="n">1</span>, <span class="k">"role"</span>: <span class="s">"agent"</span>,
-      <span class="k">"accent_region"</span>: <span class="s">"Ibadan_NG"</span> }
-  ],
-  <span class="k">"turns"</span>: [
-    { <span class="k">"turn_id"</span>: <span class="n">1</span>, <span class="k">"speaker_id"</span>: <span class="s">"spk_9801_f"</span>,
-      <span class="k">"start_ms"</span>: <span class="n">1200</span>, <span class="k">"end_ms"</span>: <span class="n">4500</span>,
-      <span class="k">"raw_stt"</span>: <span class="s">"good morning i wake up see say pos commot 50k"</span>,
-      <span class="k">"verified_text"</span>: <span class="s">"Good morning. I wake up see say POS commot 50k for my account!"</span>,
-      <span class="k">"emotion"</span>: <span class="s">"frustrated"</span>,
-      <span class="k">"inter_turn_latency_ms"</span>: <span class="n">0</span>,
-      <span class="k">"code_switches"</span>: [<span class="s">"EN→PCM"</span>] },
-    <span class="c">/* … 11 more turns */</span>
-  ],
-  <span class="k">"verified_by_qc"</span>: { <span class="k">"editor_id"</span>: <span class="s">"ed_3312"</span>,
-    <span class="k">"confidence"</span>: <span class="n">0.98</span>, <span class="k">"audit_status"</span>: <span class="s">"passed"</span> }
-}</pre>
-    </div>
-    <div class="ships-side">
-      <div class="ship-file2"><div class="ship-icon2">📀</div><div><div class="ship-name2">audio_dual.wav</div><div class="ship-meta2">24 kHz · stereo · PCM 16-bit · ~12 MB / 3 min</div></div></div>
-      <div class="ship-file2"><div class="ship-icon2">🧾</div><div><div class="ship-name2">manifest.jsonl</div><div class="ship-meta2">one row per session · full turn metadata</div></div></div>
-      <div class="ship-file2"><div class="ship-icon2">🗂</div><div><div class="ship-name2">index.parquet</div><div class="ship-meta2">searchable by locale, emotion, scenario, speaker</div></div></div>
-      <div class="ship-file2"><div class="ship-icon2">🔐</div><div><div class="ship-name2">consent_log.jsonl</div><div class="ship-meta2">cryptographic acceptance record per speaker</div></div></div>
-      <div class="ship-file2"><div class="ship-icon2">📃</div><div><div class="ship-name2">license.txt</div><div class="ship-meta2">commercial-use license · scope + territory</div></div></div>
-    </div>
-  </div>
-</div></section>
-
-<!-- ============ ALIGNED CORPUS (NEW) ============ -->
-<section class="sec alt" id="aligned"><div class="wrap">
-  <div class="align-grid">
-    <div class="align-copy rv">
-      <span class="badge-new">New tier · Coming Q4</span>
-      <div class="eyebrow">◆ Aligned Corpus</div>
-      <h2>Word-level alignment, <em>human-verified.</em></h2>
-      <p style="color:var(--ink-2);font-size:1.05rem;line-height:1.55">Beyond audio and transcripts, our editors align each translated phrase back to the original English prompt, span by span. The result is a corpus that teaches translation models, multilingual embeddings, and low-resource tokenizers how meaning actually maps between languages.</p>
-      <ul class="bullets">
-        <li>Every span in the target language linked to its English source span</li>
-        <li>Handles many-to-one, one-to-many, and null-alignment cases</li>
-        <li>Ground-truth tokenization signal for languages without settled tokenizers</li>
-        <li>Verified by <b>Certified Aligners</b> — a specialist editor tier</li>
-        <li>Ships alongside the standard manifest as `alignments[]` per turn</li>
-      </ul>
-      <a href="#contact" class="btn btn-p" style="padding:12px 22px;margin-top:6px">Talk to us about Aligned Corpus ▸</a>
-    </div>
-    <div class="align-mock rv d1">
-      <div class="amk-h"><i></i>Cutting Room · Aligned mode</div>
-      <div class="align-lbl">English prompt</div>
-      <div class="align-row">
-        <span class="align-tok p1">I</span>
-        <span class="align-tok p2">woke up</span>
-        <span class="align-tok p1">this morning</span>
-        <span class="align-tok p3">and saw that</span>
-        <span class="align-tok p4">₦50,000</span>
-        <span class="align-tok p2">left</span>
-        <span class="align-tok p1">my account</span>
-      </div>
-      <div class="align-lbl" style="margin-top:14px">Pidgin translation</div>
-      <div class="align-row">
-        <span class="align-tok p1">I</span>
-        <span class="align-tok p2">wake up</span>
-        <span class="align-tok p1">this morning</span>
-        <span class="align-tok p3">see say</span>
-        <span class="align-tok p4">50k</span>
-        <span class="align-tok p2">commot</span>
-        <span class="align-tok null">from</span>
-        <span class="align-tok p1">my account</span>
-      </div>
-      <div class="align-connects">
-        <div><span class="c1">◆</span> subject/reference · <span class="c2">woke up ↔ wake up</span> · <span class="c3">and saw that ↔ see say</span></div>
-        <div><span class="c4">◆</span> amount · <b>from</b> = null (Pidgin particle, no English source)</div>
-      </div>
-    </div>
-  </div>
-</div></section>
-
-<!-- ============ ENTERPRISE DELIVERY ============ -->
-<section class="sec dark" id="enterprise"><div class="wrap">
-  <div class="sec-head rv">
-    <div class="eyebrow">◆ Enterprise-grade delivery</div>
-    <h2>Slots into your training pipeline on <em>day one.</em></h2>
-    <p class="lead">Every dataset ships through infrastructure your legal and security teams already trust. Air-gapped PII, WORM audio vaults, presigned S3, direct IAM sync, AWS + Snowflake Clean Rooms on the enterprise tier.</p>
-  </div>
-  <div class="ent-grid rev-stag rv">
-    <div class="ent-cell"><div class="ent-i">🔐</div><h4>Air-gapped identity</h4><p>PII in an isolated encrypted DB, physically separated from audio. Audio indexed by cryptographic UUIDs only. Zero identifiable user metrics ever reach your bucket.</p></div>
-    <div class="ent-cell"><div class="ent-i">🛡</div><h4>SOC 2 · WORM vault</h4><p>AES-256 at rest, TLS 1.3 in transit. Primary audio in Write-Once-Read-Many storage. SOC 2 Type II trust-principle tracking from day one.</p></div>
-    <div class="ent-cell"><div class="ent-i">☁️</div><h4>S3 + Clean Rooms</h4><p>Presigned S3/GCS URLs with time-bound expiry. Direct IAM bucket sync with RBAC + IP whitelisting. AWS Clean Rooms and Snowflake Data Clean Rooms on Enterprise tier.</p></div>
-    <div class="ent-cell"><div class="ent-i">🧠</div><h4>HF + PyTorch native</h4><p>WAV/FLAC + JSONL/Parquet compatible with Hugging Face Datasets and PyTorch DataLoader. Streaming REST API with OAuth2 for direct pipe into training loops.</p></div>
-  </div>
-</div></section>
-
-<!-- ============ COVERAGE MATRIX ============ -->
-<section class="sec" id="coverage"><div class="wrap">
-  <div class="sec-head rv">
-    <div class="eyebrow">◆ Coverage matrix</div>
-    <h2>Locales and domains we <em>ship now,</em> soon, and next.</h2>
-    <p class="lead">We plant a flag in the African markets first, then template the engine across LatAm and SEA. Every cell is a real production plan, not a marketing wishlist.</p>
-  </div>
-  <div class="cov-matrix rv">
-    <table>
-      <thead>
-        <tr><th>Locale</th><th>Banking</th><th>Telco</th><th>Retail</th><th>Ride-hail</th><th>Healthcare</th><th>Fintech</th></tr>
-      </thead>
-      <tbody>
-        <tr><td class="lang">Nigerian Pidgin · pcm-NG</td><td><span class="cov-cell live">✓</span></td><td><span class="cov-cell live">✓</span></td><td><span class="cov-cell live">✓</span></td><td><span class="cov-cell soon">Q4</span></td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell soon">Q4</span></td></tr>
-        <tr><td class="lang">Yoruba · yo-NG</td><td><span class="cov-cell live">✓</span></td><td><span class="cov-cell soon">Q4</span></td><td><span class="cov-cell live">✓</span></td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell soon">Q4</span></td></tr>
-        <tr><td class="lang">Swahili · sw-KE</td><td><span class="cov-cell live">✓</span></td><td><span class="cov-cell live">✓</span></td><td><span class="cov-cell soon">Q4</span></td><td><span class="cov-cell live">✓</span></td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell live">✓</span></td></tr>
-        <tr><td class="lang">Zulu · zu-ZA</td><td><span class="cov-cell soon">Q4</span></td><td><span class="cov-cell soon">Q4</span></td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell plan">'27</span></td></tr>
-        <tr><td class="lang">Amharic · am-ET</td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell plan">'27</span></td></tr>
-        <tr><td class="lang">Brazilian Portuguese · pt-BR</td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell plan">'27</span></td></tr>
-        <tr><td class="lang">Tagalog · tl-PH</td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell plan">'27</span></td><td><span class="cov-cell plan">'27</span></td></tr>
-      </tbody>
-    </table>
-    <div class="cov-legend">
-      <span><span class="cov-cell live"></span>Shipping now</span>
-      <span><span class="cov-cell soon"></span>Q4 2026</span>
-      <span><span class="cov-cell plan"></span>2027 roadmap</span>
-      <span style="margin-left:auto">Bespoke domains and locales on request</span>
-    </div>
-  </div>
-</div></section>
-
-<!-- ============ WHY US ============ -->
-<section class="sec alt" id="why"><div class="wrap">
-  <div class="sec-head rv">
-    <div class="eyebrow">◆ Why Accent Studio</div>
-    <h2>Three sources of voice data. <em>Only one</em> is clean, timed, and conversational.</h2>
-  </div>
-  <div class="why-table rv">
-    <table>
-      <thead>
-        <tr><th></th><th>Legacy call-center scraping</th><th>Scripted crowdsourcing (Appen / Scale)</th><th class="col-us">Accent Studio · born-digital</th></tr>
-      </thead>
-      <tbody>
-        <tr><th>Audio nature</th><td>Noisy, single mono stream, in the wild</td><td>Monotone sentence reading off a screen</td><td class="col-us"><strong>Organic multi-turn dual-track stereo roleplay</strong></td></tr>
-        <tr><th>PII &amp; compliance</th><td>Extreme risk (names, cards, addresses)</td><td>Low risk, but low training utility</td><td class="col-us"><strong>Zero PII by design + explicit commercial grant</strong></td></tr>
-        <tr><th>Pacing &amp; latency</th><td>Uncontrolled hold music and dead air</td><td>None — isolated single clips</td><td class="col-us"><strong>Millisecond inter-turn latency maps per turn</strong></td></tr>
-        <tr><th>Dialect accuracy</th><td>Poor on regional accents / code-switch</td><td>Slow, expensive manual transcription</td><td class="col-us"><strong>Native-speaker HITL editors, random-audited</strong></td></tr>
-        <tr><th>Word-level alignment</th><td>Not available</td><td>Not available at scale</td><td class="col-us"><strong>Available via Aligned Corpus tier</strong></td></tr>
-      </tbody>
-    </table>
-  </div>
-</div></section>
-
-<!-- ============ SKUs ============ -->
-<section class="sec" id="skus"><div class="wrap">
-  <div class="sec-head rv">
-    <div class="eyebrow">◆ Product tiers</div>
-    <h2>Four ways to buy. <em>Pricing on request.</em></h2>
-    <p class="lead">All tiers include audio + JSONL + Parquet + consent log + commercial license. We size the corpus to your use case; volume discounts and exclusivity available.</p>
-  </div>
-  <div class="sku-grid rev-stag rv">
-    <div class="sku-card"><div class="sk-tier">Tier 1</div><div class="sk-name">Standard Conversational</div><ul><li>Dual-channel 16 kHz stereo tracks</li><li>Verified JSONL + Parquet manifest</li><li>Volume-friendly baseline for ASR</li></ul></div>
-    <div class="sku-card feat"><span class="sk-badge">Featured</span><div class="sk-tier">Tier 2</div><div class="sk-name">High-Demand Dialect</div><ul><li>24 kHz stereo · latency maps</li><li>Emotion + code-switch tags</li><li>Pidgin · Yoruba · Swahili · Zulu</li></ul></div>
-    <div class="sku-card"><div class="sk-tier">Tier 3</div><div class="sk-name">Bespoke Domain Roleplay</div><ul><li>Custom scenarios &amp; personas</li><li>Domain lexicon (fintech, telco, health)</li><li>Exclusivity options</li></ul></div>
-    <div class="sku-card new"><span class="sk-badge">New</span><div class="sk-tier">Tier 4 · Coming Q4</div><div class="sk-name">Aligned Corpus</div><ul><li>Word-level source ↔ target alignment</li><li>Certified Aligner review</li><li>Best for MT + multilingual embeddings</li></ul></div>
-  </div>
-  <div style="text-align:center;margin-top:26px" class="rv">
-    <a href="#contact" class="btn btn-p" style="padding:13px 26px">Get pricing &amp; a sample corpus ▸</a>
-  </div>
-</div></section>
-
-<!-- ============ COMPLIANCE ============ -->
-<section class="sec alt"><div class="wrap" style="max-width:820px;text-align:center">
-  <div class="eyebrow rv" style="justify-content:center">◆ Legal &amp; consent stack</div>
-  <h2 class="rv" style="margin-bottom:14px">Consent-cryptographed. <em>Regulator-ready.</em></h2>
-  <p class="lead rv" style="color:var(--ink-2);margin-bottom:24px">Every speaker signs a Voice IP Assignment before their first take. Every submission produces a cryptographic consent log entry. Voice is treated as biometric data and decoupled from identity. Your legal team has everything they need in the VDR.</p>
-  <div class="badges rv">
-    <span class="badge2"><b>GDPR</b> aligned</span>
-    <span class="badge2"><b>POPIA</b> aligned</span>
-    <span class="badge2"><b>NDPA</b> 2023</span>
-    <span class="badge2"><b>SOC 2</b> Type II tracked</span>
-    <span class="badge2"><b>Biometric</b> decoupled</span>
-    <span class="badge2"><b>Zero-PII</b> by design</span>
-  </div>
-</div></section>
-
-<!-- ============ FAQ ============ -->
-<section class="sec" id="faq"><div class="wrap">
-  <div class="sec-head center rv" style="margin-left:auto;margin-right:auto">
-    <div class="eyebrow" style="justify-content:center">◆ Lab questions</div>
-    <h2>The things procurement and ML leads ask.</h2>
-  </div>
-  <div class="faq rv">
-    <details class="qa" open><summary>What formats do you deliver? <span class="pl">+</span></summary><p>Lossless WAV or FLAC (16 kHz or 24 kHz, mono or dual-channel stereo, 16-bit PCM), a per-session <code>manifest.jsonl</code> with full turn metadata, a Parquet index for fast query, a per-speaker consent log, and a commercial-use license. Everything Hugging Face Datasets and PyTorch DataLoader compatible.</p></details>
-    <details class="qa"><summary>How do you handle PII? <span class="pl">+</span></summary><p>Scenarios are synthetic by design, so speakers are prompted with fake names, accounts and addresses. Any stray real names or numbers are auto-redacted by a named-entity model before storage. PII lives in an isolated, encrypted database physically separated from audio, and audio is indexed only by cryptographic UUIDs. Zero identifiable metrics reach your bucket.</p></details>
-    <details class="qa"><summary>Can we specify custom scenarios or personas? <span class="pl">+</span></summary><p>Yes — that is our Tier 3 Bespoke offering. You give us the scripts, domain lexicon and target dialects; we deal cards, run scenes, verify, and ship. Exclusivity is available (single-buyer license) at a premium.</p></details>
-    <details class="qa"><summary>How is data delivered to us? <span class="pl">+</span></summary><p>Three options: (1) presigned S3 or GCS URLs with time-bound expiry and TLS 1.3, (2) direct IAM bucket-to-bucket sync with RBAC and IP whitelisting, (3) AWS Clean Rooms or Snowflake Data Clean Rooms on our Enterprise tier — you fine-tune inside the clean room without raw audio ever leaving. Streaming REST API with OAuth2 is available for training-loop integration.</p></details>
-    <details class="qa"><summary>How fast can we get a pilot corpus? <span class="pl">+</span></summary><p>For our current live locales (pcm-NG, yo-NG, sw-KE), a 5–10 hour pilot corpus in ~10 business days. Bespoke scenarios add 2 weeks for scripting and onboarding. Aligned Corpus adds ~30% to turnaround time.</p></details>
-    <details class="qa"><summary>What are the usage rights? <span class="pl">+</span></summary><p>Standard tiers ship with a perpetual, worldwide, commercial-use license (non-exclusive). Exclusivity is available on Bespoke tier. Derivative model training is unrestricted. Redistribution of the raw audio is not.</p></details>
-    <details class="qa"><summary>Do you handle data residency? <span class="pl">+</span></summary><p>Yes — regional buckets in EU, US, Africa, and Asia. Documented cross-border transfer mechanisms (SCCs / adequacy). A DPIA is available on request for enterprise procurement teams.</p></details>
-  </div>
-</div></section>
-
-<!-- ============ CONTACT ============ -->
-<section class="sec dark" id="contact"><div class="wrap">
-  <div class="contact-wrap rv">
-    <div class="contact-h">
-      <div class="eyebrow" style="justify-content:center">◆ Request a sample corpus</div>
-      <h2>Tell us what you're building. <em>We'll send you a sample.</em></h2>
-      <p>Answer briefly and we'll come back within 2 business days with a small starter corpus and a pricing conversation matched to your use case.</p>
-    </div>
-    <form id="salesForm" class="form-grid" novalidate>
-      <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;opacity:0" aria-hidden="true">
-      <div class="field"><label>Full name</label><input required name="name" placeholder="Ada Okonkwo"></div>
-      <div class="field"><label>Work email</label><input required type="email" name="email" placeholder="ada@yourlab.ai"></div>
-      <div class="field"><label>Company / lab</label><input required name="company" placeholder="Frontier Voice Labs"></div>
-      <div class="field"><label>Role</label><input name="role" placeholder="Head of ML · Data Ops · Founder"></div>
-      <div class="field"><label>Use case</label>
-        <select name="usecase" required>
-          <option value="">Choose one…</option>
-          <option>ASR / STT training</option>
-          <option>TTS / voice synthesis</option>
-          <option>Voice agent / voice-to-voice</option>
-          <option>Machine translation</option>
-          <option>Multilingual embeddings</option>
-          <option>Academic research</option>
-          <option>Other</option>
-        </select>
-      </div>
-      <div class="field"><label>Timeline</label>
-        <select name="timeline">
-          <option value="">Choose one…</option>
-          <option>Now · this quarter</option>
-          <option>Next quarter</option>
-          <option>Exploring · no rush</option>
-        </select>
-      </div>
-      <div class="field full"><label>Target languages / dialects (comma-separated)</label><input name="langs" placeholder="pcm-NG, yo-NG, sw-KE, zu-ZA · Bespoke Amharic"></div>
-      <div class="field full"><label>Anything else we should know?</label><textarea name="note" placeholder="Rough volume estimate, existing corpora, must-have metadata fields, delivery preferences, security requirements…"></textarea></div>
-      <div class="form-actions full">
-        <span class="note">We'll never share your email. Reply within 2 business days.</span>
-        <button class="btn btn-p" type="submit">Send request ▸</button>
-      </div>
-      <div class="form-msg" id="salesMsg"></div>
-    </form>
-  </div>
-</div></section>
-
-<!-- ============ FOOTER ============ -->
-<footer class="foot"><div class="wrap">
-  <div class="foot-grid">
-    <div>
-      <a href="index.html" class="brand" style="margin-bottom:12px"><span class="dot"></span>Accent&nbsp;<em>Studio</em></a>
-      <p style="max-width:40ch">Born-digital voice data foundry. Non-Western dialects, dual-channel, verified, ready for your training pipeline.</p>
-      <p class="mono" style="font-size:.78rem;color:var(--faint)">accentstudio.io · for labs</p>
-    </div>
-    <div><h5>For labs</h5><a href="#gap">The gap</a><a href="#pipeline">How we produce</a><a href="#samples">Sample corpora</a><a href="#schema">Schema</a><a href="#skus">Product tiers</a></div>
-    <div><h5>Advanced</h5><a href="#aligned">Aligned Corpus</a><a href="#enterprise">Enterprise delivery</a><a href="#coverage">Coverage matrix</a><a href="#faq">FAQ</a></div>
-    <div><h5>Company</h5><a href="index.html">For players</a><a href="#contact">Request a sample</a><a href="privacy.html">Privacy &amp; DPIA</a><a href="terms.html">Terms of service</a></div>
-  </div>
-  <div class="bottom">
-    <span>© 2026 Accent Studio · Delaware C-Corp</span>
-    <span style="display:flex;gap:16px"><a href="privacy.html" style="color:var(--muted)">Privacy</a><a href="terms.html" style="color:var(--muted)">Terms</a><a href="cookies.html" style="color:var(--muted)">Cookies</a></span>
-    <span class="mono">Voices of Africa, LatAm &amp; SEA</span>
-  </div>
-</div></footer>
-
-<!-- Cookie consent banner -->
-<div class="cc-banner" id="ccBanner" role="dialog" aria-label="Cookie preferences">
-  <div class="cc-body"><b>We use minimal cookies.</b> A single functional preference (theme) plus optional, privacy-preserving analytics. No cross-site trackers. <a href="cookies.html">Read the cookie policy</a>.</div>
-  <div class="cc-btns">
-    <button class="cc-btn" id="ccEssential">Essential only</button>
-    <button class="cc-btn cc-primary" id="ccAll">Accept all</button>
+<!-- TICKER -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-in" id="ticker">
+    <span class="hot">Dual channel WAV</span><span>Turn level JSONL</span><span>Parquet index</span><span class="hot">Word level alignment</span><span>Emotion tags</span><span>Latency maps</span><span class="hot">Code-switch spans</span><span>Consent log</span><span>SHA-256 sums</span><span>Presigned S3</span><span>Clean rooms</span>
   </div>
 </div>
-<script>
-(function(){
-  var KEY='as-cookie-consent';
-  var b=document.getElementById('ccBanner');
-  var saved=null;try{saved=localStorage.getItem(KEY);}catch(e){}
-  function decide(v){try{localStorage.setItem(KEY,v);}catch(e){}b.classList.remove('show');
-    // if(v==='all'){/* load privacy-preserving analytics here later */}
-  }
-  if(!saved){setTimeout(function(){b.classList.add('show');},900);}
-  document.getElementById('ccAll').addEventListener('click',function(){decide('all');});
-  document.getElementById('ccEssential').addEventListener('click',function(){decide('essential');});
-})();
-</script>
+
+<!-- 01 GAP -->
+<section class="sec" id="gap">
+  <span class="ghost">01</span>
+  <div class="wrap">
+    <div class="shead-block rv">
+      <div class="eyebrow">01 · The gap</div>
+      <h2>Voice AI has an <span class="it">accent problem.</span><br>We fix the supply.</h2>
+      <p class="lead">The world's most spoken languages are also the most under-served in training data. Voice-to-voice models fumble the moment they meet a Nigerian customer or a Nairobi merchant. That gap is a supply problem, and it's what we build.</p>
+    </div>
+    <div class="gap-grid">
+      <div class="rv">
+        <div class="bignum">80%+</div>
+        <div class="bignum-sub">of open voice-AI training hours are English or Mandarin</div>
+        <p class="gap-note">Everyone builds voice agents. Almost no one builds them for accents outside Silicon Valley. Legacy call-center data is dirty and PII-laden. Common Voice is single-utterance and monotone. What labs need, real conversational, dual-channel, dialectal audio, barely exists at scale.</p>
+        <p class="gap-note" style="color:var(--faint);font-size:.86rem">We generate it born-digital: gamified crowd, native-speaker verification, word-level alignment on tap.</p>
+      </div>
+      <div class="gap-chart rv" id="gapChart">
+        <div class="cth">Open voice-AI training hours · sampled corpora</div>
+        <div class="grow"><span class="lb">English</span><div class="track"><div class="bar big" data-w="100"></div></div><span class="v">~30k hrs</span></div>
+        <div class="grow"><span class="lb">Mandarin</span><div class="track"><div class="bar big" data-w="60"></div></div><span class="v">~18k hrs</span></div>
+        <div class="grow"><span class="lb">Spanish</span><div class="track"><div class="bar big" data-w="30"></div></div><span class="v">~9k hrs</span></div>
+        <div class="grow"><span class="lb">Arabic</span><div class="track"><div class="bar big" data-w="17"></div></div><span class="v">~5k hrs</span></div>
+        <div class="grow hotrow"><span class="lb">Swahili</span><div class="track"><div class="bar hot" data-w="5"></div></div><span class="v">~1.5k hrs</span></div>
+        <div class="grow hotrow"><span class="lb">Yoruba</span><div class="track"><div class="bar hot" data-w="2.7"></div></div><span class="v">~800 hrs</span></div>
+        <div class="grow hotrow"><span class="lb">Pidgin (NG)</span><div class="track"><div class="bar hot" data-w="1.4"></div></div><span class="v">~400 hrs</span></div>
+        <div class="grow hotrow"><span class="lb">Zulu</span><div class="track"><div class="bar hot" data-w="0.8"></div></div><span class="v">~200 hrs</span></div>
+        <div class="gap-src">Aggregated across Common Voice, VoxPopuli, MLS, LibriSpeech and public corpora as of 2026. Non-Western dialects rounded to nearest 100 hrs.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 PIPELINE -->
+<section class="sec tint" id="pipeline">
+  <span class="ghost">02</span>
+  <div class="wrap">
+    <div class="shead-block rv">
+      <div class="eyebrow">02 · The pipeline</div>
+      <h2>Three roles, one <span class="it">clean take.</span></h2>
+      <p class="lead">Every session is a small production. Two players improvise, an editor verifies live, and an audit layer samples everything behind them.</p>
+    </div>
+    <div class="pipe stag">
+      <article class="pstep">
+        <div class="num">01</div>
+        <h3>Live improv, dual track</h3>
+        <p>Two anonymously paired native speakers play a scene from an English scenario card: a fraud dispute, a market haggle, a KYC call. Each voice records to its own channel.</p>
+        <span class="tg">output · raw dual-channel audio</span>
+      </article>
+      <article class="pstep">
+        <div class="num">02</div>
+        <h3>Editor polishes live</h3>
+        <p>A third native speaker rides along, correcting the transcript in real time: slang, code-switches, tone tags. Peer ratings below 4 force a retake before anything ships.</p>
+        <span class="tg">output · verified transcript + labels</span>
+      </article>
+      <article class="pstep">
+        <div class="num">03</div>
+        <h3>Packaged for training</h3>
+        <p>Sessions are chunked, aligned, indexed and hashed. A 30% random audit re-reviews turns blind. Anything that fails is reworked or dropped, never shipped.</p>
+        <span class="tg">output · WAV + JSONL + Parquet bundle</span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 03 DELIVERABLE -->
+<section class="sec" id="schema">
+  <span class="ghost">03</span>
+  <div class="wrap">
+    <div class="shead-block rv">
+      <div class="eyebrow">03 · The deliverable</div>
+      <h2>Clean, labelled, <span class="it">licensable.</span><br>Slots into your pipeline on day one.</h2>
+    </div>
+    <div class="deliv">
+      <div class="rv">
+        <div class="sheet">
+          <div class="shead"><i></i>Turn schema <span class="fn">manifest.jsonl</span></div>
+          <div class="code">{
+  <span class="k">"turn_id"</span>: <span class="n">4</span>,
+  <span class="k">"speaker_id"</span>: <span class="s">"spk_pcm_ng_99104_m"</span>,
+  <span class="k">"channel"</span>: <span class="n">1</span>,
+  <span class="k">"start_ms"</span>: <span class="n">13700</span>, <span class="k">"end_ms"</span>: <span class="n">19940</span>,
+  <span class="k">"raw_stt_text"</span>: <span class="s">"sir i see three unauthorized…"</span>,
+  <span class="k">"verified_text"</span>: <span class="s">"Oga, I see three unauthorized
+    transactions. I go block am now."</span>,
+  <span class="k">"english_source"</span>: <span class="s">"Sir, I can see three
+    unauthorized transactions…"</span>,
+  <span class="k">"emotion_label"</span>: <span class="s">"focused_professional"</span>,
+  <span class="k">"inter_turn_latency_ms"</span>: <span class="n">480</span>,
+  <span class="k">"code_switches"</span>: [<span class="s">"EN→PCM"</span>, <span class="s">"PCM→EN"</span>],
+  <span class="k">"peer_rating"</span>: { <span class="k">"aggregate"</span>: <span class="n">5.0</span> },
+  <span class="k">"alignments"</span>: [ <span class="c">/* word level, typed */</span> ]
+}</div>
+        </div>
+      </div>
+      <div class="rv">
+        <div class="spec-list">
+          <div class="spec"><span class="k">Audio</span><span class="v">Dual-channel WAV · 24 kHz · PCM 16-bit · speaker per channel</span></div>
+          <div class="spec"><span class="k">Metadata</span><span class="v">JSONL, one row per session · full turn objects</span></div>
+          <div class="spec"><span class="k">Index</span><span class="v">Parquet, turn level, dictionary encoded for filter pushdown</span></div>
+          <div class="spec"><span class="k">Labels</span><span class="v">Emotion (10 class) · latency · code-switch spans · peer QA</span></div>
+          <div class="spec"><span class="k">Consent</span><span class="v">Per-speaker signed log, SHA-256 hash anchored</span></div>
+          <div class="spec"><span class="k">Integrity</span><span class="v">SHA-256 sums + PGP signature over the bundle</span></div>
+          <div class="spec"><span class="k">Delivery</span><span class="v">Presigned S3 · TLS 1.3 · clean rooms on request</span></div>
+          <div class="spec"><span class="k">Tooling</span><span class="v">Hugging Face Datasets, PyTorch and NeMo recipes included</span></div>
+        </div>
+        <div class="sample-cta">
+          <h4>See a full delivery before you spend a dollar.</h4>
+          <p>Our 35-page sample bundle: 10 sessions, 118 verified turns across 6 locales, schema reference, evaluation baselines and the signed consent register.</p>
+          <a class="btn btn-a" href="#contact">Request the sample bundle <span class="ar">→</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 ALIGNED -->
+<section class="sec tint" id="aligned">
+  <span class="ghost">04</span>
+  <div class="wrap">
+    <div class="shead-block rv">
+      <div class="eyebrow">04 · Aligned corpus tier</div>
+      <h2>Word-level alignment, <span class="it">source to target.</span></h2>
+      <p class="lead">Every translated span links back to its English source, typed by phenomenon. Serial verbs, aspect shifts, null particles, the constructions that make these languages hard, mapped for you.</p>
+    </div>
+    <div class="align-sheet rv">
+      <div class="al-lb">English source</div>
+      <div class="al-row">
+        <span class="tok p1">Good morning.</span><span class="tok p2">I woke up</span><span class="tok p3">and saw that</span><span class="tok p4">₦50,000</span><span class="tok p5">left</span><span class="tok p1">my account</span>
+      </div>
+      <div class="al-lb">Pidgin · verified take</div>
+      <div class="al-row">
+        <span class="tok p1">Good morning.</span><span class="tok p2">I wake up</span><span class="tok p3">see say</span><span class="tok p4">POS commot 50k</span><span class="tok nul">for</span><span class="tok p1">my account!</span>
+      </div>
+      <div class="al-note">Matching colors are aligned spans. <b>"see say"</b> is a serial-verb construction, <b>"I wake up"</b> an aspect shift, and the dashed <b>"for"</b> a Pidgin particle with no English source. 1,800+ typed alignment spans ship in the sample bundle alone, each with an aligner confidence score.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 COVERAGE -->
+<section class="sec" id="coverage">
+  <span class="ghost">05</span>
+  <div class="wrap">
+    <div class="shead-block rv">
+      <div class="eyebrow">05 · Coverage</div>
+      <h2>Locales and domains we <span class="it">record in.</span></h2>
+    </div>
+    <div class="cov stag">
+      <div class="cov-col">
+        <h4>Locales · live and ramping</h4>
+        <div class="chips">
+          <span class="chp"><b>●</b> Nigerian Pidgin</span><span class="chp"><b>●</b> Yoruba</span><span class="chp"><b>●</b> Igbo</span><span class="chp"><b>●</b> Hausa</span><span class="chp"><b>●</b> Swahili · KE</span><span class="chp"><b>●</b> Swahili · TZ</span><span class="chp"><b>●</b> Zulu</span><span class="chp"><b>●</b> Xhosa</span><span class="chp"><b>●</b> Amharic</span><span class="chp"><b>●</b> Twi</span><span class="chp"><b>●</b> Nigerian English</span><span class="chp"><b>●</b> Kenyan English</span><span class="chp soon">Brazilian Portuguese · soon</span><span class="chp soon">Tagalog · soon</span><span class="chp soon">Bahasa · soon</span>
+        </div>
+      </div>
+      <div class="cov-col">
+        <h4>Domains · scenario families</h4>
+        <div class="chips">
+          <span class="chp">Retail banking · fraud</span><span class="chp">Telco support</span><span class="chp">Fintech KYC</span><span class="chp">Mobile money</span><span class="chp">Market haggle</span><span class="chp">Ride-hailing</span><span class="chp">Insurance claims</span><span class="chp">Logistics</span><span class="chp">Consumer loans</span><span class="chp">Healthcare intake</span><span class="chp">Custom · commissioned</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 BUY -->
+<section class="sec tint" id="buy">
+  <span class="ghost">06</span>
+  <div class="wrap">
+    <div class="shead-block rv">
+      <div class="eyebrow">06 · How to buy</div>
+      <h2>Four ways in, <span class="it">no lock-in.</span></h2>
+      <p class="lead">Non-exclusive by default, exclusivity negotiable. Pricing scales with hours, locales and tier. Talk to us for a quote.</p>
+    </div>
+    <div class="skus stag">
+      <article class="sku">
+        <span class="k">Start here</span>
+        <h3>Pilot corpus</h3>
+        <p>A scoped bundle in your target locale and domain, sized for a fine-tune experiment. Ships in weeks with full schema and baselines.</p>
+        <span class="ft">one-off · evaluation friendly</span>
+      </article>
+      <article class="sku">
+        <span class="k">Scale</span>
+        <h3>Standing subscription</h3>
+        <p>A monthly flow of fresh verified hours in the locales you pick. Same schema, versioned releases, replacement SLA.</p>
+        <span class="ft">recurring · volume priced</span>
+      </article>
+      <article class="sku">
+        <span class="k">Bespoke</span>
+        <h3>Custom commission</h3>
+        <p>Your scenarios, personas and edge cases, dropped into the game as scenario cards. The crowd plays your test set into existence.</p>
+        <span class="ft">directed · your IP guardrails</span>
+      </article>
+      <article class="sku">
+        <span class="k">Premium</span>
+        <h3>Aligned corpus</h3>
+        <p>Everything above plus word-level source-to-target alignment, typed by linguistic phenomenon and confidence scored.</p>
+        <span class="ft">tier 4 · translation grade</span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- COMPLIANCE -->
+<section class="sec" id="compliance" style="padding-top:0">
+  <div class="wrap">
+    <div class="shead-block rv" style="margin-bottom:30px">
+      <div class="eyebrow">Compliance</div>
+      <h2 style="font-size:clamp(1.5rem,3vw,2.2rem)">Consent-cryptographed. <span class="it">Procurement ready.</span></h2>
+    </div>
+    <div class="compl stag">
+      <div class="cm"><div class="t">Consent</div><p>Per-speaker signed agreement, SHA-256 anchored, withdrawal SLA</p></div>
+      <div class="cm"><div class="t">Privacy law</div><p>GDPR, NDPA and POPIA aligned, PII redacted at capture</p></div>
+      <div class="cm"><div class="t">Security</div><p>AES-256 at rest, TLS 1.3 in transit, IP-whitelisted delivery</p></div>
+      <div class="cm"><div class="t">SOC 2</div><p>Type II program in progress with a Big Four auditor</p></div>
+      <div class="cm"><div class="t">Provenance</div><p>Born-digital, zero scraped audio, full chain of custody</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="sec tint" id="faq">
+  <div class="wrap">
+    <div class="shead-block rv">
+      <div class="eyebrow">The details</div>
+      <h2>What procurement and ML leads <span class="it">ask us.</span></h2>
+    </div>
+    <div class="faq rv">
+      <details>
+        <summary>What formats do you deliver?</summary>
+        <div class="a">Dual-channel WAV at 24 kHz PCM 16-bit, JSONL manifests with full turn objects, a Parquet index for filtering and streaming, plus consent logs, checksums and a schema reference. Hugging Face Datasets, PyTorch DataLoader and NeMo recipes ship in the bundle.</div>
+      </details>
+      <details>
+        <summary>How do you handle PII?</summary>
+        <div class="a">Scenes are synthetic scenarios, so real PII should never appear. Anything that slips through, a real phone number, an ID, is caught at capture and replaced with synthetic tokens before storage. Speakers are indexed by cryptographic UUID only, and the identity vault is never delivered.</div>
+      </details>
+      <details>
+        <summary>Can we specify custom scenarios or personas?</summary>
+        <div class="a">Yes. Custom commissions drop your scenarios into the game as scenario cards. You define the domain, personas, twists and target register, and the crowd plays it into existence with the same verification pipeline on top.</div>
+      </details>
+      <details>
+        <summary>How is data delivered?</summary>
+        <div class="a">Presigned S3 URLs over TLS 1.3 with IP whitelisting by default. AWS Clean Rooms, Snowflake Data Clean Rooms, GCS and Azure SAS available. Enterprise buyers can request air-gapped drive shipment.</div>
+      </details>
+      <details>
+        <summary>How fast can we get a pilot corpus?</summary>
+        <div class="a">Weeks, not quarters. The crowd is already playing in our live locales, so a pilot in an existing locale and domain is mostly packaging time. New locales or custom scenario families add ramp time and we'll quote it honestly.</div>
+      </details>
+      <details>
+        <summary>What are the usage rights?</summary>
+        <div class="a">Commercial, non-exclusive, perpetual and worldwide by default: train, fine-tune, evaluate and ship models freely. Redistribution of the raw dataset is prohibited, model outputs are yours. Exclusive tiers are negotiable per corpus.</div>
+      </details>
+      <details>
+        <summary>Do you handle data residency?</summary>
+        <div class="a">Primary storage is us-east-1 with an eu-west-1 replica on request. Region-pinned delivery and processing agreements are available for enterprise contracts.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="sec contact" id="contact">
+  <div class="contact-glow"></div>
+  <div class="wrap">
+    <div class="rv" style="text-align:center;margin-bottom:38px">
+      <div class="eyebrow" style="justify-content:center">Talk to us</div>
+      <h2>Tell us what you're <span class="it">building.</span></h2>
+      <p class="lead" style="margin:0 auto;max-width:52ch">We'll come back within one business day with a sample bundle, a schema walkthrough and an honest read on fit.</p>
+    </div>
+    <form class="cform rv" id="labForm" novalidate>
+      <div class="row2">
+        <input type="text" name="org" placeholder="Organization" required aria-label="Organization">
+        <input type="email" name="email" placeholder="Work email" required aria-label="Work email">
+      </div>
+      <textarea name="msg" placeholder="What are you building, and which locales matter most?" aria-label="Message"></textarea>
+      <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
+      <button class="btn btn-a" type="submit">Request the sample bundle <span class="ar">→</span></button>
+      <div class="cmsg" id="labMsg"></div>
+    </form>
+  </div>
+</section>
+</main>
+
+<!-- FOOTER -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="#top"><span class="lamp"></span>Accent&nbsp;<em>Studio</em></a>
+        <p class="blurb">The voice data foundry. Built for the people teaching machines to talk, paid out to the people who play.</p>
+      </div>
+      <div>
+        <h5>Data</h5>
+        <ul>
+          <li><a href="#gap">The gap</a></li>
+          <li><a href="#schema">Deliverable</a></li>
+          <li><a href="#aligned">Aligned corpus</a></li>
+          <li><a href="#buy">How to buy</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Players</h5>
+        <ul>
+          <li><a href="index.html">The game</a></li>
+          <li><a href="index.html#earn">Earnings</a></li>
+          <li><a href="index.html#join">Waitlist</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Legal</h5>
+        <ul>
+          <li><a href="privacy.html">Privacy</a></li>
+          <li><a href="terms.html">Terms</a></li>
+          <li><a href="cookies.html">Cookies</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="bottom">
+      <span>© 2026 Accent Studio, Inc.</span>
+      <span class="mono" style="font-size:.7rem;letter-spacing:.12em">MADE ACROSS LAGOS · NAIROBI · LONDON</span>
+    </div>
+  </div>
+</footer>
 
 <script>
 (function(){
-  var root=document.documentElement, tt=document.getElementById('tt');
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  // Dark is the design default. Toggle only switches between dark and explicit-light.
-  function curT(){return root.getAttribute('data-theme')==='light'?'light':'dark';}
-  try{var st=localStorage.getItem('as-theme');if(st==='light')root.setAttribute('data-theme','light');}catch(e){}
-  tt.textContent = curT()==='dark'?'☾':'☀';
-  tt.addEventListener('click',function(){var n=curT()==='dark'?'light':'dark';if(n==='light')root.setAttribute('data-theme','light');else root.removeAttribute('data-theme');tt.textContent=n==='dark'?'☾':'☀';try{localStorage.setItem('as-theme',n);}catch(e){}});
+"use strict";
+var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Reveal on scroll
-  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{rootMargin:'0px 0px -8% 0px',threshold:.08});
-  document.querySelectorAll('.rv,.rev-stag').forEach(function(el){if(!el.classList.contains('in'))io.observe(el);});
+/* reveals */
+var io=new IntersectionObserver(function(es){
+  es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});
+},{threshold:.15,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.rv,.stag').forEach(function(el){io.observe(el);});
 
-  // Nav scroll state + progress bar
-  var prog=document.getElementById('scrollProg'), navEl=document.querySelector('.nav');
-  var vh=window.innerHeight;
-  window.addEventListener('resize',function(){vh=window.innerHeight;});
-  function onScroll(){
-    var y=window.pageYOffset||document.documentElement.scrollTop;
-    var docH=document.documentElement.scrollHeight-vh;
-    if(prog)prog.style.width=(docH>0?Math.min(100,y/docH*100):0)+'%';
-    if(navEl)navEl.classList.toggle('scrolled',y>24);
-  }
-  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+/* hero equalizer */
+var eq=document.getElementById('heroEq');
+if(eq){for(var i=0;i<72;i++){var b=document.createElement('i');b.style.height=(18+Math.random()*72)+'%';b.style.animationDelay=(Math.random()*1.4).toFixed(2)+'s';b.style.animationDuration=(1.1+Math.random()*.9).toFixed(2)+'s';eq.appendChild(b);}}
 
-  // Hero waveform (canvas)
-  var c=document.getElementById('wave');
-  if(c){var ctx=c.getContext('2d'),W,H,dpr=Math.min(window.devicePixelRatio||1,2);
-    function acc(){return getComputedStyle(root).getPropertyValue('--acc').trim()||'#a5620d';}
-    function sz(){var r=c.getBoundingClientRect();W=c.width=r.width*dpr;H=c.height=r.height*dpr;}
-    sz();window.addEventListener('resize',sz);
-    var bars=90;
-    function hex2rgb(h){h=h.replace('#','');if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
-    function draw(t){
-      ctx.clearRect(0,0,W,H);
-      var rgb=hex2rgb(acc());var bw=W/bars;
-      for(var i=0;i<bars;i++){
-        var ph=reduce?(i*0.5):(t/580+i*0.30);
-        var env=Math.sin((i/bars)*Math.PI);
-        var a=(Math.sin(ph)*0.5+0.5)*env;
-        var h=(0.06+a*0.78)*H;
-        var x=i*bw+bw*0.24,w=bw*0.52,y=(H-h)/2;
-        ctx.fillStyle='rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+','+(0.08+a*0.42)+')';
-        ctx.fillRect(x,y,w,h);
-      }
-      if(!reduce)requestAnimationFrame(draw);
-    }
-    if(reduce)draw(0);else requestAnimationFrame(draw);
-  }
+/* ticker */
+var tick=document.getElementById('ticker');
+if(tick){tick.innerHTML+=tick.innerHTML;}
 
-  // Fill dual-channel waveforms (hero manifest card + sample corpora)
-  document.querySelectorAll('.dm-wave').forEach(function(wv){for(var i=0;i<28;i++){var b=document.createElement('i');b.style.animationDelay=(i*0.05)+'s';wv.appendChild(b);}});
-  document.querySelectorAll('.samp-wave').forEach(function(wv){for(var i=0;i<26;i++){var b=document.createElement('i');b.style.animationDelay=(i*0.06)+'s';wv.appendChild(b);}});
-
-  // Country selector (Impact section)
-  var CTRY = {
-    ng:{name:'Nigeria',ctx:'Nigerians',ctxCap:'Nigeria',pop:'220M',engPct:'~15–25%',withPct:'~90%+',withoutMLbl:'~35M',withMLbl:'~200M',withoutFill:16,withFill:92,mult:'5.7×',langs:'Nigerian Pidgin, Yoruba, Igbo and Hausa',langLine:'<b>Pidgin</b> code-switching handled natively, not filtered out'},
-    ke:{name:'Kenya',ctx:'Kenyans',ctxCap:'Kenya',pop:'55M',engPct:'~20–30%',withPct:'~95%+',withoutMLbl:'~14M',withMLbl:'~52M',withoutFill:26,withFill:95,mult:'3.7×',langs:'Swahili and Sheng',langLine:'<b>Swahili</b> plus <b>Sheng</b> mix rendered without loss'},
-    za:{name:'South Africa',ctx:'South Africans',ctxCap:'South Africa',pop:'60M',engPct:'~30%',withPct:'~95%+',withoutMLbl:'~18M',withMLbl:'~57M',withoutFill:30,withFill:95,mult:'3.2×',langs:'Zulu, Xhosa, Afrikaans and 8 more official languages',langLine:'<b>Zulu, Xhosa, Afrikaans</b> and 8 more official languages spoken natively'},
-    gh:{name:'Ghana',ctx:'Ghanaians',ctxCap:'Ghana',pop:'33M',engPct:'~30%',withPct:'~90%+',withoutMLbl:'~10M',withMLbl:'~30M',withoutFill:30,withFill:91,mult:'3.0×',langs:'Twi, Ewe and Ga',langLine:'<b>Twi, Ewe, Ga</b> served alongside English fluidly'},
-    in:{name:'India',ctx:'Indians',ctxCap:'India',pop:'1.42B',engPct:'~10–15%',withPct:'~85%+',withoutMLbl:'~180M',withMLbl:'~1.2B',withoutFill:13,withFill:85,mult:'6.7×',langs:'Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati',langLine:'<b>Hindi, Tamil, Telugu, Bengali</b> plus 4 more Indic voices'},
-    id:{name:'Indonesia',ctx:'Indonesians',ctxCap:'Indonesia',pop:'275M',engPct:'~20%',withPct:'~95%+',withoutMLbl:'~55M',withMLbl:'~260M',withoutFill:20,withFill:95,mult:'4.7×',langs:'Bahasa, Javanese and Sundanese',langLine:'<b>Bahasa, Javanese, Sundanese</b> rendered natively'},
-    br:{name:'Brazil',ctx:'Brazilians',ctxCap:'Brazil',pop:'215M',engPct:'~5%',withPct:'~99%',withoutMLbl:'~10M',withMLbl:'~213M',withoutFill:5,withFill:99,mult:'21×',langs:'Brazilian Portuguese and indigenous voices',langLine:'<b>Brazilian Portuguese</b> plus indigenous voices, no English fallback needed'},
-    eg:{name:'Egypt',ctx:'Egyptians',ctxCap:'Egypt',pop:'110M',engPct:'~15–20%',withPct:'~98%',withoutMLbl:'~20M',withMLbl:'~108M',withoutFill:18,withFill:98,mult:'5.4×',langs:'Egyptian Arabic and regional dialects',langLine:'<b>Egyptian Arabic</b> plus regional dialects, no translation friction'}
-  };
-  function applyCountry(key){
-    var d = CTRY[key]; if(!d) return;
-    var scope = document.querySelector('.wv-wrap');
-    if(!scope) return;
-    // Dim then swap
-    scope.querySelectorAll('.wv-card').forEach(function(c){c.classList.add('updating');});
-    setTimeout(function(){
-      Object.keys(d).forEach(function(field){
-        scope.querySelectorAll('[data-f="'+field+'"]').forEach(function(el){
-          if(field==='langLine') el.innerHTML = d[field];
-          else el.textContent = d[field];
-        });
-      });
-      scope.querySelectorAll('[data-fill="without"]').forEach(function(el){el.style.width = d.withoutFill + '%';});
-      scope.querySelectorAll('[data-fill="with"]').forEach(function(el){el.style.width = d.withFill + '%';});
-      scope.querySelectorAll('.wv-card').forEach(function(c){c.classList.remove('updating');});
-    }, 200);
-  }
-  var tabs = document.getElementById('ctryTabs');
-  if(tabs){
-    tabs.addEventListener('click', function(e){
-      var b = e.target.closest('.ctry-tab'); if(!b) return;
-      tabs.querySelectorAll('.ctry-tab').forEach(function(x){x.classList.remove('on');});
-      b.classList.add('on');
-      applyCountry(b.getAttribute('data-c'));
+/* gap chart bars */
+var gio=new IntersectionObserver(function(es){
+  es.forEach(function(e){
+    if(!e.isIntersecting)return;
+    gio.unobserve(e.target);
+    e.target.querySelectorAll('.bar').forEach(function(bar,idx){
+      setTimeout(function(){bar.style.width=bar.dataset.w+'%';},reduced?0:idx*110);
     });
-  }
-
-  /* Cursor-follow spotlight on hero */
-  var heroEl=document.querySelector('.hero');
-  if(heroEl && !reduce && window.matchMedia('(hover:hover) and (pointer:fine)').matches){
-    var mx=20, my=15, tx=20, ty=15;
-    heroEl.addEventListener('mousemove',function(e){
-      var r=heroEl.getBoundingClientRect();
-      tx=((e.clientX-r.left)/r.width*100).toFixed(1);
-      ty=((e.clientY-r.top)/r.height*100).toFixed(1);
-    });
-    (function tick(){mx += (tx-mx)*0.08; my += (ty-my)*0.08;heroEl.style.setProperty('--mx', mx.toFixed(1)+'%');heroEl.style.setProperty('--my', my.toFixed(1)+'%');requestAnimationFrame(tick);})();
-  }
-
-  /* ============ SALES FORM BACKEND ============
-     Formspree default: paste your endpoint ID below (looks like "abcd1234").
-     For the labs form use a SEPARATE Formspree form ID so lab leads land in a different inbox/pipeline.
-  =============================================== */
-  var SALES_ENDPOINT = 'https://formspree.io/f/YOUR_LABS_FORMSPREE_ID_HERE';
-
-  var f=document.getElementById('salesForm'), msg=document.getElementById('salesMsg');
-  var sbtn=f.querySelector('button[type="submit"]');
-  function isEmail2(s){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);}
-  f.addEventListener('submit',function(e){
-    e.preventDefault();
-    var em=(f.querySelector('[name="email"]').value||'').trim();
-    var name=(f.querySelector('[name="name"]').value||'').trim();
-    var company=(f.querySelector('[name="company"]').value||'').trim();
-    var usecase=(f.querySelector('[name="usecase"]').value||'').trim();
-    if(!name || !company){msg.style.color='var(--hot)';msg.textContent='Please fill in name and company.';return;}
-    if(!isEmail2(em)){msg.style.color='var(--hot)';msg.textContent='Please enter a valid work email.';return;}
-    if(!usecase){msg.style.color='var(--hot)';msg.textContent='Please pick a use case.';return;}
-    if(f.querySelector('[name="_gotcha"]').value){return;}
-
-    msg.style.color='var(--acc-b)';msg.textContent='Sending…';sbtn.disabled=true;sbtn.style.opacity='.7';
-    var payload=new FormData(f);
-    payload.append('_source','lab_sales_lead');
-    payload.append('_subject','New lab sample-corpus request');
-
-    if(!SALES_ENDPOINT || SALES_ENDPOINT.indexOf('YOUR_LABS_FORMSPREE_ID')>-1){
-      setTimeout(function(){msg.style.color='var(--acc-b)';msg.textContent="Got it — we'll be in touch within 2 business days. 🎙 (dev mode — plug in Formspree endpoint to persist)";f.reset();sbtn.disabled=false;sbtn.style.opacity='';},450);
-      return;
-    }
-    fetch(SALES_ENDPOINT,{method:'POST',body:payload,headers:{Accept:'application/json'}})
-      .then(function(r){
-        if(r.ok){msg.style.color='var(--acc-b)';msg.textContent="Got it — we'll be in touch within 2 business days. 🎙";f.reset();}
-        else{return r.json().then(function(d){throw new Error((d.errors&&d.errors.map(function(x){return x.message;}).join(', '))||'Something went wrong.');});}
-      })
-      .catch(function(err){msg.style.color='var(--hot)';msg.textContent=(err&&err.message)||"Could not send right now — try again in a moment.";})
-      .finally(function(){sbtn.disabled=false;sbtn.style.opacity='';});
   });
+},{threshold:.35});
+var gc=document.getElementById('gapChart');
+if(gc)gio.observe(gc);
+
+/* mobile menu */
+var burger=document.getElementById('burger'),menu=document.getElementById('menu'),menuX=document.getElementById('menuX');
+function closeMenu(){menu.classList.remove('open');menu.setAttribute('aria-hidden','true');burger.setAttribute('aria-expanded','false');document.body.style.overflow='';}
+burger.addEventListener('click',function(){menu.classList.add('open');menu.setAttribute('aria-hidden','false');burger.setAttribute('aria-expanded','true');document.body.style.overflow='hidden';});
+menuX.addEventListener('click',closeMenu);
+menu.querySelectorAll('a').forEach(function(a){a.addEventListener('click',closeMenu);});
+
+/* contact form */
+var FORM_ENDPOINT='https://formspree.io/f/YOUR_LABS_FORMSPREE_ID_HERE';
+var lf=document.getElementById('labForm'),lm=document.getElementById('labMsg');
+lf.addEventListener('submit',function(e){
+  e.preventDefault();
+  var org=lf.org.value.trim(),email=lf.email.value.trim(),msg=lf.msg.value.trim();
+  if(!org){lm.style.color='var(--coral)';lm.textContent='Tell us your organization first.';return;}
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){lm.style.color='var(--coral)';lm.textContent='That email doesn’t look right.';return;}
+  if(FORM_ENDPOINT.indexOf('YOUR_')>-1){
+    window.location.href='mailto:labs@accentstudio.io?subject='+encodeURIComponent('Sample bundle request · '+org)+'&body='+encodeURIComponent('Org: '+org+'\nEmail: '+email+'\n\n'+msg);
+    lm.style.color='var(--acc)';lm.textContent='Opening your mail app…';
+    return;
+  }
+  lm.style.color='var(--mut)';lm.textContent='Sending…';
+  fetch(FORM_ENDPOINT,{method:'POST',headers:{'Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify({org:org,email:email,message:msg})})
+    .then(function(r){if(!r.ok)throw new Error('Could not send right now.');lm.style.color='var(--acc)';lm.textContent='Received. Sample bundle inbound within one business day.';lf.reset();})
+    .catch(function(err){lm.style.color='var(--coral)';lm.textContent=err.message||'Could not send right now. Try again shortly.';});
+});
 })();
 </script>
+</body>
+</html>
