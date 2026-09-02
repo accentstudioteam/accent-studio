@@ -28,6 +28,25 @@ import {
   TrainingIntro,
   OnbComplete,
 } from "@/screens/onboarding";
+import {
+  Home,
+  VolleyRecord,
+  VolleySubmitted,
+  VolleyRate,
+  ArenaLobby,
+  ArenaScene,
+  ArenaResult,
+  CuttingRoomQueue,
+  CuttingRoomVerify,
+} from "@/screens/game";
+import { Wallet, Cashout, CashoutConfirm, Ledger } from "@/screens/economy";
+import {
+  Profile,
+  Progression,
+  MyDocuments,
+  ConsentCenter,
+  DataPrivacy,
+} from "@/screens/account";
 
 /**
  * Ordered screen registry. `nav.next()` walks this list; the index
@@ -63,4 +82,28 @@ export const SCREENS: ScreenDef[] = [
   { id: "payout-setup", title: "Onboarding · payouts", phase: "Onboarding", Component: PayoutSetup },
   { id: "training-intro", title: "Onboarding · training", phase: "Onboarding", Component: TrainingIntro },
   { id: "onb-complete", title: "Onboarding · complete", phase: "Onboarding", Component: OnbComplete },
+
+  // --- Game ---
+  { id: "home", title: "Home · dashboard", phase: "Game", Component: Home },
+  { id: "volley-record", title: "Volley · record", phase: "Game", Component: VolleyRecord },
+  { id: "volley-submitted", title: "Volley · submitted", phase: "Game", Component: VolleySubmitted },
+  { id: "volley-rate", title: "Volley · rate a take", phase: "Game", Component: VolleyRate },
+  { id: "arena-lobby", title: "Arena · matchmaking", phase: "Game", Component: ArenaLobby },
+  { id: "arena-scene", title: "Arena · live scene", phase: "Game", Component: ArenaScene },
+  { id: "arena-result", title: "Arena · result", phase: "Game", Component: ArenaResult },
+  { id: "cutting-room-queue", title: "Cutting Room · queue", phase: "Game", Component: CuttingRoomQueue },
+  { id: "cutting-room-verify", title: "Cutting Room · verify", phase: "Game", Component: CuttingRoomVerify },
+
+  // --- Economy ---
+  { id: "wallet", title: "Wallet", phase: "Economy", Component: Wallet },
+  { id: "cashout", title: "Cash out", phase: "Economy", Component: Cashout },
+  { id: "cashout-confirm", title: "Cashout · confirmed", phase: "Economy", Component: CashoutConfirm },
+  { id: "ledger", title: "Transaction history", phase: "Economy", Component: Ledger },
+
+  // --- Account ---
+  { id: "profile", title: "Profile", phase: "Account", Component: Profile },
+  { id: "progression", title: "Progression", phase: "Account", Component: Progression },
+  { id: "my-documents", title: "My documents", phase: "Account", Component: MyDocuments },
+  { id: "consent-center", title: "Consent center", phase: "Account", Component: ConsentCenter },
+  { id: "data-privacy", title: "Data & privacy", phase: "Account", Component: DataPrivacy },
 ];

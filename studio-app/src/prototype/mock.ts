@@ -108,6 +108,9 @@ export const INTERVIEW_TASKS = [
   },
 ];
 
+export const RAILS_NOTE =
+  "You earn Accent Points as you play. Cash out to real money once you pass your rail's minimum: M-Pesa and Paystack from $5, Stripe and PayPal from $10, USDC from $2.";
+
 export const PROGRESSION = [
   { rank: "Extra", need: "0", perk: "Play Volley, earn base AP" },
   { rank: "Featured", need: "2,000 AP", perk: "Unlock the Arena" },
