@@ -482,6 +482,35 @@ img{max-width:100%}
 @media(max-width:960px){.phone{width:230px;height:480px}.phone.rating{--px:-140px}.phone.editor{--px:140px}}
 @media(max-width:640px){.phone{width:200px;height:420px}.phone.rating{--px:-100px;--rot:-10deg}.phone.editor{--px:100px;--rot:10deg}}
 
+/* ============ CARD DESIGN LANGUAGE (sheet + inner tiles) — reused in webapp ============ */
+.phone .screen{background:radial-gradient(120% 100% at 20% 0%,#141416 0%,#0a0a0c 55%,#050506 100%)}
+.phone .handle{width:36px;height:4px;background:rgba(255,255,255,.16);border-radius:100px;margin:6px auto 0;position:relative;z-index:6}
+.phone .card-hd{display:flex;align-items:center;justify-content:center;gap:7px;font-family:var(--mono);font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.62);padding:44px 12px 12px;font-weight:600}
+.phone .card-hd i{width:5px;height:5px;border-radius:50%;background:#3ec392;box-shadow:0 0 8px rgba(62,195,146,.7)}
+.phone.rating .card-hd i{background:var(--acc-b);box-shadow:0 0 8px rgba(224,162,78,.6)}
+.phone .app-body{padding:0 14px 14px;gap:10px}
+.phone .tile{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:11px 13px;position:relative}
+.phone .tile.acc{border-left:2px solid var(--acc-b);padding-left:12px}
+.phone .tile.dash{border-style:dashed;border-color:rgba(255,255,255,.13);background:rgba(255,255,255,.02)}
+.phone .tile-lbl{font-family:var(--mono);font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:5px;font-weight:600}
+.phone .tile-title{font-family:var(--serif);font-weight:800;font-size:.9rem;line-height:1.18;letter-spacing:-.01em;color:#f2f2f2;margin:0}
+.phone .tile-body{font-family:var(--sans);font-size:.78rem;line-height:1.45;color:#e5e5e5}
+.phone .wave2{display:flex;align-items:center;gap:2.5px;height:24px;margin-top:3px}
+.phone .wave2 i{flex:1;max-width:3.5px;background:var(--acc-b);border-radius:2px;opacity:.9;display:block}
+.phone .wave2 i.mu{opacity:.35}
+.phone .stars2{display:flex;gap:5px;margin-top:2px}
+.phone .stars2 s{font-size:1.3rem;color:var(--acc-b);line-height:1;text-decoration:none;filter:drop-shadow(0 0 6px rgba(224,162,78,.4))}
+.phone .stars2 s.dim{color:rgba(255,255,255,.14);filter:none}
+.phone .fix .stx{color:rgba(232,140,120,.75);text-decoration:line-through;text-decoration-color:rgba(232,140,120,.55);text-decoration-thickness:1px}
+.phone .fix .new{color:#8fe6c5;font-weight:600}
+.phone .cta-solid{background:var(--acc-b);color:#1a1206;border:none;border-radius:100px;padding:12px 14px;font-family:var(--mono);font-weight:700;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;width:100%;box-shadow:0 6px 16px -6px rgba(224,162,78,.55);margin-top:auto;cursor:pointer}
+.phone .binary{display:flex;justify-content:center;gap:14px;margin-top:auto;padding-top:6px}
+.phone .binary button{width:42px;height:42px;border-radius:50%;border:none;font-size:1rem;display:grid;place-items:center;color:#fff;cursor:pointer;font-weight:700}
+.phone .binary .no{background:#e08a5c;box-shadow:0 4px 12px -4px rgba(224,138,92,.5)}
+.phone .binary .yes{background:#3ec392;box-shadow:0 4px 12px -4px rgba(62,195,146,.5)}
+.phone .ap-row{display:flex;justify-content:space-between;align-items:center;padding:2px 0}
+.phone .ap-row .ap{color:var(--acc-b);font-family:var(--serif);font-weight:800;font-size:.9rem}
+
 /* Phone-orbit decorative shapes */
 .p-orbit{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:1}
 .p-orbit i{position:absolute;display:block}
@@ -774,60 +803,77 @@ img{max-width:100%}
         </div>
       </div>
     <div class="phones-stage" id="phonesStage">
-      <!-- Phone 1: Rating (Ping-Pong) -->
+      <!-- Phone 1: Rating (Ping-Pong) — card language -->
       <div class="phone rating plx" data-speed="0.14" data-tilt="-8">
         <div class="screen">
           <div class="statusbar"><span>9:41</span><span><span class="bar-dot"></span><span class="bar-dot"></span><span class="bar-dot"></span></span></div>
-          <div class="app-head"><div class="app-title"><i></i>Ping-Pong · Turn 3</div></div>
+          <div class="handle"></div>
+          <div class="card-hd"><i></i>Ping · Turn 3</div>
           <div class="app-body">
-            <div class="r-prompt"><div class="lbl">English prompt · Nigerian Pidgin</div><p>"Please confirm your account number."</p></div>
-            <div class="r-crit">Rate their take: tone · prompt · mood · clarity</div>
-            <div class="r-stars"><span class="s">★</span><span class="s">★</span><span class="s">★</span><span class="s">★</span><span class="s dim">★</span></div>
-            <div class="r-verdict">Rated 4 / 5 · verified</div>
-            <button class="p-cta">Next turn ▸</button>
+            <div class="tile">
+              <div class="tile-lbl">Chidi · 00:14</div>
+              <div class="wave2">
+                <i style="height:55%"></i><i style="height:32%"></i><i style="height:78%"></i><i style="height:44%"></i><i style="height:68%"></i><i style="height:88%"></i><i style="height:52%"></i><i style="height:72%"></i><i style="height:38%" class="mu"></i><i style="height:58%" class="mu"></i><i style="height:48%" class="mu"></i><i style="height:34%" class="mu"></i>
+              </div>
+            </div>
+            <div class="tile">
+              <div class="tile-lbl">Rate</div>
+              <div class="stars2"><s>★</s><s>★</s><s>★</s><s>★</s><s class="dim">★</s></div>
+            </div>
+            <button class="cta-solid">Record Reply</button>
           </div>
         </div>
       </div>
 
-      <!-- Phone 2: Live Arena (center) -->
+      <!-- Phone 2: Live Arena (center) — card language -->
       <div class="phone arena plx hud-morph" id="centerPhone" data-speed="0.06" data-tilt="0">
         <div class="screen">
           <div class="statusbar"><span>9:41</span><span><span class="bar-dot"></span><span class="bar-dot"></span><span class="bar-dot"></span></span></div>
-          <div class="app-head"><div class="app-title"><i></i>Live Arena</div></div>
+          <div class="handle"></div>
+          <div class="card-hd"><i></i>Live · Arena</div>
           <div class="app-body">
-            <div class="p-card">
-              <div class="p-persona"><div class="p-face">💼</div><div><div class="p-name">The Impatient Exec</div><div class="p-role">customer · fast · clipped</div></div></div>
-              <div class="p-chem-l"><span>Chemistry</span><span class="v">8.7</span></div>
-              <div class="p-chem-bar"><div class="p-chem-fill" style="width:87%"></div></div>
-              <div class="p-chips"><span class="p-chip">▲ combo ×3</span><span class="p-chip">+150 AP</span></div>
+            <div class="tile acc">
+              <div class="tile-lbl">Persona</div>
+              <div class="tile-title">Frustrated banking customer</div>
             </div>
-            <div class="p-turns">
-              <div><div class="p-turn-who">You · frustrated</div>Abeg no waste time o. I need my money back today!</div>
-              <div><div class="p-turn-who">Partner · empathetic</div>I hear you. Make I check am now-now.</div>
+            <div class="tile">
+              <div class="tile-lbl">Twist · 00:47</div>
+              <div class="tile-title">Partner reveals they know the manager.</div>
             </div>
-            <button class="p-cta">Continue scene ▸</button>
+            <div class="tile dash fix">
+              <div class="tile-lbl">Editor</div>
+              <div class="tile-body"><span class="stx">wake</span> <span class="new">woke</span> up see&hellip;</div>
+            </div>
+            <div class="binary">
+              <button class="no" aria-label="Reject">✕</button>
+              <button class="yes" aria-label="Accept">✓</button>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Phone 3: Editor's Cutting Room -->
+      <!-- Phone 3: Editor's Cutting Room — card language -->
       <div class="phone editor plx" data-speed="0.14" data-tilt="8">
         <div class="screen">
           <div class="statusbar"><span>9:41</span><span><span class="bar-dot"></span><span class="bar-dot"></span><span class="bar-dot"></span></span></div>
-          <div class="app-head"><div class="app-title"><i></i>Cutting Room · Live</div></div>
+          <div class="handle"></div>
+          <div class="card-hd"><i></i>Cutting · Live</div>
           <div class="app-body">
-            <div class="ed-audio">
-              <div class="ed-play">▶</div>
-              <div class="ed-wave">
-                <i style="animation-delay:.05s"></i><i style="animation-delay:.12s"></i><i style="animation-delay:.2s"></i><i style="animation-delay:.28s"></i><i style="animation-delay:.36s"></i><i style="animation-delay:.44s"></i><i style="animation-delay:.52s"></i><i style="animation-delay:.6s"></i><i style="animation-delay:.68s"></i><i style="animation-delay:.76s"></i><i style="animation-delay:.84s"></i><i style="animation-delay:.92s"></i>
+            <div class="tile">
+              <div class="tile-lbl">Track · 00:12</div>
+              <div class="wave2">
+                <i style="height:48%"></i><i style="height:72%"></i><i style="height:36%"></i><i style="height:84%"></i><i style="height:52%"></i><i style="height:66%"></i><i style="height:90%"></i><i style="height:44%"></i><i style="height:60%" class="mu"></i><i style="height:38%" class="mu"></i><i style="height:70%" class="mu"></i><i style="height:32%" class="mu"></i>
               </div>
             </div>
-            <div class="ed-transcript">
-              <div class="ed-line"><span class="ed-strike">good morning i wake up see pos commot 50k</span></div>
-              <div class="ed-line"><span class="ed-fix">Good morning. I wake up see say POS commot 50k for my account!<span class="ed-cursor"></span></span></div>
-              <div class="ed-meta"><span>Pidgin correction</span><b>+35 AP</b></div>
+            <div class="tile dash fix">
+              <div class="tile-lbl">Fix</div>
+              <div class="tile-body"><span class="stx">i wake up see pos commot 50k</span></div>
+              <div class="tile-body" style="margin-top:5px"><span class="new">I wake up see say POS commot 50k.</span></div>
             </div>
-            <button class="p-cta">Approve &amp; lock ▸</button>
+            <div class="tile" style="padding:9px 13px">
+              <div class="ap-row"><span class="tile-lbl" style="margin:0">Pidgin fix</span><span class="ap">+35 AP</span></div>
+            </div>
+            <button class="cta-solid">Approve &amp; Lock</button>
           </div>
         </div>
       </div>
