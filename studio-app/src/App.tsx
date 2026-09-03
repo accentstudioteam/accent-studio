@@ -4,9 +4,16 @@ import { Blocked } from "@/routes/Blocked";
 import { Onboarding } from "@/routes/Onboarding";
 import { Studio } from "@/routes/Studio";
 import { Prototype } from "@/prototype/Prototype";
+import { Apply } from "@/routes/Apply";
 
 export function App() {
   const { session, profile, loading } = useAuth();
+
+  // Public player application (the waitlist) at /apply. Vercel rewrites that
+  // path to this shell; no sign-in involved.
+  if (typeof window !== "undefined" && /\/apply\/?$/.test(window.location.pathname)) {
+    return <Apply />;
+  }
 
   // Click-through prototype of every screen, activated via /studio?proto.
   // Renders before the auth gate so flows can be reviewed without signing in.

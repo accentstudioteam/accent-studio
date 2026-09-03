@@ -5,7 +5,7 @@ import { Logo } from "../components/Logo";
 
 const DEMO_BARS = [55, 32, 78, 44, 68, 88, 52, 72, 38, 58, 48, 34, 64, 40];
 
-export function Home({ onSettings }: { onSettings: () => void }) {
+export function Home({ onSettings, onApplications }: { onSettings: () => void; onApplications?: () => void }) {
   const { profile, session } = useAuth();
   const name = profile?.handle ?? session?.user.email?.split("@")[0] ?? "player";
   const lang = profile?.locale ? LOCALE_NAME[profile.locale] : null;
@@ -45,6 +45,17 @@ export function Home({ onSettings }: { onSettings: () => void }) {
         </div>
 
         <div className="stack">
+          {profile?.is_admin && (
+            <Sheet title="Founder tools">
+              <Tile label="Waitlist">
+                <div className="ttitle">Player applications</div>
+                <div className="tbody muted" style={{ marginTop: 6 }}>
+                  Read, listen and triage everyone who applied at accentstudio.io/apply.
+                </div>
+              </Tile>
+              <button className="pill mint" onClick={onApplications}>Open applications</button>
+            </Sheet>
+          )}
           <Sheet title="Ping · ready when you are">
             <Tile label="Next up">
               <div className="ttitle">A fraud dispute is waiting.</div>

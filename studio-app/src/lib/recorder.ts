@@ -1,0 +1,125 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+
+export type RecorderStatus = "idle" | "requesting" | "recording" | "done" | "error";
+
+const CANDIDATE_TYPES = [
+  "audio/webm;codecs=opus",
+  "audio/webm",
+  "audio/mp4",
+  "audio/ogg;codecs=opus",
+];
+
+function pickMimeType(): string {
+  if (typeof MediaRecorder === "undefined") return "";
+  return CANDIDATE_TYPES.find((t) => MediaRecorder.isTypeSupported(t)) ?? "";
+}
+
+function friendlyError(e: unknown): string {
+  const name = (e as { name?: string })?.name ?? "";
+  if (name === "NotAllowedError" || name === "SecurityError") {
+    return "Microphone permission was refused. Allow the mic for this site and try again.";
+  }
+  if (name === "NotFoundError") return "No microphone was found on this device.";
+  if (typeof MediaRecorder === "undefined") return "This browser can't record audio. Try Chrome or Safari.";
+  return "Recording didn't start. Check the mic and try again.";
+}
+
+/** Browser-native audio capture with a running timer and a playable result. */
+export function useRecorder(maxSeconds = 60) {
+  const [status, setStatus] = useState<RecorderStatus>("idle");
+  const [seconds, setSeconds] = useState(0);
+  const [blob, setBlob] = useState<Blob | null>(null);
+  const [url, setUrl] = useState<string | null>(null);
+  const [mime, setMime] = useState("audio/webm");
+  const [error, setError] = useState<string | null>(null);
+
+  const recRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<number | null>(null);
+  const startedAtRef = useRef(0);
+  const urlRef = useRef<string | null>(null);
+
+  const clearTimer = () => {
+    if (timerRef.current !== null) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  const stop = useCallback(() => {
+    clearTimer();
+    const rec = recRef.current;
+    if (rec && rec.state !== "inactive") rec.stop();
+  }, []);
+
+  const start = useCallback(async () => {
+    setError(null);
+    setStatus("requesting");
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      });
+      streamRef.current = stream;
+      const type = pickMimeType();
+      const rec = type ? new MediaRecorder(stream, { mimeType: type }) : new MediaRecorder(stream);
+      recRef.current = rec;
+      chunksRef.current = [];
+      rec.ondataavailable = (ev) => {
+        if (ev.data && ev.data.size > 0) chunksRef.current.push(ev.data);
+      };
+      rec.onstop = () => {
+        const finalType = rec.mimeType || type || "audio/webm";
+        const out = new Blob(chunksRef.current, { type: finalType });
+        stream.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+        const objectUrl = URL.createObjectURL(out);
+        urlRef.current = objectUrl;
+        setMime(finalType);
+        setBlob(out);
+        setUrl(objectUrl);
+        setSeconds(Math.round(((Date.now() - startedAtRef.current) / 1000) * 10) / 10);
+        setStatus("done");
+      };
+      rec.start(250);
+      startedAtRef.current = Date.now();
+      setSeconds(0);
+      setStatus("recording");
+      timerRef.current = window.setInterval(() => {
+        const s = (Date.now() - startedAtRef.current) / 1000;
+        setSeconds(Math.floor(s));
+        if (s >= maxSeconds) stop();
+      }, 200);
+    } catch (e) {
+      setStatus("error");
+      setError(friendlyError(e));
+    }
+  }, [maxSeconds, stop]);
+
+  const reset = useCallback(() => {
+    clearTimer();
+    if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+    urlRef.current = null;
+    setBlob(null);
+    setUrl(null);
+    setSeconds(0);
+    setError(null);
+    setStatus("idle");
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearTimer();
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+    };
+  }, []);
+
+  return { status, seconds, blob, url, mime, error, start, stop, reset };
+}
+
+export function formatClock(totalSeconds: number): string {
+  const s = Math.max(0, Math.floor(totalSeconds));
+  return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+}

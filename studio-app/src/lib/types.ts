@@ -27,6 +27,7 @@ export interface Profile {
   ap_balance: number;
   trust_score: number;
   is_allowlisted: boolean;
+  is_admin: boolean;
   created_at: string;
 }
 
@@ -59,4 +60,41 @@ export interface Rating {
   clarity: number;
   aggregate: number;
   created_at: string;
+}
+
+export type ApplicationStatus = "submitted" | "invited" | "in_review" | "accepted" | "waitlisted" | "rejected";
+
+export interface ApplicationSample {
+  language: string;
+  path: string;
+  seconds: number;
+}
+
+/** Public player application. Doubles as the waitlist. */
+export interface Application {
+  id: string;
+  created_at: string;
+  full_name: string;
+  email: string;
+  phone: string | null;
+  country: string;
+  city: string | null;
+  languages: string[];
+  primary_language: string;
+  other_language: string | null;
+  age_band: string | null;
+  gender: string | null;
+  device: string | null;
+  hours_per_week: string | null;
+  motivation: string | null;
+  referral: string | null;
+  payout_pref: string | null;
+  sample_path: string | null;
+  sample_seconds: number | null;
+  samples: ApplicationSample[];
+  consent_contact: boolean;
+  consent_sample: boolean;
+  user_agent: string | null;
+  status: ApplicationStatus;
+  notes: string | null;
 }

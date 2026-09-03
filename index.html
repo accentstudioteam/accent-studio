@@ -317,6 +317,8 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
 .jform input[type=email]{flex:1;min-width:240px;background:var(--card);border:1px solid var(--line);border-radius:100px;padding:16px 24px;color:var(--ink);font-family:var(--sans);font-size:1rem;outline:none;transition:border-color .2s}
 .jform input[type=email]:focus{border-color:var(--acc)}
 .jmsg{text-align:center;font-family:var(--mono);font-size:.78rem;margin-top:18px;color:var(--mut);min-height:1.4em}
+.jcta{display:flex;flex-direction:column;align-items:center;gap:18px}
+.jsub{max-width:48ch;text-align:center;color:var(--mut);font-size:.95rem;line-height:1.6;margin:0}
 .jnote{text-align:center;font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-top:26px}
 
 /* ---------- footer ---------- */
@@ -397,7 +399,7 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
       <a href="#faq">FAQ</a>
     </div>
     <div class="sp"></div>
-    <a class="btn btn-a" href="#join">Join the waitlist <span class="ar">→</span></a>
+    <a class="btn btn-a" href="/apply">Join the waitlist <span class="ar">→</span></a>
     <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false">☰</button>
   </div>
 </nav>
@@ -417,7 +419,7 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
   </div>
   <div class="menu-foot">
     <div class="aud" style="display:flex"><a class="on" href="index.html">Players</a><a href="labs.html">Labs</a></div>
-    <a class="btn btn-a" href="#join">Join the waitlist <span class="ar">→</span></a>
+    <a class="btn btn-a" href="/apply">Join the waitlist <span class="ar">→</span></a>
   </div>
 </div>
 
@@ -799,14 +801,12 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
     <div class="rv" style="text-align:center">
       <div class="eyebrow" style="justify-content:center">The waitlist</div>
       <h2>The stage is <span class="it">almost open.</span></h2>
-      <p class="lead" style="max-width:44ch">First seats go to the loudest voices. Drop your email and we'll call you up when your language goes live.</p>
+      <p class="lead" style="max-width:44ch">First seats go to the loudest voices. Apply now and we'll call you up when your language goes live.</p>
     </div>
-    <form class="jform rv" id="joinForm" novalidate>
-      <input type="email" name="email" placeholder="you@example.com" required aria-label="Email address">
-      <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
-      <button class="btn btn-a" type="submit">Save my spot <span class="ar">→</span></button>
-    </form>
-    <div class="jmsg" id="joinMsg"></div>
+    <div class="jcta rv">
+      <a class="btn btn-a" href="/apply">Apply as a player <span class="ar">→</span></a>
+      <p class="jsub">Four minutes on your phone: the languages you speak, a short voice sample in each one you want to work in, and how you'd like to be paid later. No account needed.</p>
+    </div>
     <div class="jnote">Launching first in Lagos · Nairobi · Accra · Joburg</div>
   </div>
 </section>
@@ -826,7 +826,7 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
           <li><a href="#games">The games</a></li>
           <li><a href="#scene">Hear a scene</a></li>
           <li><a href="#earn">Earn</a></li>
-          <li><a href="#join">Waitlist</a></li>
+          <li><a href="/apply">Apply</a></li>
         </ul>
       </div>
       <div>
@@ -981,24 +981,6 @@ document.querySelectorAll('.scene-tabs button').forEach(function(b){
   });
 });
 renderScene('bank');
-
-/* waitlist form */
-var FORM_ENDPOINT='https://formspree.io/f/YOUR_FORMSPREE_ID_HERE';
-var jf=document.getElementById('joinForm'),jm=document.getElementById('joinMsg');
-jf.addEventListener('submit',function(e){
-  e.preventDefault();
-  var email=jf.email.value.trim();
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){jm.style.color='var(--live)';jm.textContent='That email doesn’t look right. One more try?';return;}
-  if(FORM_ENDPOINT.indexOf('YOUR_')>-1){
-    window.location.href='mailto:hello@accentstudio.io?subject=Waitlist&body='+encodeURIComponent(email+' wants a seat.');
-    jm.style.color='var(--acc)';jm.textContent='Opening your mail app to save your spot…';
-    return;
-  }
-  jm.style.color='var(--mut)';jm.textContent='Saving your seat…';
-  fetch(FORM_ENDPOINT,{method:'POST',headers:{'Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify({email:email})})
-    .then(function(r){if(!r.ok)throw new Error('Could not save right now.');jm.style.color='var(--acc)';jm.textContent='You’re on the list. See you on stage. 🎙';jf.reset();})
-    .catch(function(err){jm.style.color='var(--live)';jm.textContent=err.message||'Could not save right now. Try again in a moment.';});
-});
 
 /* cookie banner */
 var cc=document.getElementById('cc');
