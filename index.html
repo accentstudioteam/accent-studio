@@ -284,6 +284,9 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
 
 /* ---------- trust ---------- */
 .trust{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(12px,2vw,22px)}
+.trust-foot{margin:clamp(22px,3vw,34px) auto 0;max-width:860px;font-size:1rem;line-height:1.65;color:var(--ink2);border-left:2px solid var(--acc);padding-left:18px}
+.trust-foot b{color:var(--ink)}
+.trust-foot a{color:var(--acc);text-decoration:underline;text-underline-offset:3px}
 .tr{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px}
 .tr .ic{font-size:1.4rem;margin-bottom:12px;display:block}
 .tr h4{font-family:var(--disp);font-weight:700;font-size:1.02rem;margin-bottom:7px;letter-spacing:-.01em}
@@ -747,6 +750,7 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
       <div class="tr"><span class="ic">🔏</span><h4>Consent, signed</h4><p>Your agreement is time stamped and hash anchored. Voice is biometric data and we treat it that way.</p></div>
       <div class="tr"><span class="ic">🧹</span><h4>Auto redaction</h4><p>Anything that looks like real PII is caught at capture and replaced with synthetic tokens before storage.</p></div>
     </div>
+    <p class="trust-foot rv"><b>Your voice is biometric data, so we never disguise it and never expose it.</b> Recordings are stored under a random ID. Your name, ID and payout details sit in a separate vault that buyers never receive. Every buyer signs that they will not try to identify you, link you to other data, or clone your voice. You can request a copy of your data or delete your identity from Settings at any time. Details in our <a href="privacy.html">privacy policy</a>.</p>
   </div>
 </section>
 

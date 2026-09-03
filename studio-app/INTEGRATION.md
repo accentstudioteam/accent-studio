@@ -166,3 +166,24 @@ be non-client-writable (server/service-role only), like we did for
 
 Everything above the KYC line can be built without spending a naira. The prototype
 screens are the exact UI; wiring is swapping local state for Supabase calls.
+
+## Compliance documents before launch
+
+Voice is biometric data under GDPR, BIPA, NDPA, POPIA and Kenya's DPA. We keep the
+audio authentic (no pitch shifting or voice distortion: it degrades the product and
+does not defeat speaker recognition) and rely on explicit consent plus controls:
+
+1. **Data Protection Impact Assessment** — required for large-scale sensitive-data
+   processing. Cover collection, the identity vault split, buyer delivery, retention.
+2. **Retention policy** — identifiable data for the account lifetime plus a dispute
+   window; pseudonymous shipped datasets under licence; payout records per tax law.
+3. **Buyer licence** — clauses now in the deliverable: no re-identification, no
+   linking to external identity data, no speaker-identification systems, no cloning
+   of individual speakers, biometric-grade security, 72-hour breach notice.
+4. **Cross-border transfer mechanism** — SCCs or local adequacy for moving data out
+   of Nigeria, Kenya and South Africa to us-east-1 / eu-west-1.
+5. **Access and erasure runbook** — verified requests, one copy per 90 days,
+   listening-quality watermarked audio, erasure severs the vault but does not recall
+   licensed datasets. Log every fulfilment in the consent record.
+6. **Records of processing and breach procedure** — the two documents regulators ask
+   for first.

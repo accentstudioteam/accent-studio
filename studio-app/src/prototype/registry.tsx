@@ -47,6 +47,8 @@ import {
   MyDocuments,
   ConsentCenter,
   DataPrivacy,
+  DataCopyRequest,
+  DataErasure,
 } from "@/screens/account";
 import {
   FoundryOverview,
@@ -119,6 +121,8 @@ export const SCREENS: ScreenDef[] = [
   { id: "my-documents", title: "My documents", phase: "Account", Component: MyDocuments },
   { id: "consent-center", title: "Consent center", phase: "Account", Component: ConsentCenter },
   { id: "data-privacy", title: "Data & privacy", phase: "Account", Component: DataPrivacy },
+  { id: "data-copy", title: "Request a copy of my data", phase: "Account", Component: DataCopyRequest },
+  { id: "data-erasure", title: "Delete identity data", phase: "Account", Component: DataErasure },
 
   // --- Delivery / Foundry (internal ops, investor-facing) ---
   { id: "foundry-overview", title: "Foundry · overview", phase: "Delivery", Component: FoundryOverview },

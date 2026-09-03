@@ -387,7 +387,7 @@ export function DeliveryReceipt({ nav }: { nav: Nav }) {
       <div className="sheet">
         <div className="handle" />
         <div className="shead"><i className="g" />Receipt · del_2026_09_02_0714</div>
-        <div className="tile"><div className="tlbl">License</div><div className="tbody">Commercial · non-exclusive · perpetual · worldwide</div></div>
+        <div className="tile"><div className="tlbl">License</div><div className="tbody">Commercial · non-exclusive · perpetual · worldwide · no re-identification · no individual cloning</div></div>
         <div className="tile"><div className="tlbl">Delivery</div><div className="tbody">Presigned S3 · TLS 1.3 · IP-whitelisted · 72h TTL</div></div>
         <div className="tile"><div className="tlbl">Bundle checksum</div><div className="tbody mono" style={{ fontFamily: "var(--mono)", fontSize: "0.66rem", wordBreak: "break-all" }}>b7c9e2a8f4d31c5e6b8a9d0f2e4c7b5a…</div></div>
         <button className="pill" onClick={() => nav.go("foundry-overview")}>Back to the foundry</button>
