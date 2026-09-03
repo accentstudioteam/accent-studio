@@ -68,7 +68,7 @@
   "rewrites": [
     {
       "source": "/apply",
-      "destination": "/studio/index.html"
+      "destination": "/studio"
     }
   ]
 }

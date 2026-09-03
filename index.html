@@ -684,7 +684,7 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
             <div class="scene-meta" id="sceneMeta">Nigerian Pidgin / English<br>2 speakers · 24 kHz · dual channel</div>
           </div>
           <div class="scene-eq" id="sceneEq" aria-hidden="true"></div>
-          <div class="scene-note">Transcripts are real player takes. Launch recordings are being cut in the studio right now.</div>
+          <div class="scene-note">Recorded by the founding cast, unedited. Two speakers, one phone each, one take.</div>
         </div>
         <div class="turns" id="turns"></div>
       </div>
@@ -952,26 +952,49 @@ function renderScene(key){
     turnsEl.appendChild(d);
   });
 }
+/* Scene playback. Real turns live at audio/scene_{scene}_{nn}.mp3 (one file per
+   turn, recorded by the founding cast). If a file is missing the scene falls back
+   to a timed read-through so the section always works. */
+var sceneAudio=null;
 function stopPlay(){
   clearInterval(playTimer);playTimer=null;playIdx=0;
+  if(sceneAudio){sceneAudio.pause();sceneAudio=null;}
   sceneBox.classList.remove('playing');
   playBtn.textContent='▶';
   turnsEl.querySelectorAll('.turn').forEach(function(t){t.classList.remove('now');});
 }
 playBtn.addEventListener('click',function(){
-  if(playTimer){stopPlay();return;}
+  if(sceneBox.classList.contains('playing')){stopPlay();return;}
   sceneBox.classList.add('playing');
   playBtn.textContent='◼';
-  var rows=turnsEl.querySelectorAll('.turn');
-  function tickTurn(){
+  var rows=turnsEl.querySelectorAll('.turn'),key=cur;
+  function mark(i){
     rows.forEach(function(t){t.classList.remove('now');});
-    if(playIdx>=rows.length){stopPlay();return;}
-    rows[playIdx].classList.add('now');
-    rows[playIdx].scrollIntoView({block:'nearest',behavior:reduced?'auto':'smooth'});
-    playIdx++;
+    if(!rows[i])return;
+    rows[i].classList.add('now');
+    rows[i].scrollIntoView({block:'nearest',behavior:reduced?'auto':'smooth'});
   }
-  tickTurn();
-  playTimer=setInterval(tickTurn,2300);
+  function simulate(){
+    playIdx=0;
+    function tick(){if(playIdx>=rows.length){stopPlay();return;}mark(playIdx);playIdx++;}
+    tick();playTimer=setInterval(tick,2300);
+  }
+  function playTurn(i){
+    if(!sceneBox.classList.contains('playing'))return;
+    if(i>=rows.length){stopPlay();return;}
+    var a=new Audio('audio/scene_'+key+'_'+(i<9?'0':'')+(i+1)+'.mp3');
+    a.addEventListener('canplaythrough',function(){
+      if(!sceneBox.classList.contains('playing'))return;
+      sceneAudio=a;mark(i);a.play();
+    },{once:true});
+    a.addEventListener('ended',function(){
+      sceneAudio=null;
+      setTimeout(function(){playTurn(i+1);},380);
+    },{once:true});
+    a.addEventListener('error',function(){if(i===0)simulate();else stopPlay();},{once:true});
+    a.load();
+  }
+  playTurn(0);
 });
 document.querySelectorAll('.scene-tabs button').forEach(function(b){
   b.addEventListener('click',function(){
