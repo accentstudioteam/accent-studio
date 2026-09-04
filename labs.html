@@ -1035,16 +1035,22 @@ function hgPlay(kind){
   var btn=kind==='ai'?hgAiBtn:hgRlBtn,cls=kind==='ai'?'ai':'rl',
       src=kind==='ai'?HG[hgCur].ai:HG[hgCur].real,n=hgWords.length;
   btn.classList.add('playing');
-  var a=new Audio(src);
+  var a=new Audio(src),ends=null;
+  /* per-word end times, generated from the recording; falls back to an even spread */
+  fetch(src.replace(/\.mp3$/,'.json')).then(function(r){return r.ok?r.json():null;}).then(function(j){
+    if(j&&j.ends&&j.ends.length===n)ends=j.ends;
+  }).catch(function(){});
   a.addEventListener('canplaythrough',function(){
     hgAudio=a;a.play();
     hgNote.textContent='Playing. Words light up as they are spoken.';
     hgTimer=setInterval(function(){
       if(!hgAudio)return;
-      var p=hgAudio.currentTime/(hgAudio.duration||1);
-      hgHighlight(Math.min(n-1,Math.floor(p*n)),cls);
+      var t=hgAudio.currentTime,idx;
+      if(ends){idx=-1;for(var i=0;i<n;i++){var st=i>0?ends[i-1]:0;if(t>=st-0.04)idx=i;}}
+      else{idx=Math.min(n-1,Math.floor(t/(hgAudio.duration||1)*n));}
+      if(idx>=0)hgHighlight(idx,cls);
       if(hgAudio.ended)hgStop();
-    },80);
+    },50);
   },{once:true});
   a.addEventListener('error',function(){
     var i=0,pace=kind==='ai'?520:340;
