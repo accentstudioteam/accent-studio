@@ -332,10 +332,10 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
 .hg-btn.rl:hover,.hg-btn.rl.playing{border-color:var(--live)}
 .hg-btn .lbl{flex:1;min-width:0}
 .hg-btn .play{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:.8rem;color:#0d0b08;background:var(--acc);box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 45%,transparent);animation:hgpulse 2.2s ease-out infinite;transition:transform .25s var(--ease)}
-.hg-btn .play::before{content:"B6";margin-left:3px}
+.hg-btn .play::before{content:"";display:block;width:0;height:0;border-left:13px solid #0d0b08;border-top:8px solid transparent;border-bottom:8px solid transparent;margin-left:4px}
 .hg-btn.rl .play{background:var(--live)}
 .hg-btn.playing .play{animation:none}
-.hg-btn.playing .play::before{content:"A0";margin-left:0;font-size:.9rem}
+.hg-btn.playing .play::before{content:"";width:14px;height:14px;border:0;border-radius:2px;background:#0d0b08;margin-left:0}
 .hg-btn:hover .play{transform:scale(1.08)}
 @keyframes hgpulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 45%,transparent)}70%{box-shadow:0 0 0 12px color-mix(in srgb,var(--acc) 0%,transparent)}100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 0%,transparent)}}
 .hg-btn .t{font-family:var(--disp);font-weight:700;font-size:.98rem;display:block}
