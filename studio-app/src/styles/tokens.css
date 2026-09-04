@@ -1005,3 +1005,59 @@ select {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* --- live recording state (apply flow) --- */
+.script {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  color: var(--ink2);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+.script li {
+  margin-bottom: 8px;
+}
+.script b {
+  color: var(--ink);
+}
+.rectile.live {
+  border-color: var(--coral);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--coral) 35%, transparent);
+}
+.reclive {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  color: var(--coral);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.recdot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--coral);
+  animation: recblink 1s steps(2, start) infinite;
+}
+.recbtn.rec {
+  animation: recpulse 1.2s ease-out infinite;
+}
+.livewv {
+  width: 100%;
+  max-width: 260px;
+  height: 44px;
+  justify-content: center;
+}
+.livewv i.live {
+  background: var(--coral);
+  max-width: 5px;
+  transition: height 0.08s linear;
+}
+@keyframes recpulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--coral) 55%, transparent); }
+  100% { box-shadow: 0 0 0 18px color-mix(in srgb, var(--coral) 0%, transparent); }
+}
+@keyframes recblink {
+  to { opacity: 0.25; }
+}

@@ -313,6 +313,8 @@ export function Apply() {
         setBusy(false);
         return;
       }
+      // Confirmation email. Fire and forget: the application is already saved.
+      void supabase.functions.invoke("application-received", { body: { id } }).catch(() => undefined);
       setPhase("done");
     } catch {
       setProblem("Something went wrong. Please try again in a moment.");
@@ -475,9 +477,13 @@ export function Apply() {
               <div className="handle" />
               <div className="shead"><i />{currentName} sample</div>
               <div className="tile">
-                <div className="tbody muted">
-                  In {currentName}: say hello, where you're from, and what you had for breakfast. Then, as a character, tell a stranger their package is late. 20 to 45 seconds.
-                </div>
+                <div className="tlbl">Your script · all in {currentName}</div>
+                <ol className="script">
+                  <li><b>Your name and your city.</b> "My name is…, I live in…"</li>
+                  <li><b>Your morning so far.</b> Two or three sentences, the way you'd tell a friend.</li>
+                  <li><b>Now act.</b> You're a delivery rider calling a customer to say their package is late. Sound like you mean it.</li>
+                </ol>
+                <div className="muted" style={{ fontSize: "0.82rem", marginTop: 8 }}>Aim for 20 to 45 seconds. Don't read, just talk.</div>
               </div>
               {currentSample ? (
                 <div className="tile">
@@ -486,8 +492,13 @@ export function Apply() {
                   <button className="pill ghost" style={{ marginTop: 10 }} onClick={() => dropSample(current)}>Re-record {currentName}</button>
                 </div>
               ) : (
-                <div className="tile" style={{ paddingTop: 20, paddingBottom: 20 }}>
+                <div className={"tile rectile" + (rec.status === "recording" ? " live" : "")} style={{ paddingTop: 20, paddingBottom: 20 }}>
                   <div className="recwrap">
+                    {rec.status === "recording" && (
+                      <div className="reclive" aria-hidden="true">
+                        <span className="recdot" />REC {formatClock(rec.seconds)}
+                      </div>
+                    )}
                     <button
                       type="button"
                       className={"recbtn" + (rec.status === "recording" ? " rec" : "")}
@@ -497,13 +508,26 @@ export function Apply() {
                     >
                       <span className="core" />
                     </button>
-                    <div className="rectime">
+                    {rec.status === "recording" ? (
+                      <div className="wv livewv" aria-hidden="true">
+                        {Array.from({ length: 28 }).map((_, i) => {
+                          const v = rec.levels[rec.levels.length - 28 + i] ?? 0;
+                          return <i key={i} className="live" style={{ height: `${Math.max(8, Math.round(v * 100))}%` }} />;
+                        })}
+                      </div>
+                    ) : null}
+                    <div className="rectime" style={{ color: rec.status === "recording" ? "var(--coral)" : undefined }}>
                       {rec.status === "idle" && "Tap to record"}
                       {rec.status === "requesting" && "Asking for the mic…"}
-                      {rec.status === "recording" && `${formatClock(rec.seconds)} · recording… tap to stop`}
+                      {rec.status === "recording" && "Recording… tap the button to stop"}
                       {rec.status === "done" && "Saving…"}
                       {rec.status === "error" && "Couldn't record"}
                     </div>
+                    {rec.status === "recording" && (
+                      <div className="progress" style={{ width: "100%" }}>
+                        <div className="fill" style={{ width: `${Math.min(100, (rec.seconds / MAX_SAMPLE_SECONDS) * 100)}%`, background: "var(--coral)" }} />
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
