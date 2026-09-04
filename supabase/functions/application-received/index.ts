@@ -37,9 +37,21 @@ function listWords(items: string[]): string {
   return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
 }
 
+const SHARE_TEXT = "Get paid to play voice scenes in your own language. I'm on the Accent Studio waitlist, join me:";
+function shareLinks(): { whatsapp: string; telegram: string; x: string; email: string } {
+  const link = (ref: string) => `${SITE}/apply?ref=${ref}`;
+  return {
+    whatsapp: `https://wa.me/?text=${encodeURIComponent(`${SHARE_TEXT} ${link("whatsapp")}`)}`,
+    telegram: `https://t.me/share/url?url=${encodeURIComponent(link("telegram"))}&text=${encodeURIComponent(SHARE_TEXT)}`,
+    x: `https://x.com/intent/post?text=${encodeURIComponent(SHARE_TEXT)}&url=${encodeURIComponent(link("x"))}`,
+    email: `mailto:?subject=${encodeURIComponent("Get paid to teach AI your language")}&body=${encodeURIComponent(`${SHARE_TEXT}\n${link("email")}`)}`,
+  };
+}
+
 export function renderHtml(first: string, languages: string[], hasSamples: boolean): string {
   const langs = esc(listWords(languages));
   const name = esc(first);
+  const share = shareLinks();
   const tile = (label: string, body: string) =>
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 12px"><tr><td style="background:#1d1913;border:1px solid #2b2418;border-radius:14px;padding:16px 18px">
       <div style="font-family:Consolas,'Courier New',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#96897a;margin-bottom:6px">${label}</div>
@@ -56,9 +68,15 @@ export function renderHtml(first: string, languages: string[], hasSamples: boole
     ${tile("What happens next", "<b style=\"color:#f4eee1\">1.</b> We listen and place you by language. &nbsp;<b style=\"color:#f4eee1\">2.</b> You get an interview invite when your language opens. &nbsp;<b style=\"color:#f4eee1\">3.</b> Onboarding, then you play scenes and earn per verified hour.")}
     ${hasSamples ? tile("About your voice samples", "They're heard by our team to judge voice quality and fluency, nothing else. Never used for training, never sold, never in any dataset. Reply to this email if you want them deleted.") : ""}
     ${tile("Money", "Nobody is paid during the preview. You told us how you'd like to be paid later, and that's exactly what we build first.")}
-    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:10px 0 4px"><tr><td style="background:#45e0a0;border-radius:999px">
-      <a href="${SITE}/apply" style="display:inline-block;padding:14px 24px;font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:15px;color:#0d0b08;text-decoration:none">Know someone who talks like home? Send them the link</a></td></tr></table>
-    <div style="font-family:Consolas,'Courier New',monospace;font-size:12px;color:#96897a;margin-top:10px">accentstudio.io/apply &nbsp;·&nbsp; the more voices in a language, the sooner it opens</div>
+    <div style="font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:16px;color:#f4eee1;margin:6px 0 10px">Know someone who talks like home? Send them the link.</div>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 6px"><tr>
+      <td style="padding:0 8px 8px 0"><a href="${share.whatsapp}" style="display:inline-block;padding:12px 18px;background:#45e0a0;border-radius:999px;font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:14px;color:#0d0b08;text-decoration:none">Share on WhatsApp</a></td>
+      <td style="padding:0 8px 8px 0"><a href="${share.telegram}" style="display:inline-block;padding:12px 18px;border:1px solid #45e0a0;border-radius:999px;font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:14px;color:#45e0a0;text-decoration:none">Telegram</a></td>
+    </tr><tr>
+      <td style="padding:0 8px 8px 0"><a href="${share.x}" style="display:inline-block;padding:12px 18px;border:1px solid #45e0a0;border-radius:999px;font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:14px;color:#45e0a0;text-decoration:none">Post on X</a></td>
+      <td style="padding:0 8px 8px 0"><a href="${share.email}" style="display:inline-block;padding:12px 18px;border:1px solid #45e0a0;border-radius:999px;font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:14px;color:#45e0a0;text-decoration:none">Email a friend</a></td>
+    </tr></table>
+    <div style="font-family:Consolas,'Courier New',monospace;font-size:12px;color:#96897a;margin-top:4px">or copy: accentstudio.io/apply &nbsp;·&nbsp; the more voices in a language, the sooner it opens</div>
   </td></tr>
   <tr><td style="padding:22px 6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:#6b6152">
     You're getting this because you applied at accentstudio.io/apply. Reply to this email with any question. Your voice is biometric data and we treat it that way: <a href="${SITE}/privacy" style="color:#96897a">privacy policy</a>.<br>Accent Studio, Inc.
@@ -77,6 +95,7 @@ export function renderText(first: string, languages: string[], hasSamples: boole
     "\nNobody is paid during the preview. You told us how you'd like to be paid later, and that's what we build first.",
     "",
     `Know someone who talks like home? Send them ${SITE}/apply`,
+    `Share on WhatsApp: ${shareLinks().whatsapp}`,
     "",
     `You're getting this because you applied at accentstudio.io/apply. Privacy: ${SITE}/privacy`,
     "Accent Studio, Inc.",

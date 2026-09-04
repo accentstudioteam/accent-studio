@@ -119,6 +119,14 @@ const EMPTY: Form = {
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
+const SHARE_TEXT = "Get paid to play voice scenes in your own language. I'm on the Accent Studio waitlist, join me:";
+const shareLink = (ref: string) => `${SITE}/apply?ref=${ref}`;
+const SHARE = {
+  whatsapp: `https://wa.me/?text=${encodeURIComponent(`${SHARE_TEXT} ${shareLink("whatsapp")}`)}`,
+  telegram: `https://t.me/share/url?url=${encodeURIComponent(shareLink("telegram"))}&text=${encodeURIComponent(SHARE_TEXT)}`,
+  x: `https://x.com/intent/post?text=${encodeURIComponent(SHARE_TEXT)}&url=${encodeURIComponent(shareLink("x"))}`,
+};
+
 function langName(code: string, other: string): string {
   if (code === "other") return other.trim() || "your other language";
   return LANGS.find(([c]) => c === code)?.[1] ?? code;
@@ -335,11 +343,20 @@ export function Apply() {
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(`${SITE}/apply`);
+      await navigator.clipboard.writeText(`${SITE}/apply?ref=copy`);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
       setCopied(false);
+    }
+  };
+
+  const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
+  const shareNative = async () => {
+    try {
+      await navigator.share({ title: "Accent Studio", text: SHARE_TEXT, url: `${SITE}/apply?ref=share` });
+    } catch {
+      // user dismissed the sheet, or the browser refused; the direct links below still work
     }
   };
 
@@ -609,7 +626,17 @@ export function Apply() {
                 <div className="tbody muted" style={{ marginTop: 6 }}>Send them the link. The more voices in a language, the sooner it opens.</div>
                 <div className="mono" style={{ marginTop: 10, fontSize: "0.85rem", color: "var(--acc)" }}>accentstudio.io/apply</div>
               </div>
-              <button className="pill mint" onClick={copyLink}>{copied ? "Copied" : "Copy the link"}</button>
+              {canShare ? (
+                <button className="pill mint" onClick={shareNative}>Share the link</button>
+              ) : (
+                <a className="pill mint" href={SHARE.whatsapp} target="_blank" rel="noopener noreferrer" style={{ textAlign: "center", textDecoration: "none" }}>Share on WhatsApp</a>
+              )}
+              <div className="btn-row" style={{ marginTop: 8 }}>
+                <a className="pill ghost" href={SHARE.whatsapp} target="_blank" rel="noopener noreferrer" style={{ textAlign: "center", textDecoration: "none" }}>WhatsApp</a>
+                <a className="pill ghost" href={SHARE.telegram} target="_blank" rel="noopener noreferrer" style={{ textAlign: "center", textDecoration: "none" }}>Telegram</a>
+                <a className="pill ghost" href={SHARE.x} target="_blank" rel="noopener noreferrer" style={{ textAlign: "center", textDecoration: "none" }}>X</a>
+                <button className="pill ghost" onClick={copyLink}>{copied ? "Copied" : "Copy"}</button>
+              </div>
             </div>
             <div className="actionbar">
               <a className="pill ghost" href={SITE} style={{ textAlign: "center", textDecoration: "none" }}>Back to accentstudio.io</a>
