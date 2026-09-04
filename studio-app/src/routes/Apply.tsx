@@ -85,6 +85,7 @@ interface Form {
   payout_pref: string;
   consent_contact: boolean;
   consent_sample: boolean;
+  consent_privacy: boolean;
   website: string; // honeypot, must stay empty
 }
 
@@ -113,6 +114,7 @@ const EMPTY: Form = {
   payout_pref: "",
   consent_contact: false,
   consent_sample: false,
+  consent_privacy: false,
   website: "",
 };
 
@@ -277,6 +279,7 @@ export function Apply() {
 
   const submit = async () => {
     if (!form.consent_contact) return setProblem("We need permission to contact you about the waitlist.");
+    if (!form.consent_privacy) return setProblem("Please confirm you've read the privacy policy.");
     if (sampleCount > 0 && !form.consent_sample) return setProblem("Tick the box so we can listen to your samples, or go back and remove them.");
     if (!form.payout_pref) return setProblem("Pick how you'd like to be paid later. 'Not sure yet' is fine.");
     if (form.website.trim()) {
@@ -323,6 +326,7 @@ export function Apply() {
         samples: uploaded,
         consent_contact: form.consent_contact,
         consent_sample: form.consent_sample,
+        consent_privacy: form.consent_privacy,
         user_agent: navigator.userAgent.slice(0, 400),
       });
       if (error) {
@@ -601,9 +605,12 @@ export function Apply() {
                   You can listen to my voice samples to assess my application only. They won't be used for training, sold, or included in any dataset, and I can ask for them to be deleted.
                 </CheckRow>
               )}
+              <CheckRow checked={form.consent_privacy} onToggle={() => set("consent_privacy", !form.consent_privacy)}>
+                I have read the privacy policy and understand my voice is biometric data.
+              </CheckRow>
             </div>
             <div className="muted" style={{ fontSize: "0.78rem", marginBottom: 14 }}>
-              Your voice is biometric data and we treat it that way. See the <a href={`${SITE}/privacy`} style={{ color: "var(--acc)" }}>privacy policy</a>.
+              Read the <a href={`${SITE}/privacy`} target="_blank" rel="noopener noreferrer" style={{ color: "var(--acc)" }}>privacy policy</a> (opens in a new tab).
             </div>
             <Problem text={problem} />
             <div className="actionbar btn-row">
