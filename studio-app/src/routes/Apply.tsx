@@ -5,12 +5,10 @@ import { CheckRow, ScreenHead, Stepper } from "@/prototype/ui";
 import { formatClock, useRecorder } from "@/lib/recorder";
 
 const STEPS = 4;
-const MAX_SAMPLE_SECONDS = 30;
-/** The three short recordings per language: key, title, instruction. */
+const MAX_SAMPLE_SECONDS = 60;
+/** One free recording per language: key, title, instruction. */
 const PARTS: [string, string, string][] = [
-  ["intro", "Your name and your city", "Say: my name is…, I live in…. Five to ten seconds."],
-  ["morning", "Your morning so far", "Two or three sentences, the way you'd tell a friend. Ten to twenty seconds."],
-  ["act", "Now act", "You're a delivery rider calling a customer to say their package is late. Sound like you mean it. Ten to fifteen seconds."],
+  ["story", "Tell us your favourite story", "Anything: a funny thing that happened, a story from home, a moment you love retelling. Talk the way you'd tell a friend. Laugh, exaggerate, be yourself. Up to one minute."],
 ];
 const SITE = "https://accentstudio.io";
 
@@ -239,12 +237,6 @@ export function Apply() {
       const primary_language = languages.includes(f.primary_language) ? f.primary_language : languages[0] ?? "";
       return { ...f, languages, primary_language };
     });
-
-  const switchLanguage = (code: string) => {
-    rec.reset();
-    setCurrent(code);
-    setCurrentPart((PARTS.find(([p]) => !samples[`${code}/${p}`]) ?? PARTS[0])[0]);
-  };
 
   const dropSample = (key: string) => {
     setSamples((s) => {
@@ -482,8 +474,8 @@ export function Apply() {
             <Stepper total={STEPS} current={2} />
             <ScreenHead
               eyebrow="Application · 3 of 4"
-              title="Three short recordings per language."
-              lede="Each one is a few seconds. Your strongest language needs all three; the others are optional and help us place you faster."
+              title="Tell us your favourite story."
+              lede={`One recording, up to a minute, in ${langName(form.primary_language, form.other_language)}. If you speak more than one of our languages, switch between them as you go; that's gold to us.`}
             />
 
             <div className="tile" style={{ marginBottom: 16, borderColor: "var(--acc)" }}>
@@ -493,21 +485,9 @@ export function Apply() {
               </div>
             </div>
 
-            <Field label="Language">
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {form.languages.map((code) => (
-                  <Chip key={code} on={current === code} onClick={() => switchLanguage(code)}>
-                    {partsDone(code) === PARTS.length ? "✓ " : partsDone(code) > 0 ? `${partsDone(code)}/${PARTS.length} · ` : ""}
-                    {langName(code, form.other_language)}
-                    {code === form.primary_language ? " · strongest" : ""}
-                  </Chip>
-                ))}
-              </div>
-            </Field>
-
             <div className="sheet" style={{ marginBottom: 22 }}>
               <div className="handle" />
-              <div className="shead"><i />Speak only {currentName}</div>
+              <div className="shead"><i />In {currentName}</div>
               {PARTS.map(([part, title, hint], i) => {
                 const key = `${current}/${part}`;
                 const s = samples[key];
@@ -515,7 +495,7 @@ export function Apply() {
                 const busyElsewhere = !active && (rec.status === "recording" || rec.status === "requesting");
                 return (
                   <div key={part} className={"tile rectile" + (active ? " live" : "")}>
-                    <div className="tlbl">{i + 1} · {title}{s ? " · done" : ""}</div>
+                    <div className="tlbl">{PARTS.length > 1 ? `${i + 1} · ` : ""}{title}{s ? " · done" : ""}</div>
                     <div className="tbody muted" style={{ marginTop: 4, marginBottom: 10 }}>{hint}</div>
                     {s ? (
                       <>
@@ -550,10 +530,10 @@ export function Apply() {
                           setCurrentPart(part);
                           void rec.start();
                         }}
-                        aria-label={`Record part ${i + 1}`}
+                        aria-label={PARTS.length > 1 ? `Record part ${i + 1}` : "Start recording"}
                         style={{ background: "var(--coral)", color: "#0d0b08" }}
                       >
-                        ● Record part {i + 1}
+                        ● Record{PARTS.length > 1 ? ` part ${i + 1}` : ""}
                       </button>
                     )}
                   </div>
@@ -568,7 +548,7 @@ export function Apply() {
                 <button className="pill ghost" onClick={() => setPhase("languages")}>Back</button>
               )}
               <button className="pill mint" disabled={!hasPrimarySample} onClick={() => setPhase("finish")}>
-                {hasPrimarySample ? "Continue" : `Record all 3 in ${langName(form.primary_language, form.other_language)}`}
+                {hasPrimarySample ? "Continue" : "Record your story first"}
               </button>
             </div>
           </>
