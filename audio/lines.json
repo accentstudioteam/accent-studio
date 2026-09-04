@@ -10,5 +10,25 @@
   "gap_pcm_ai": {
     "text": "Morning o. Naso I wake this morning see say POS wey i no use commot 50k for my account!",
     "en": "Good morning. I woke up this morning and saw that ₦50,000 left my account through a POS I never used."
+  },
+  "scene_bank_05": {
+    "text": "Sharp! Thank you. You don save me plenty wahala today.",
+    "en": "Nice. Thank you. You’ve saved me from a lot of stress today."
+  },
+  "scene_bank_03": {
+    "text": "Abeg sharp-sharp. I need my money back today-today!",
+    "en": "Please don’t waste time. I need my money back today."
+  },
+  "scene_bank_01": {
+    "text": "Morning o. Naso I wake this morning see say POS wey i no use commot 50k for my account!",
+    "en": "I woke up and saw ₦50,000 leave my account through a POS I never used."
+  },
+  "scene_bank_02": {
+    "text": "Ah, we dey sorry sir. Abeg dey calm, make I quick check your account.",
+    "en": "I am so sorry. Please stay calm, let me check your account right now."
+  },
+  "scene_bank_04": {
+    "text": "Oga, I dey see three unauthorized transaction. I go block am now, make I run your refund.",
+    "en": "Sir, I can see three unauthorized transactions. I’ll block the card and start the refund."
   }
 }
