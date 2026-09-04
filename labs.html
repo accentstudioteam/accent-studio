@@ -330,6 +330,14 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
 .hg-btn.rl .dot{background:#173226;color:#8ff5c8}
 .hg-btn.ai:hover,.hg-btn.ai.playing{border-color:#f0a58a}
 .hg-btn.rl:hover,.hg-btn.rl.playing{border-color:var(--live)}
+.hg-btn .lbl{flex:1;min-width:0}
+.hg-btn .play{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:.8rem;color:#0d0b08;background:var(--acc);box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 45%,transparent);animation:hgpulse 2.2s ease-out infinite;transition:transform .25s var(--ease)}
+.hg-btn .play::before{content:"B6";margin-left:3px}
+.hg-btn.rl .play{background:var(--live)}
+.hg-btn.playing .play{animation:none}
+.hg-btn.playing .play::before{content:"A0";margin-left:0;font-size:.9rem}
+.hg-btn:hover .play{transform:scale(1.08)}
+@keyframes hgpulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 45%,transparent)}70%{box-shadow:0 0 0 12px color-mix(in srgb,var(--acc) 0%,transparent)}100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 0%,transparent)}}
 .hg-btn .t{font-family:var(--disp);font-weight:700;font-size:.98rem;display:block}
 .hg-btn .s{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
 .hg-note{font-family:var(--mono);font-size:.66rem;color:var(--faint);margin-top:22px;letter-spacing:.05em;border-top:1px dashed var(--line);padding-top:16px}
@@ -619,16 +627,18 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
         <div class="hg-en" id="hgEn"><b>English source prompt</b>Good morning. I woke up this morning and saw that ₦50,000 left my account through a POS I never used.</div>
         <p class="hg-line" id="hgLine" aria-live="off"></p>
         <div class="hg-btns">
-          <button class="hg-btn ai" id="hgAi">
+          <button class="hg-btn ai" id="hgAi" aria-label="Play: how AI says it">
             <span class="dot">🤖</span>
-            <span><span class="t">How AI says it</span><span class="s">state-of-the-art TTS attempt</span></span>
+            <span class="lbl"><span class="t">How AI says it</span><span class="s">state-of-the-art TTS attempt</span></span>
+            <span class="play" aria-hidden="true"></span>
           </button>
-          <button class="hg-btn rl" id="hgRl">
+          <button class="hg-btn rl" id="hgRl" aria-label="Play: how it's actually said">
             <span class="dot">🎙</span>
-            <span><span class="t">How it's actually said</span><span class="s">native speaker · our studio</span></span>
+            <span class="lbl"><span class="t">How it's actually said</span><span class="s">native speaker · our studio</span></span>
+            <span class="play" aria-hidden="true"></span>
           </button>
         </div>
-        <div class="hg-note" id="hgNote">Press either button. Words light up as they are spoken.</div>
+        <div class="hg-note" id="hgNote">Tap a play button. Words light up as they are spoken.</div>
       </div>
     </div>
   </div>
