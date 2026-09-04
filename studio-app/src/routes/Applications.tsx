@@ -166,7 +166,7 @@ export function Applications({ onBack }: { onBack: () => void }) {
                         {a.languages.map((l) => LANG[l] ?? l).join(", ")} · {a.country}{a.city ? ` · ${a.city}` : ""} · {a.device ?? "device?"} · {when(a.created_at)}
                       </div>
                     </div>
-                    <div className="chip" style={{ flex: "none" }}>{samplesOf(a).length > 0 ? `🎙 ${samplesOf(a).length} sample${samplesOf(a).length > 1 ? "s" : ""}` : "no sample"}</div>
+                    <div className="chip" style={{ flex: "none" }}>{samplesOf(a).length > 0 ? `🎙 ${samplesOf(a).length} clip${samplesOf(a).length > 1 ? "s" : ""}` : "no clips"}</div>
                   </div>
                 </button>
 
@@ -191,7 +191,7 @@ export function Applications({ onBack }: { onBack: () => void }) {
                     </div>
                     {samplesOf(a).map((s) => (
                       <div className="tile" key={s.path}>
-                        <div className="tlbl">{LANG[s.language] ?? s.language} sample · {Math.round(s.seconds)}s</div>
+                        <div className="tlbl">{LANG[s.language] ?? s.language}{s.part ? ` · ${s.part}` : ""} · {Math.round(s.seconds)}s</div>
                         {audio[s.path] ? (
                           <audio controls src={audio[s.path]} style={{ width: "100%", marginTop: 8 }} />
                         ) : (

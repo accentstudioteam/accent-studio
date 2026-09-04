@@ -5,7 +5,13 @@ import { CheckRow, ScreenHead, Stepper } from "@/prototype/ui";
 import { formatClock, useRecorder } from "@/lib/recorder";
 
 const STEPS = 4;
-const MAX_SAMPLE_SECONDS = 60;
+const MAX_SAMPLE_SECONDS = 30;
+/** The three short recordings per language: key, title, instruction. */
+const PARTS: [string, string, string][] = [
+  ["intro", "Your name and your city", "Say: my name is…, I live in…. Five to ten seconds."],
+  ["morning", "Your morning so far", "Two or three sentences, the way you'd tell a friend. Ten to twenty seconds."],
+  ["act", "Now act", "You're a delivery rider calling a customer to say their package is late. Sound like you mean it. Ten to fifteen seconds."],
+];
 const SITE = "https://accentstudio.io";
 
 const LANGS: [string, string][] = [
@@ -185,6 +191,7 @@ export function Apply() {
   });
   const [samples, setSamples] = useState<Record<string, Sample>>({});
   const [current, setCurrent] = useState("");
+  const [currentPart, setCurrentPart] = useState(PARTS[0][0]);
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -206,12 +213,13 @@ export function Apply() {
     const blob = rec.blob;
     const mime = rec.mime;
     const seconds = rec.seconds;
+    const key = `${current}/${currentPart}`;
     setSamples((s) => {
-      if (s[current]) URL.revokeObjectURL(s[current].url);
-      return { ...s, [current]: { blob, mime, seconds, url: URL.createObjectURL(blob) } };
+      if (s[key]) URL.revokeObjectURL(s[key].url);
+      return { ...s, [key]: { blob, mime, seconds, url: URL.createObjectURL(blob) } };
     });
     rec.reset();
-  }, [rec, current]);
+  }, [rec, current, currentPart]);
 
   const set = <K extends keyof Form>(key: K, value: Form[K]) => setForm((f) => ({ ...f, [key]: value }));
 
@@ -226,14 +234,15 @@ export function Apply() {
   const switchLanguage = (code: string) => {
     rec.reset();
     setCurrent(code);
+    setCurrentPart((PARTS.find(([p]) => !samples[`${code}/${p}`]) ?? PARTS[0])[0]);
   };
 
-  const dropSample = (code: string) => {
+  const dropSample = (key: string) => {
     setSamples((s) => {
-      if (!s[code]) return s;
-      URL.revokeObjectURL(s[code].url);
+      if (!s[key]) return s;
+      URL.revokeObjectURL(s[key].url);
       const next = { ...s };
-      delete next[code];
+      delete next[key];
       return next;
     });
     rec.reset();
@@ -256,7 +265,8 @@ export function Apply() {
   };
 
   const sampleCount = Object.keys(samples).length;
-  const hasPrimarySample = Boolean(samples[form.primary_language]);
+  const partsDone = (lang: string) => PARTS.filter(([p]) => samples[`${lang}/${p}`]).length;
+  const hasPrimarySample = partsDone(form.primary_language) === PARTS.length;
 
   const submit = async () => {
     if (!form.consent_contact) return setProblem("We need permission to contact you about the waitlist.");
@@ -270,19 +280,20 @@ export function Apply() {
     setProblem(null);
     try {
       const id = crypto.randomUUID();
-      const uploaded: { language: string; path: string; seconds: number }[] = [];
-      for (const [language, s] of Object.entries(samples)) {
+      const uploaded: { language: string; part: string; path: string; seconds: number }[] = [];
+      for (const [key, s] of Object.entries(samples)) {
+        const [language, part] = key.split("/");
         const base = s.mime.split(";")[0] || "audio/webm";
-        const path = `${id}/sample-${language}.${extFor(s.mime)}`;
+        const path = `${id}/sample-${language}-${part}.${extFor(s.mime)}`;
         const { error } = await supabase.storage.from("applications").upload(path, s.blob, { contentType: base, upsert: false });
         if (error) {
-          setProblem(`Your ${langName(language, form.other_language)} sample didn't upload. Check your connection and try again.`);
+          setProblem(`Your ${langName(language, form.other_language)} recording didn't upload. Check your connection and try again.`);
           setBusy(false);
           return;
         }
-        uploaded.push({ language, path, seconds: s.seconds });
+        uploaded.push({ language, part, path, seconds: s.seconds });
       }
-      const primary = uploaded.find((u) => u.language === form.primary_language) ?? uploaded[0] ?? null;
+      const primary = uploaded.find((u) => u.language === form.primary_language && u.part === PARTS[0][0]) ?? uploaded[0] ?? null;
       const { error } = await supabase.from("applications").insert({
         id,
         full_name: form.full_name.trim(),
@@ -334,7 +345,6 @@ export function Apply() {
 
   const currentName = langName(current, form.other_language);
   const firstName = form.full_name.trim().split(/\s+/)[0] || "friend";
-  const currentSample = current ? samples[current] : undefined;
 
   return (
     <div className="app">
@@ -452,22 +462,24 @@ export function Apply() {
             <Stepper total={STEPS} current={2} />
             <ScreenHead
               eyebrow="Application · 3 of 4"
-              title="Record a sample in each language."
-              lede="One short recording per language you want to work in. Your strongest language is required; the others help us place you faster."
+              title="Three short recordings per language."
+              lede="Each one is a few seconds. Your strongest language needs all three; the others are optional and help us place you faster."
             />
 
             <div className="tile" style={{ marginBottom: 16, borderColor: "var(--acc)" }}>
               <div className="tlbl">🔒 Only to assess your application</div>
               <div className="tbody" style={{ marginTop: 6 }}>
-                These samples are heard by our team to judge voice quality and fluency, nothing else. They are never used for training, never sold, and never included in any dataset. You can ask us to delete them at any time.
+                These recordings are heard by our team to judge voice quality and fluency, nothing else. They are never used for training, never sold, and never included in any dataset. You can ask us to delete them at any time.
               </div>
             </div>
 
-            <Field label="Recording in">
+            <Field label="Language">
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {form.languages.map((code) => (
                   <Chip key={code} on={current === code} onClick={() => switchLanguage(code)}>
-                    {samples[code] ? "✓ " : ""}{langName(code, form.other_language)}{code === form.primary_language ? " · strongest" : ""}
+                    {partsDone(code) === PARTS.length ? "✓ " : partsDone(code) > 0 ? `${partsDone(code)}/${PARTS.length} · ` : ""}
+                    {langName(code, form.other_language)}
+                    {code === form.primary_language ? " · strongest" : ""}
                   </Chip>
                 ))}
               </div>
@@ -475,62 +487,58 @@ export function Apply() {
 
             <div className="sheet" style={{ marginBottom: 22 }}>
               <div className="handle" />
-              <div className="shead"><i />{currentName} sample</div>
-              <div className="tile">
-                <div className="tlbl">Your script · all in {currentName}</div>
-                <ol className="script">
-                  <li><b>Your name and your city.</b> "My name is…, I live in…"</li>
-                  <li><b>Your morning so far.</b> Two or three sentences, the way you'd tell a friend.</li>
-                  <li><b>Now act.</b> You're a delivery rider calling a customer to say their package is late. Sound like you mean it.</li>
-                </ol>
-                <div className="muted" style={{ fontSize: "0.82rem", marginTop: 8 }}>Aim for 20 to 45 seconds. Don't read, just talk.</div>
-              </div>
-              {currentSample ? (
-                <div className="tile">
-                  <div className="tlbl">{formatClock(currentSample.seconds)} · listen back</div>
-                  <audio controls src={currentSample.url} style={{ width: "100%", marginTop: 8 }} />
-                  <button className="pill ghost" style={{ marginTop: 10 }} onClick={() => dropSample(current)}>Re-record {currentName}</button>
-                </div>
-              ) : (
-                <div className={"tile rectile" + (rec.status === "recording" ? " live" : "")} style={{ paddingTop: 20, paddingBottom: 20 }}>
-                  <div className="recwrap">
-                    {rec.status === "recording" && (
-                      <div className="reclive" aria-hidden="true">
-                        <span className="recdot" />REC {formatClock(rec.seconds)}
+              <div className="shead"><i />Speak only {currentName}</div>
+              {PARTS.map(([part, title, hint], i) => {
+                const key = `${current}/${part}`;
+                const s = samples[key];
+                const active = currentPart === part && (rec.status === "recording" || rec.status === "requesting");
+                const busyElsewhere = !active && (rec.status === "recording" || rec.status === "requesting");
+                return (
+                  <div key={part} className={"tile rectile" + (active ? " live" : "")}>
+                    <div className="tlbl">{i + 1} · {title}{s ? " · done" : ""}</div>
+                    <div className="tbody muted" style={{ marginTop: 4, marginBottom: 10 }}>{hint}</div>
+                    {s ? (
+                      <>
+                        <audio controls src={s.url} style={{ width: "100%" }} />
+                        <button className="pill ghost" style={{ marginTop: 10 }} onClick={() => dropSample(key)}>Re-record</button>
+                      </>
+                    ) : active ? (
+                      <div className="recwrap">
+                        <div className="reclive" aria-hidden="true"><span className="recdot" />REC {formatClock(rec.seconds)}</div>
+                        <button type="button" className="recbtn rec" onClick={() => rec.stop()} aria-label="Stop recording">
+                          <span className="core" />
+                        </button>
+                        <div className="wv livewv" aria-hidden="true">
+                          {Array.from({ length: 28 }).map((_, j) => {
+                            const v = rec.levels[rec.levels.length - 28 + j] ?? 0;
+                            return <i key={j} className="live" style={{ height: `${Math.max(8, Math.round(v * 100))}%` }} />;
+                          })}
+                        </div>
+                        <div className="rectime" style={{ color: "var(--coral)" }}>
+                          {rec.status === "requesting" ? "Asking for the mic…" : "Recording… tap the button to stop"}
+                        </div>
+                        <div className="progress" style={{ width: "100%" }}>
+                          <div className="fill" style={{ width: `${Math.min(100, (rec.seconds / MAX_SAMPLE_SECONDS) * 100)}%`, background: "var(--coral)" }} />
+                        </div>
                       </div>
-                    )}
-                    <button
-                      type="button"
-                      className={"recbtn" + (rec.status === "recording" ? " rec" : "")}
-                      disabled={rec.status === "requesting"}
-                      onClick={() => (rec.status === "recording" ? rec.stop() : rec.start())}
-                      aria-label={rec.status === "recording" ? "Stop recording" : "Start recording"}
-                    >
-                      <span className="core" />
-                    </button>
-                    {rec.status === "recording" ? (
-                      <div className="wv livewv" aria-hidden="true">
-                        {Array.from({ length: 28 }).map((_, i) => {
-                          const v = rec.levels[rec.levels.length - 28 + i] ?? 0;
-                          return <i key={i} className="live" style={{ height: `${Math.max(8, Math.round(v * 100))}%` }} />;
-                        })}
-                      </div>
-                    ) : null}
-                    <div className="rectime" style={{ color: rec.status === "recording" ? "var(--coral)" : undefined }}>
-                      {rec.status === "idle" && "Tap to record"}
-                      {rec.status === "requesting" && "Asking for the mic…"}
-                      {rec.status === "recording" && "Recording… tap the button to stop"}
-                      {rec.status === "done" && "Saving…"}
-                      {rec.status === "error" && "Couldn't record"}
-                    </div>
-                    {rec.status === "recording" && (
-                      <div className="progress" style={{ width: "100%" }}>
-                        <div className="fill" style={{ width: `${Math.min(100, (rec.seconds / MAX_SAMPLE_SECONDS) * 100)}%`, background: "var(--coral)" }} />
-                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className="pill"
+                        disabled={busyElsewhere}
+                        onClick={() => {
+                          setCurrentPart(part);
+                          void rec.start();
+                        }}
+                        aria-label={`Record part ${i + 1}`}
+                        style={{ background: "var(--coral)", color: "#0d0b08" }}
+                      >
+                        ● Record part {i + 1}
+                      </button>
                     )}
                   </div>
-                </div>
-              )}
+                );
+              })}
             </div>
             <Problem text={rec.error} />
             <div className="actionbar btn-row">
@@ -540,7 +548,7 @@ export function Apply() {
                 <button className="pill ghost" onClick={() => setPhase("languages")}>Back</button>
               )}
               <button className="pill mint" disabled={!hasPrimarySample} onClick={() => setPhase("finish")}>
-                {hasPrimarySample ? `Continue · ${sampleCount} of ${form.languages.length}` : "Record your strongest first"}
+                {hasPrimarySample ? "Continue" : `Record all 3 in ${langName(form.primary_language, form.other_language)}`}
               </button>
             </div>
           </>

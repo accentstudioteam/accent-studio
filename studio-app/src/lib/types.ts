@@ -66,6 +66,7 @@ export type ApplicationStatus = "submitted" | "invited" | "in_review" | "accepte
 
 export interface ApplicationSample {
   language: string;
+  part?: string;
   path: string;
   seconds: number;
 }
@@ -97,4 +98,21 @@ export interface Application {
   user_agent: string | null;
   status: ApplicationStatus;
   notes: string | null;
+}
+
+export type LabInquiryStatus = "new" | "replied" | "qualified" | "closed";
+
+/** Inbound request from a lab via the /labs contact form. */
+export interface LabInquiry {
+  id: string;
+  created_at: string;
+  name: string;
+  org: string;
+  email: string;
+  message: string | null;
+  user_agent: string | null;
+  status: LabInquiryStatus;
+  notes: string | null;
+  notified_at: string | null;
+  ack_sent_at: string | null;
 }

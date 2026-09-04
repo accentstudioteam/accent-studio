@@ -876,9 +876,10 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
     </div>
     <form class="cform rv" id="labForm" novalidate>
       <div class="row2">
-        <input type="text" name="org" placeholder="Organization" required aria-label="Organization">
-        <input type="email" name="email" placeholder="Work email" required aria-label="Work email">
+        <input type="text" name="name" placeholder="Your name" required aria-label="Your name" autocomplete="name">
+        <input type="text" name="org" placeholder="Organization" required aria-label="Organization" autocomplete="organization">
       </div>
+      <input type="email" name="email" placeholder="Work email" required aria-label="Work email" autocomplete="email">
       <textarea name="msg" placeholder="What are you building, and which locales matter most?" aria-label="Message"></textarea>
       <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
       <button class="btn btn-a" type="submit">Request the sample bundle <span class="ar">→</span></button>
@@ -1074,23 +1075,31 @@ burger.addEventListener('click',function(){menu.classList.add('open');menu.setAt
 menuX.addEventListener('click',closeMenu);
 menu.querySelectorAll('a').forEach(function(a){a.addEventListener('click',closeMenu);});
 
-/* contact form */
-var FORM_ENDPOINT='https://formspree.io/f/YOUR_LABS_FORMSPREE_ID_HERE';
-var lf=document.getElementById('labForm'),lm=document.getElementById('labMsg');
+/* contact form → Supabase lab_inquiries (insert-only for the public), then the
+   lab-inquiry-received function emails hello@ and sends the requester the bundle. */
+var SB_URL='https://uazcoxinsnkjjogfovlg.supabase.co',SB_KEY='sb_publishable_cV8x-VgtGRj26so-iS9kgQ_MjvbYZzJ';
+var lf=document.getElementById('labForm'),lm=document.getElementById('labMsg'),lbtn=lf.querySelector('button[type=submit]');
+function newId(){
+  if(window.crypto&&crypto.randomUUID)return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16);});
+}
 lf.addEventListener('submit',function(e){
   e.preventDefault();
-  var org=lf.org.value.trim(),email=lf.email.value.trim(),msg=lf.msg.value.trim();
-  if(!org){lm.style.color='var(--coral)';lm.textContent='Tell us your organization first.';return;}
+  var name=lf.elements.namedItem('name').value.trim(),org=lf.org.value.trim(),email=lf.email.value.trim(),msg=lf.msg.value.trim();
+  if(lf._gotcha.value){lm.style.color='var(--acc)';lm.textContent='Received.';lf.reset();return;}
+  if(name.length<2){lm.style.color='var(--coral)';lm.textContent='Tell us your name first.';return;}
+  if(!org){lm.style.color='var(--coral)';lm.textContent='And your organization.';return;}
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){lm.style.color='var(--coral)';lm.textContent='That email doesn’t look right.';return;}
-  if(FORM_ENDPOINT.indexOf('YOUR_')>-1){
-    window.location.href='mailto:labs@accentstudio.io?subject='+encodeURIComponent('Sample bundle request · '+org)+'&body='+encodeURIComponent('Org: '+org+'\nEmail: '+email+'\n\n'+msg);
-    lm.style.color='var(--acc)';lm.textContent='Opening your mail app…';
-    return;
-  }
-  lm.style.color='var(--mut)';lm.textContent='Sending…';
-  fetch(FORM_ENDPOINT,{method:'POST',headers:{'Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify({org:org,email:email,message:msg})})
-    .then(function(r){if(!r.ok)throw new Error('Could not send right now.');lm.style.color='var(--acc)';lm.textContent='Received. Sample bundle inbound within one business day.';lf.reset();})
-    .catch(function(err){lm.style.color='var(--coral)';lm.textContent=err.message||'Could not send right now. Try again shortly.';});
+  var id=newId();lbtn.disabled=true;lm.style.color='var(--mut)';lm.textContent='Sending…';
+  fetch(SB_URL+'/rest/v1/lab_inquiries',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+    body:JSON.stringify({id:id,name:name,org:org,email:email,message:msg||null,user_agent:navigator.userAgent.slice(0,400)})})
+    .then(function(r){
+      if(!r.ok)throw new Error('Could not send right now. Try again shortly.');
+      fetch(SB_URL+'/functions/v1/lab-inquiry-received',{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({id:id})}).catch(function(){});
+      lm.style.color='var(--acc)';lm.textContent='Received. The sample bundle is on its way to '+email+', and a founder replies within one business day.';lf.reset();
+    })
+    .catch(function(err){lm.style.color='var(--coral)';lm.textContent=err.message||'Could not send right now. Try again shortly.';})
+    .then(function(){lbtn.disabled=false;});
 });
 })();
 </script>

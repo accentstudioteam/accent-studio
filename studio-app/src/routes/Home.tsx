@@ -5,7 +5,7 @@ import { Logo } from "../components/Logo";
 
 const DEMO_BARS = [55, 32, 78, 44, 68, 88, 52, 72, 38, 58, 48, 34, 64, 40];
 
-export function Home({ onSettings, onApplications }: { onSettings: () => void; onApplications?: () => void }) {
+export function Home({ onSettings, onApplications, onLabInquiries }: { onSettings: () => void; onApplications?: () => void; onLabInquiries?: () => void }) {
   const { profile, session } = useAuth();
   const name = profile?.handle ?? session?.user.email?.split("@")[0] ?? "player";
   const lang = profile?.locale ? LOCALE_NAME[profile.locale] : null;
@@ -54,6 +54,13 @@ export function Home({ onSettings, onApplications }: { onSettings: () => void; o
                 </div>
               </Tile>
               <button className="pill mint" onClick={onApplications}>Open applications</button>
+              <Tile label="Labs">
+                <div className="ttitle">Lab inquiries</div>
+                <div className="tbody muted" style={{ marginTop: 6 }}>
+                  Every sample-bundle request from accentstudio.io/labs. They also land in hello@ with reply-to set to the lab.
+                </div>
+              </Tile>
+              <button className="pill" onClick={onLabInquiries} style={{ background: "#f0a84b", color: "#0d0b08" }}>Open lab inquiries</button>
             </Sheet>
           )}
           <Sheet title="Ping · ready when you are">
