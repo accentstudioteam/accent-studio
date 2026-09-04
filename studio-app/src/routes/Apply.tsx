@@ -42,7 +42,6 @@ const AGE_BANDS = ["18-24", "25-34", "35-44", "45-54", "55+"];
 const GENDERS: [string, string][] = [
   ["woman", "Woman"],
   ["man", "Man"],
-  ["nonbinary", "Non-binary"],
   ["prefer_not", "Prefer not to say"],
 ];
 const DEVICES: [string, string][] = [
