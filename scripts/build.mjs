@@ -19,6 +19,7 @@ mkdirSync(dist, { recursive: true });
 const staticFiles = [
   "index.html",
   "labs.html",
+  "brand-kit.html",
   "privacy.html",
   "terms.html",
   "cookies.html",

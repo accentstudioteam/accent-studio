@@ -291,6 +291,12 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
 .trust{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(12px,2vw,22px)}
 .trust-foot{margin:clamp(22px,3vw,34px) auto 0;max-width:860px;font-size:1rem;line-height:1.65;color:var(--ink2);border-left:2px solid var(--acc);padding-left:18px}
 .trust-foot b{color:var(--ink)}
+.trust-doc{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;max-width:860px;margin:clamp(18px,2.4vw,26px) auto 0;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 22px}
+.trust-doc .tx{flex:1;min-width:240px}
+.trust-doc h4{font-family:var(--disp);font-weight:700;font-size:1.05rem;margin:0 0 4px;letter-spacing:-.01em}
+.trust-doc p{margin:0;color:var(--mut);font-size:.9rem}
+.trust-doc .fp{font-family:var(--mono);font-size:.64rem;color:var(--mut);letter-spacing:.04em;margin-top:6px}
+.trust-doc .fp b{color:var(--acc);font-weight:500}
 .trust-foot a{color:var(--acc);text-decoration:underline;text-underline-offset:3px}
 .tr{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px}
 .tr .ic{font-size:1.4rem;margin-bottom:12px;display:block}
@@ -757,6 +763,14 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
       <div class="tr"><span class="ic">🔏</span><h4>Consent, signed</h4><p>Your agreement is time stamped and hash anchored. Voice is biometric data and we treat it that way.</p></div>
       <div class="tr"><span class="ic">🧹</span><h4>Auto redaction</h4><p>Anything that looks like real PII is caught at capture and replaced with synthetic tokens before storage.</p></div>
     </div>
+    <div class="trust-doc rv">
+      <div class="tx">
+        <h4>Read the agreement before you sign it.</h4>
+        <p>The full Contributor Agreement every player signs: plain-language summary first, then every clause, including what buyers may never do and how you withdraw.</p>
+        <div class="fp">v1.0 · 9 pages · <b>SHA-256 700ecd39…c49f</b> printed in full on the Labs page</div>
+      </div>
+      <a class="btn btn-a" href="legal/Accent_Studio_Contributor_Agreement_v1.0.pdf" download>Download the agreement <span class="ar">↓</span></a>
+    </div>
     <p class="trust-foot rv"><b>Your voice is biometric data, so we never disguise it and never expose it.</b> Recordings are stored under a random ID. Your name, ID and payout details sit in a separate vault that buyers never receive. Every buyer signs that they will not try to identify you, link you to other data, or clone your voice. You can request a copy of your data or delete your identity from Settings at any time. Details in our <a href="privacy.html">privacy policy</a>.</p>
   </div>
 </section>
@@ -843,6 +857,8 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
           <li><a href="privacy.html">Privacy</a></li>
           <li><a href="terms.html">Terms</a></li>
           <li><a href="cookies.html">Cookies</a></li>
+          <li><a href="legal/Accent_Studio_Contributor_Agreement_v1.0.pdf" download>Contributor agreement (PDF)</a></li>
+          <li><a href="brand-kit.html">Brand kit</a></li>
         </ul>
       </div>
     </div>
