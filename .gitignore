@@ -42,3 +42,6 @@ dist/
 !studio-app/.env.production
 .vercel
 !brand/print/*.pdf
+
+# the published contributor agreement ships with the site
+!legal/*.pdf
