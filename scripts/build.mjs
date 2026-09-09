@@ -36,7 +36,7 @@ for (const f of staticFiles) {
     console.log(`[build] + ${f}`);
   }
 }
-for (const d of ["samples", "audio", "brand"]) {
+for (const d of ["samples", "audio", "brand", "legal"]) {
   const src = join(root, d);
   if (existsSync(src)) {
     cpSync(src, join(dist, d), { recursive: true });
