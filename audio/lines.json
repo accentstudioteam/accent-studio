@@ -30,5 +30,29 @@
   "scene_bank_04": {
     "text": "Oga, I dey see three unauthorized transaction. I go block am now, make I run your refund.",
     "en": "Sir, I can see three unauthorized transactions. I’ll block the card and start the refund."
+  },
+  "scene_mkt_05": {
+    "text": "One thousand three hundred! Last last, I no get change.",
+    "en": "₦1,300, final offer. I don’t have change."
+  },
+  "scene_mkt_04": {
+    "text": "Ehn! You don turn market woman like me? Give me one thousand five hundred, na final price be dat o!",
+    "en": "You’ve become a market woman like me! ₦1,500, that's the final price."
+  },
+  "scene_mkt_03": {
+    "text": "Ah, e too much o! Take one thousand two hundred, make i dey go.",
+    "en": "That’s too much. Take ₦1,200 and let me go."
+  },
+  "scene_mkt_02": {
+    "text": "My friend, dis one na fresh from farm dis morning. Give me one thousand eight hundred.",
+    "en": "These are fresh from the farm this morning. Give me ₦1,800."
+  },
+  "scene_mkt_01": {
+    "text": "Madam, how much for dis basket of tomato? Abeg, no talk say na two thousand naira o!",
+    "en": "Ma’am, how much for this basket? Please don’t say ₦2,000."
+  },
+  "scene_mkt_06": {
+    "text": "Okay, come collect am. Ah! You be strong customer o.",
+    "en": "Okay, take it. You’re a tough negotiator."
   }
 }

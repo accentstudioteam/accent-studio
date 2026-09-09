@@ -928,12 +928,12 @@ var SCENES={
     {who:'Customer · relieved',t:'Sharp! Thank you. You don save me plenty wahala today.',en:'Nice. Thank you. You’ve saved me from a lot of stress today.',b:false}
   ]},
   mkt:{meta:'Nigerian Pidgin / English<br>2 speakers · 24 kHz · market ambience',turns:[
-    {who:'Buyer · playful',t:'Aunty, how much for this basket of tomatoes? And please, no tell me say na two thousand naira!',en:'Ma’am, how much for this basket? Please don’t say ₦2,000.',b:false},
-    {who:'Seller · firm',t:'My friend, these ones fresh from farm this morning-o. Give me one thousand eight hundred.',en:'These are fresh from the farm this morning. Give me ₦1,800.',b:true},
-    {who:'Buyer · teasing',t:'Ah, e too much o! Take one thousand two hundred, make I go my house abeg.',en:'That’s too much. Take ₦1,200 and let me go.',b:false},
-    {who:'Seller · negotiating',t:'Ehn! You don turn market woman like me? Give me one thousand five hundred, that na final price o!',en:'You’ve become a market woman like me! ₦1,500, final price.',b:true},
-    {who:'Buyer · closing',t:'One thousand three hundred! Last last, I no get change o.',en:'₦1,300, final offer. I don’t have change.',b:false},
-    {who:'Seller · warm',t:'Okay, come collect am. Ah! You strong customer o.',en:'Okay, take it. You’re a tough negotiator.',b:true}
+    {who:'Buyer · playful',t:'Madam, how much for dis basket of tomato? Abeg, no talk say na two thousand naira o!',en:'Ma’am, how much for this basket? Please don’t say ₦2,000.',b:false},
+    {who:'Seller · firm',t:'My friend, dis one na fresh from farm dis morning. Give me one thousand eight hundred.',en:'These are fresh from the farm this morning. Give me ₦1,800.',b:true},
+    {who:'Buyer · teasing',t:'Ah, e too much o! Take one thousand two hundred, make i dey go.',en:'That’s too much. Take ₦1,200 and let me go.',b:false},
+    {who:'Seller · negotiating',t:'Ehn! You don turn market woman like me? Give me one thousand five hundred, na final price be dat o!',en:'You’ve become a market woman like me! ₦1,500, that\'s the final price.',b:true},
+    {who:'Buyer · closing',t:'One thousand three hundred! Last last, I no get change.',en:'₦1,300, final offer. I don’t have change.',b:false},
+    {who:'Seller · warm',t:'Okay, come collect am. Ah! You be strong customer o.',en:'Okay, take it. You’re a tough negotiator.',b:true}
   ]}
 };
 var turnsEl=document.getElementById('turns'),metaEl=document.getElementById('sceneMeta'),
@@ -991,7 +991,11 @@ playBtn.addEventListener('click',function(){
       sceneAudio=null;
       setTimeout(function(){playTurn(i+1);},380);
     },{once:true});
-    a.addEventListener('error',function(){if(i===0)simulate();else stopPlay();},{once:true});
+    a.addEventListener('error',function(){
+      if(i===0){simulate();return;}
+      /* a turn without a clip yet: show it briefly, keep the scene moving */
+      mark(i);playTimer=setTimeout(function(){playTurn(i+1);},2300);
+    },{once:true});
     a.load();
   }
   playTurn(0);
