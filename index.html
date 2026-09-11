@@ -155,6 +155,30 @@ h1 .it{font-style:italic;color:var(--acc);font-weight:700}
 .stars{display:flex;gap:5px}
 .stars s{text-decoration:none;font-size:1.25rem;color:var(--gold);line-height:1;filter:drop-shadow(0 0 6px rgba(224,162,78,.4))}
 .stars s.dim{color:rgba(255,255,255,.15);filter:none}
+.demo .b{opacity:0;transform:translateY(8px);transition:opacity .45s var(--ease),transform .55s var(--ease)}
+.demo .b.on{opacity:1;transform:none}
+.demo.static .b{opacity:1;transform:none;transition:none}
+.game .cap{max-width:330px;margin-top:12px;font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--acc);min-height:2.2em;transition:opacity .3s}
+.game .cap.fade{opacity:0}
+.demo .play{color:var(--acc);letter-spacing:.08em;margin-left:6px}
+.demo .rec{display:inline-block;width:6px;height:6px;border-radius:50%;background:#ff6a3d;margin-right:7px;vertical-align:1px;opacity:0;transition:opacity .2s}
+.demo .rec.on{opacity:1;animation:lamp .9s infinite}
+.demo .wv i{transition:height .11s linear}
+.demo .stars s{transition:color .25s,filter .25s}
+.demo .tag{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);background:color-mix(in srgb,var(--acc) 12%,transparent);border:1px solid color-mix(in srgb,var(--acc) 35%,transparent);border-radius:100px;padding:8px 12px;text-align:center}
+.demo .tile.twist.on{animation:drop .6s var(--ease)}
+.demo .tile.twist.flash{box-shadow:0 0 0 1px var(--gold),0 0 24px -4px rgba(224,162,78,.55)}
+.demo .duo{display:flex;flex-direction:column;gap:6px}
+.demo .duo .ch{display:flex;align-items:center;gap:10px}
+.demo .duo .ch span{font-family:var(--mono);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.45);width:52px;flex:none}
+.demo .duo .wv{flex:1;height:20px}
+.demo .duo .wv.quiet i{opacity:.28}
+.demo .chem{display:flex;align-items:center;gap:8px;margin-top:8px;font-family:var(--mono);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.45)}
+.demo .chem .bar{flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:100px;overflow:hidden}
+.demo .chem .bar i{display:block;height:100%;width:0;background:var(--acc);border-radius:100px;transition:width 1.1s var(--ease)}
+.demo .chem b{color:var(--acc);font-weight:500;width:30px;text-align:right}
+.demo .pill.press{transform:scale(.96);filter:brightness(1.12)}
+@keyframes drop{0%{opacity:0;transform:translateY(-16px) scale(.97)}60%{transform:translateY(3px) scale(1.01)}100%{opacity:1;transform:none}}
 .pill{background:var(--gold);color:#1a1206;border:none;border-radius:100px;padding:13px;font-family:var(--mono);font-weight:600;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;width:100%}
 .binary{display:flex;justify-content:center;gap:14px;padding-top:2px}
 .binary button{width:44px;height:44px;border-radius:50%;border:none;font-size:1rem;color:#fff;display:grid;place-items:center}
@@ -511,19 +535,25 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
         <h3>Ping-Pong</h3>
         <p>Prompts arrive in your language, as audio you can just listen to, with the text there if you want it. You say each one your way. Your partner rates the take on tone, prompt, mood and clarity. Below 4? You say it again. Every clip is verified by a linguist before it ships.</p>
         <div class="mock">
-          <div class="sheet">
+          <div class="sheet demo" id="demoPing" aria-label="Animated preview of a Ping-Pong turn">
             <div class="handle"></div>
             <div class="shead"><i class="g"></i>Ping · Turn 3</div>
-            <div class="tile">
-              <div class="tlbl">Chidi · 00:14</div>
-              <div class="wv"><i style="height:55%"></i><i style="height:32%"></i><i style="height:78%"></i><i style="height:44%"></i><i style="height:68%"></i><i style="height:88%"></i><i style="height:52%"></i><i style="height:72%"></i><i style="height:38%" class="mu"></i><i style="height:58%" class="mu"></i><i style="height:48%" class="mu"></i><i style="height:34%" class="mu"></i></div>
+            <div class="tile b" data-b="card">
+              <div class="tlbl">Card · Nigerian Pidgin <span class="play">▶ listen</span></div>
+              <div class="ttitle" style="font-size:.92rem">Bank don debit you 50k wey you no spend. Call them, vex small.</div>
             </div>
-            <div class="tile">
-              <div class="tlbl">Rate</div>
-              <div class="stars"><s>★</s><s>★</s><s>★</s><s>★</s><s class="dim">★</s></div>
+            <div class="tile b" data-b="take">
+              <div class="tlbl"><span class="rec"></span><span data-t="who">Chidi · 00:00</span></div>
+              <div class="wv" data-wv="ping"><i style="height:42%"></i><i style="height:30%"></i><i style="height:66%"></i><i style="height:38%"></i><i style="height:58%"></i><i style="height:74%"></i><i style="height:46%"></i><i style="height:62%"></i><i style="height:34%"></i><i style="height:52%"></i><i style="height:44%"></i><i style="height:30%"></i></div>
             </div>
-            <button class="pill">Record reply</button>
+            <div class="tile b" data-b="rate">
+              <div class="tlbl" data-t="ratelbl">Partner is rating…</div>
+              <div class="stars"><s class="dim">★</s><s class="dim">★</s><s class="dim">★</s><s class="dim">★</s><s class="dim">★</s></div>
+            </div>
+            <button class="pill b" data-b="reply" tabindex="-1">Record reply</button>
+            <div class="tag b" data-b="verified">✓ Verified by a linguist</div>
           </div>
+          <div class="cap" data-t="cap" aria-live="polite">Prompts arrive in your language, as audio.</div>
         </div>
         <ul>
           <li>Turn based and async, play anytime on any phone</li>
@@ -536,22 +566,32 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
         <h3>Live Arena</h3>
         <p>Two players hold a flowing, natural conversation. A market haggle, a support call, a complaint that escalates. The scene card is in your language, spoken to you, so you never have to read your way in. The result is the rich, emotional audio voice agents are starved for, verified afterwards by a trained linguist.</p>
         <div class="mock">
-          <div class="sheet">
+          <div class="sheet demo" id="demoArena" aria-label="Animated preview of a Live Arena scene">
             <div class="handle"></div>
-            <div class="shead"><i></i>Live · Arena</div>
-            <div class="tile acc">
-              <div class="tlbl">Persona</div>
-              <div class="ttitle">Market seller, holding her price</div>
+            <div class="shead"><i></i>Live · Arena · <span data-t="clock">00:00</span></div>
+            <div class="tile acc b" data-b="persona">
+              <div class="tlbl">Persona · card in Pidgin <span class="play">▶ listen</span></div>
+              <div class="ttitle" data-t="persona">Market seller, holding the price</div>
             </div>
-            <div class="tile">
+            <div class="tile b" data-b="live">
+              <div class="tlbl">Live · two tracks</div>
+              <div class="duo">
+                <div class="ch"><span>You</span><div class="wv" data-wv="a"><i style="height:42%"></i><i style="height:30%"></i><i style="height:66%"></i><i style="height:38%"></i><i style="height:58%"></i><i style="height:74%"></i><i style="height:46%"></i><i style="height:62%"></i><i style="height:34%"></i><i style="height:52%"></i><i style="height:44%"></i><i style="height:30%"></i></div></div>
+                <div class="ch"><span>Partner</span><div class="wv" data-wv="b"><i style="height:30%"></i><i style="height:48%"></i><i style="height:36%"></i><i style="height:60%"></i><i style="height:40%"></i><i style="height:52%"></i><i style="height:34%"></i><i style="height:46%"></i><i style="height:58%"></i><i style="height:38%"></i><i style="height:30%"></i><i style="height:44%"></i></div></div>
+              </div>
+              <div class="chem"><span>Chemistry</span><div class="bar"><i data-t="chem"></i></div><b data-t="chempct">0%</b></div>
+            </div>
+            <div class="tile twist b" data-b="twist">
               <div class="tlbl">Twist · 01:12</div>
               <div class="ttitle">A regular customer walks past. Greet them mid haggle.</div>
             </div>
-            <div class="tile dash">
+            <div class="tile dash b" data-b="review">
               <div class="tlbl">Linguist review · after the scene</div>
-              <div class="tbody"><span class="stx">tomatos</span> <span class="fixw">tomatoes</span> fresh from farm…</div>
+              <div class="tbody"><span class="stx">tomatos</span> <span class="fixw" data-t="fix">tomatoes</span> fresh from farm…</div>
             </div>
+            <div class="tag b" data-b="earn">Gold ×1.0 · $1.33 accrued for 5 min</div>
           </div>
+          <div class="cap" data-t="cap" aria-live="polite">You are dealt a persona, in your language.</div>
         </div>
         <ul>
           <li>Real turn taking, real interruptions, real emotion</li>
@@ -1049,6 +1089,68 @@ try{
 function setConsent(v){try{localStorage.setItem('as-consent',v);}catch(e){}cc.classList.remove('show');}
 document.getElementById('ccOk').addEventListener('click',function(){setConsent('all');});
 document.getElementById('ccMin').addEventListener('click',function(){setConsent('essential');});
+})();
+</script>
+<script>
+/* Animated game-card exhibits: scripted loops of the real flow, paused off-screen, static under reduced motion. */
+(function(){
+  var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function $(root,sel){return root.querySelector(sel);}
+  function all(root,sel){return Array.prototype.slice.call(root.querySelectorAll(sel));}
+  function on(root,name){var el=root.querySelector('[data-b="'+name+'"]');if(el)el.classList.add('on');}
+  function cap(root,text){var c=root.parentNode.querySelector('.cap');if(!c)return;c.classList.add('fade');setTimeout(function(){c.textContent=text;c.classList.remove('fade');},280);}
+  function clock(s){var m=Math.floor(s/60),r=s%60;return (m<10?'0':'')+m+':'+(r<10?'0':'')+r;}
+  function waver(wv){ // animate bars while active; hold the last frame when stopped
+    var bars=all(wv,'i'),id=null;
+    return {start:function(){if(id)return;id=setInterval(function(){bars.forEach(function(b){b.style.height=(22+Math.random()*68)+'%';});},110);},
+            stop:function(){clearInterval(id);id=null;}};
+  }
+  function runner(root,total,build){
+    var timers=[],cleanup=[],running=false;
+    function reset(){timers.forEach(clearTimeout);timers=[];cleanup.forEach(function(f){f();});cleanup=[];all(root,'.b').forEach(function(b){b.classList.remove('on');});}
+    function cycle(){reset();build(function(at,fn){timers.push(setTimeout(fn,at));},function(f){cleanup.push(f);});timers.push(setTimeout(cycle,total));}
+    function start(){if(running)return;running=true;cycle();}
+    function stop(){running=false;reset();}
+    if('IntersectionObserver' in window){new IntersectionObserver(function(en){en.forEach(function(e){e.isIntersecting?start():stop();});},{threshold:.4}).observe(root);}
+    else start();
+    document.addEventListener('visibilitychange',function(){if(document.hidden)stop();else if(root.getBoundingClientRect().top<innerHeight)start();});
+  }
+
+  var ping=document.getElementById('demoPing');
+  if(ping){
+    if(reduced){ping.classList.add('static');$(ping,'[data-t="who"]').textContent='Chidi · 00:14';all(ping,'.stars s').slice(0,4).forEach(function(s){s.classList.remove('dim');});$(ping,'[data-t="ratelbl"]').textContent='Partner rated · 4.8';}
+    else runner(ping,13000,function(at,later){
+      var who=$(ping,'[data-t="who"]'),rec=$(ping,'.rec'),wv=waver($(ping,'[data-wv="ping"]')),stars=all(ping,'.stars s'),lbl=$(ping,'[data-t="ratelbl"]'),btn=$(ping,'[data-b="reply"]');
+      stars.forEach(function(s){s.classList.add('dim');});lbl.textContent='Partner is rating…';who.textContent='Chidi · 00:00';
+      at(200,function(){on(ping,'card');cap(ping,'Prompts arrive in your language, as audio. Text is there if you want it.');});
+      at(1700,function(){on(ping,'take');cap(ping,'You say it your way. Up to 30 seconds, any phone.');rec.classList.add('on');wv.start();var s=0;var tid=setInterval(function(){s++;who.textContent='Chidi · '+clock(s);if(s>=14)clearInterval(tid);},220);later(function(){clearInterval(tid);});});
+      at(5000,function(){wv.stop();rec.classList.remove('on');who.textContent='Chidi · 00:14 · sent';});
+      at(5900,function(){on(ping,'rate');cap(ping,'A stranger you are paired with rates the take on four axes.');});
+      at(6600,function(){stars.slice(0,4).forEach(function(s,i){setTimeout(function(){s.classList.remove('dim');},i*260);});});
+      at(7900,function(){lbl.textContent='Partner rated · 4.8 · ship it';});
+      at(8700,function(){on(ping,'reply');cap(ping,'Below 4 you say it again. Then it is your turn to reply.');});
+      at(9700,function(){btn.classList.add('press');setTimeout(function(){btn.classList.remove('press');},260);});
+      at(10500,function(){on(ping,'verified');cap(ping,'A trained linguist verifies every clip before it ships.');});
+      later(function(){wv.stop();rec.classList.remove('on');btn.classList.remove('press');});
+    });
+  }
+
+  var arena=document.getElementById('demoArena');
+  if(arena){
+    if(reduced){arena.classList.add('static');$(arena,'[data-t="clock"]').textContent='05:02';$(arena,'[data-t="chem"]').style.width='78%';$(arena,'[data-t="chempct"]').textContent='78%';}
+    else runner(arena,16000,function(at,later){
+      var clk=$(arena,'[data-t="clock"]'),wa=$(arena,'[data-wv="a"]'),wb=$(arena,'[data-wv="b"]'),va=waver(wa),vb=waver(wb),chem=$(arena,'[data-t="chem"]'),pct=$(arena,'[data-t="chempct"]'),twist=$(arena,'[data-b="twist"]'),fix=$(arena,'[data-t="fix"]');
+      clk.textContent='00:00';chem.style.width='0%';pct.textContent='0%';fix.textContent='';twist.classList.remove('flash');wa.classList.remove('quiet');wb.classList.add('quiet');
+      at(200,function(){on(arena,'persona');cap(arena,'You are dealt a persona, in your language. Your partner gets a different one.');});
+      at(1600,function(){on(arena,'live');cap(arena,'Live conversation, each voice on its own track. Chemistry rises as it flows.');va.start();var s=0,who=0;var tid=setInterval(function(){s+=3;clk.textContent=clock(s);},240);var turn=setInterval(function(){who=1-who;if(who){va.stop();vb.start();wa.classList.add('quiet');wb.classList.remove('quiet');}else{vb.stop();va.start();wb.classList.add('quiet');wa.classList.remove('quiet');}},1300);later(function(){clearInterval(tid);clearInterval(turn);});
+        [[600,'31%'],[2400,'54%'],[4600,'66%'],[7800,'78%']].forEach(function(p){setTimeout(function(){chem.style.width=p[1];pct.textContent=p[1];},p[0]);});});
+      at(6200,function(){on(arena,'twist');cap(arena,'A twist drops mid scene so nothing is scripted.');twist.classList.add('flash');setTimeout(function(){twist.classList.remove('flash');},1400);});
+      at(10400,function(){va.stop();vb.stop();wa.classList.add('quiet');wb.classList.add('quiet');clk.textContent='05:02 · wrapped';});
+      at(11000,function(){on(arena,'review');cap(arena,'Afterwards a linguist verifies the transcript, slang and all.');var w='tomatoes',i=0;var tid=setInterval(function(){fix.textContent=w.slice(0,++i);if(i>=w.length)clearInterval(tid);},90);later(function(){clearInterval(tid);});});
+      at(13000,function(){on(arena,'earn');cap(arena,'Paid per verified hour at the published rate, times your quality tier.');});
+      later(function(){va.stop();vb.stop();});
+    });
+  }
 })();
 </script>
 <script src="pay.js"></script>
