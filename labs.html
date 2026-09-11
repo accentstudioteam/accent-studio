@@ -667,26 +667,26 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
   <div class="wrap">
     <div class="shead-block rv">
       <div class="eyebrow">04 · The pipeline</div>
-      <h2>Three roles, one <span class="it">clean take.</span></h2>
-      <p class="lead">Every session is a small production. Two players improvise, an editor verifies live, and an audit layer samples everything behind them.</p>
+      <h2>Two players, one linguist, one <span class="it">clean take.</span></h2>
+      <p class="lead">Every session is a small production. Two players improvise from a card in their own language, a trained linguist verifies the transcript, and an audit layer samples everything behind them.</p>
     </div>
     <div class="pipe stag">
       <article class="pstep">
         <div class="num">01</div>
         <h3>Live improv, dual track</h3>
-        <p>Two anonymously paired native speakers play a scene from an English scenario card: a fraud dispute, a market haggle, a KYC call. Each voice records to its own channel.</p>
+        <p>Two anonymously paired native speakers play a scene from a card authored in the target language by a linguist, presented as audio with text as a fallback: a fraud dispute, a market haggle, a KYC call. Nothing is translated from English, so the speech is native, not calqued. Each voice records to its own channel.</p>
         <span class="tg">output · raw dual-channel audio</span>
       </article>
       <article class="pstep">
         <div class="num">02</div>
-        <h3>Editor polishes live</h3>
-        <p>A third native speaker rides along, correcting the transcript in real time: slang, code-switches, tone tags. Peer ratings below 4 force a retake before anything ships.</p>
+        <h3>A linguist verifies every transcript</h3>
+        <p>Editors are recruited, trained and certified language professionals, not players. Each transcript is verified by one of them, with an English gloss written downstream from what was actually said, and slang, code-switches and tone tags corrected. Peer ratings below 4 force a retake before anything ships.</p>
         <span class="tg">output · verified transcript + labels</span>
       </article>
       <article class="pstep">
         <div class="num">03</div>
         <h3>Packaged for training</h3>
-        <p>Sessions are chunked, aligned, indexed and hashed. A 30% random audit re-reviews turns blind. Anything that fails is reworked or dropped, never shipped.</p>
+        <p>Sessions are chunked, indexed and hashed, with word-level alignment as a tier option. Every session manifest records its <code>prompt_direction</code>, target-native by default or English-anchored on request. A 30% random audit re-reviews turns blind. Anything that fails is reworked or dropped, never shipped.</p>
         <span class="tg">output · WAV + JSONL + Parquet bundle</span>
       </article>
     </div>
@@ -737,7 +737,7 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
         </div>
         <div class="sample-cta">
           <h4>See a full delivery before you spend a dollar.</h4>
-          <p>Our 46-page sample bundle: 10 sessions, 118 verified turns across 6 locales, schema reference, evaluation baselines and the signed consent register. Audio ships on request.</p>
+          <p>A reference delivery bundle showing exactly what a buyer receives, with synthetic sessions: 10 sessions, 118 turns across 6 locales, schema reference, indicative evaluation baselines and the consent register. Audio ships on request.</p>
           <div style="display:flex;gap:12px;flex-wrap:wrap">
             <a class="btn btn-a" href="samples/Accent_Studio_Sample_Delivery.pdf" download>Download the sample <span class="ar">↓</span></a>
             <a class="btn btn-g" href="#contact">Request audio access</a>
@@ -804,13 +804,13 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
     <div class="shead-block rv">
       <div class="eyebrow">08 · How to buy</div>
       <h2>Four ways in, <span class="it">no lock-in.</span></h2>
-      <p class="lead">Non-exclusive by default, exclusivity negotiable. Pricing scales with hours, locales and tier. Talk to us for a quote.</p>
+      <p class="lead">Production is commissioned against a signed order, not pulled from stock. Non-exclusive by default, exclusivity available and priced. Deposit on signature, balance on delivery or in milestones. We quote a lead time and a sustained weekly rate per language from measured throughput.</p>
     </div>
     <div class="skus stag">
       <article class="sku">
         <span class="k">Start here</span>
         <h3>Pilot corpus</h3>
-        <p>A scoped bundle in your target locale and domain, sized for a fine-tune experiment. Ships in weeks with full schema and baselines.</p>
+        <p>A scoped bundle in your target locale and domain, sized for a fine-tune experiment. Commissioned on signature; a standing Nigerian Pidgin corpus lets a Pidgin pilot ship within days.</p>
         <span class="ft">one-off · evaluation friendly</span>
       </article>
       <article class="sku">
@@ -822,13 +822,13 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
       <article class="sku">
         <span class="k">Bespoke</span>
         <h3>Custom commission</h3>
-        <p>Your scenarios, personas and edge cases, dropped into the game as scenario cards. The crowd plays your test set into existence.</p>
+        <p>Your scenarios, personas and edge cases, authored into target-language scenario cards by our linguists. Recruited, interviewed speakers play your test set into existence.</p>
         <span class="ft">directed · your IP guardrails</span>
       </article>
       <article class="sku">
         <span class="k">Premium</span>
         <h3>Aligned corpus</h3>
-        <p>Everything above plus word-level source-to-target alignment, typed by linguistic phenomenon and confidence scored.</p>
+        <p>Everything above plus word-level alignment, typed by linguistic phenomenon and confidence scored. English-anchored prompting available per order for source-anchored parallel data, recorded per session.</p>
         <span class="ft">tier 4 · translation grade</span>
       </article>
     </div>
@@ -855,10 +855,10 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
         <div class="eyebrow">Read what our contributors sign</div>
         <h3>The Contributor Agreement, in full.</h3>
         <p>Every player signs this before their first paid recording: a plain-language summary, explicit biometric consent as a separate act, what licensees may never do, withdrawal, retention, transfers, and the consent record whose fingerprint travels inside every session you receive.</p>
-        <a class="btn btn-a" href="legal/Accent_Studio_Contributor_Agreement_v1.0.pdf" download>Download the agreement <span class="ar">↓</span></a>
+        <a class="btn btn-a" href="legal/Accent_Studio_Contributor_Agreement_v1.1.pdf" download>Download the agreement <span class="ar">↓</span></a>
         <div class="ag-meta">
-          <div><b>Version</b>1.0 · effective 9 September 2026 · 9 pages · document ASC-CA-1.0</div>
-          <div><b>Verify your copy</b><code>SHA-256 700ecd3969d4c70295c6da8988fdfaf417d4f05dac92905798962d271342c49f</code></div>
+          <div><b>Version</b>1.1 · effective 11 September 2026 · 11 pages · document ASC-CA-1.1 · supersedes v1.0, which no contributor signed</div>
+          <div><b>Verify your copy</b><code>SHA-256 bb776c828a00da7a594d40357df6aa5e615ef1eaaef6926fc1a8273fba297b15</code></div>
           <div><b>Drafted against</b>GDPR and UK GDPR · Nigeria Data Protection Act 2023 · Kenya Data Protection Act 2019 · South Africa POPIA · Illinois BIPA. Clause-by-clause map in Annex B.</div>
         </div>
       </div>
@@ -867,9 +867,9 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
         <div class="score">7<span>of 7</span></div>
         <p>The EDPB Guidelines 05/2020 criteria for valid consent, each with the clause that satisfies it.</p>
         <ul class="crit">
-          <li><i>✓</i><span><b>Freely given</b><em>cl. 7, 8</em><br>Withdrawal without detriment; earnings are never clawed back.</span></li>
+          <li><i>✓</i><span><b>Freely given</b><em>cl. 7, 8, 15</em><br>Withdrawal without detriment; verified earnings are paid even when another session is questioned.</span></li>
           <li><i>✓</i><span><b>Specific</b><em>cl. 3</em><br>Purposes are a closed list. No advertising, profiling or automated decisions.</span></li>
-          <li><i>✓</i><span><b>Informed</b><em>summary, cl. 1 to 12</em><br>Plain-language summary first, then the full terms.</span></li>
+          <li><i>✓</i><span><b>Informed</b><em>summary, cl. 1 to 15</em><br>Plain-language summary first, then the full terms, including who hears the recording and how pay is set.</span></li>
           <li><i>✓</i><span><b>Unambiguous</b><em>signature block</em><br>Two affirmative ticks plus a one-time code to the registered email.</span></li>
           <li><i>✓</i><span><b>Explicit, for biometric data</b><em>cl. 4</em><br>A separate consent act, with the legal bases named.</span></li>
           <li><i>✓</i><span><b>As easy to withdraw as to give</b><em>cl. 8</em><br>One tap in the app or one email. Undelivered audio deleted in 30 days.</span></li>
@@ -960,8 +960,8 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
           <li><a href="#schema">Deliverable</a></li>
           <li><a href="#aligned">Aligned corpus</a></li>
           <li><a href="#buy">How to buy</a></li>
-          <li><a href="samples/Accent_Studio_Sample_Delivery.pdf" download>Sample bundle (PDF)</a></li>
-          <li><a href="legal/Accent_Studio_Contributor_Agreement_v1.0.pdf" download>Contributor agreement (PDF)</a></li>
+          <li><a href="samples/Accent_Studio_Sample_Delivery.pdf" download>Reference delivery bundle (PDF)</a></li>
+          <li><a href="legal/Accent_Studio_Contributor_Agreement_v1.1.pdf" download>Contributor agreement (PDF)</a></li>
           <li><a href="brand-kit.html">Brand kit</a></li>
         </ul>
       </div>

@@ -20,6 +20,8 @@ const staticFiles = [
   "index.html",
   "labs.html",
   "brand-kit.html",
+  "pay.js",
+  "robots.txt",
   "privacy.html",
   "terms.html",
   "cookies.html",

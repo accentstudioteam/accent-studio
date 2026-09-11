@@ -503,13 +503,13 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
     <div class="shead-block rv">
       <div class="eyebrow">01 · The games</div>
       <h2>One studio, two games.<br>Each one mints a <span class="it">different kind</span> of data.</h2>
-      <p class="lead">Pick your energy. A quick two player rally you can play on a bus, or a full live scene with a castmate and an editor riding along. Both pay.</p>
+      <p class="lead">Pick your energy. A quick two player rally you can play on a bus, or a full live scene with a castmate. Both pay, and every transcript is verified afterwards by a trained linguist, not by another player.</p>
     </div>
     <div class="games stag">
       <article class="game">
         <div class="gk"><span><b>Async</b> · 2 players</span><span>ASR · transcription</span></div>
         <h3>Ping-Pong</h3>
-        <p>Prompts arrive in English. You say each one out loud in your language, your way. Your partner rates the take on tone, prompt, mood and clarity. Below 4? You say it again. Every clip ships verified.</p>
+        <p>Prompts arrive in your language, as audio you can just listen to, with the text there if you want it. You say each one your way. Your partner rates the take on tone, prompt, mood and clarity. Below 4? You say it again. Every clip is verified by a linguist before it ships.</p>
         <div class="mock">
           <div class="sheet">
             <div class="handle"></div>
@@ -532,9 +532,9 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
         </ul>
       </article>
       <article class="game">
-        <div class="gk"><span><b>Live</b> · 3 players</span><span>voice-to-voice · dual channel</span></div>
+        <div class="gk"><span><b>Live</b> · 2 players</span><span>voice-to-voice · dual channel</span></div>
         <h3>Live Arena</h3>
-        <p>Two players hold a flowing, natural conversation. A market haggle, a support call, a complaint that escalates. A third player rides along, correcting the transcript live. The result is the rich, emotional audio voice agents are starved for.</p>
+        <p>Two players hold a flowing, natural conversation. A market haggle, a support call, a complaint that escalates. The scene card is in your language, spoken to you, so you never have to read your way in. The result is the rich, emotional audio voice agents are starved for, verified afterwards by a trained linguist.</p>
         <div class="mock">
           <div class="sheet">
             <div class="handle"></div>
@@ -548,14 +548,14 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
               <div class="ttitle">A regular customer walks past. Greet them mid haggle.</div>
             </div>
             <div class="tile dash">
-              <div class="tlbl">Editor</div>
+              <div class="tlbl">Linguist review · after the scene</div>
               <div class="tbody"><span class="stx">tomatos</span> <span class="fixw">tomatoes</span> fresh from farm…</div>
             </div>
           </div>
         </div>
         <ul>
           <li>Real turn taking, real interruptions, real emotion</li>
-          <li>A third player transcribes and fixes slang in real time</li>
+          <li>A trained linguist verifies the transcript and fixes slang afterwards</li>
           <li>Produces dual channel, latency mapped conversation</li>
         </ul>
       </article>
@@ -705,27 +705,21 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
     <div class="shead-block rv">
       <div class="eyebrow">05 · Earn</div>
       <h2>Play well. Rank up. <span class="it">Cash out.</span></h2>
-      <p class="lead">Real money, real methods, in the currencies and rails you actually use.</p>
+      <p class="lead">A published base rate for your language, shown before every session. A quality multiplier applied after a linguist verifies it. Real money on the rails you actually use.</p>
     </div>
     <div class="rate-hero rv">
-      <span class="big">$7.20 – $30</span>
-      <span class="per">per verified hour of audio</span>
+      <span class="big" id="payRange">$8 – $30</span>
+      <span class="per" id="payUnit">per speaker, per verified hour of session audio</span>
+      <span class="per" id="payBase" style="display:block;margin-top:6px">Standard base rate $16 per speaker per hour. Scarce registers and commissioned specialist domains pay more.</span>
     </div>
     <div class="earn-grid">
       <div class="tiers rv">
-        <div class="th">Peer QA multiplier · applied to every payout</div>
-        <div class="tier"><div><div class="nm">Platinum</div><div class="cond">Peer rating 4.75 and above</div></div><span class="x">× 1.2</span></div>
-        <div class="tier"><div><div class="nm">Gold</div><div class="cond">4.25 – 4.74</div></div><span class="x">× 1.0</span></div>
-        <div class="tier"><div><div class="nm">Silver</div><div class="cond">3.50 – 4.24</div></div><span class="x">× 0.7</span></div>
-        <div class="tier dead"><div><div class="nm">Rejected</div><div class="cond">Below 3.50, or fraud flagged</div></div><span class="x">× 0</span></div>
+        <div class="th">Peer QA multiplier · applied after verification</div>
+        <div id="payTiers"></div>
       </div>
-      <div class="rails stag">
-        <div class="rail"><span class="nm">M-Pesa</span><span class="min">$5 minimum</span></div>
-        <div class="rail"><span class="nm">Paystack · Flutterwave</span><span class="min">$5 minimum</span></div>
-        <div class="rail"><span class="nm">Stripe · PayPal</span><span class="min">$10 minimum</span></div>
-        <div class="rail"><span class="nm">USDC · USDT</span><span class="min">$2 minimum</span></div>
-      </div>
+      <div class="rails stag" id="payRails"></div>
     </div>
+    <p class="trust-foot rv" id="payNote" style="margin-top:clamp(18px,2.4vw,26px)"></p>
   </div>
 </section>
 
@@ -760,16 +754,22 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
     <div class="trust stag">
       <div class="tr"><span class="ic">🎭</span><h4>Fiction only</h4><p>Every scene is a synthetic scenario. The "account number" you confirm is a stage prop, never real data.</p></div>
       <div class="tr"><span class="ic">🕶️</span><h4>Anonymous pairing</h4><p>Partners never see your name, face or handle. Pairing is engineered so acquaintances never match.</p></div>
-      <div class="tr"><span class="ic">🔏</span><h4>Consent, signed</h4><p>Your agreement is time stamped and hash anchored. Voice is biometric data and we treat it that way.</p></div>
+      <div class="tr"><span class="ic">🔏</span><h4>Consent, signed</h4><p>Your agreement is time stamped and hash anchored. Voice is biometric data and we treat it that way. Read it below before you sign.</p></div>
       <div class="tr"><span class="ic">🧹</span><h4>Auto redaction</h4><p>Anything that looks like real PII is caught at capture and replaced with synthetic tokens before storage.</p></div>
     </div>
     <div class="trust-doc rv">
       <div class="tx">
         <h4>Read the agreement before you sign it.</h4>
         <p>The full Contributor Agreement every player signs: plain-language summary first, then every clause, including what buyers may never do and how you withdraw.</p>
-        <div class="fp">v1.0 · 9 pages · <b>SHA-256 700ecd39…c49f</b> printed in full on the Labs page</div>
+        <div class="fp">v1.1 · effective 11 September 2026 · 11 pages · <b>SHA-256 bb776c82…7b15</b> printed in full on the Labs page</div>
       </div>
-      <a class="btn btn-a" href="legal/Accent_Studio_Contributor_Agreement_v1.0.pdf" download>Download the agreement <span class="ar">↓</span></a>
+      <a class="btn btn-a" href="legal/Accent_Studio_Contributor_Agreement_v1.1.pdf" download>Download the agreement <span class="ar">↓</span></a>
+    </div>
+    <div class="trust-doc rv" id="honest">
+      <div class="tx">
+        <h4>Honest play, and what happens if a session is questioned.</h4>
+        <p>You agree to three things: your own live voice, recorded in the session, in a language you actually speak; the scene as briefed; and honest ratings of your partner. Dishonesty means things like synthetic, pre-recorded or replayed audio, someone else recording as you, more than one account, trading ratings, or filler content across sessions. If a session is flagged, a person reviews it before anything happens, you are told what was flagged and why, and you have 7 days to respond. Only confirmed dishonesty forfeits pay, and only for the sessions involved. Verified earnings from other sessions are still paid. Low quality is never treated as dishonesty; it goes to a redo or the quality floor. <a href="legal/Accent_Studio_Contributor_Agreement_v1.1.pdf" download>Clause 15 of the agreement</a> is the full text.</p>
+      </div>
     </div>
     <p class="trust-foot rv"><b>Your voice is biometric data, so we never disguise it and never expose it.</b> Recordings are stored under a random ID. Your name, ID and payout details sit in a separate vault that buyers never receive. Every buyer signs that they will not try to identify you, link you to other data, or clone your voice. You can request a copy of your data or delete your identity from Settings at any time. Details in our <a href="privacy.html">privacy policy</a>.</p>
   </div>
@@ -786,11 +786,27 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
     <div class="faq rv">
       <details>
         <summary>How do I actually get paid?</summary>
-        <div class="a">You earn per verified hour of audio, multiplied by your QA tier. Cash out to M-Pesa or Paystack/Flutterwave from $5, Stripe or PayPal from $10, USDC from $2. Payouts land within 7 business days of your tally closing.</div>
+        <div class="a">You earn a published base rate per speaker per verified hour of session audio, shown before you start, multiplied by your QA tier after a linguist verifies the session. The current rates and tiers are in the Earn section above. Cash out to M-Pesa or Paystack/Flutterwave from $5, Stripe or PayPal from $10, USDC from $2. Payouts land within 7 business days of your tally closing.</div>
       </details>
       <details>
         <summary>Do I need a good microphone or fast internet?</summary>
         <div class="a">No. A mid range phone in a quiet room is the target setup. Ping-Pong is fully async, so patchy internet is fine. Live Arena needs a stable connection for the session length, about 5 minutes.</div>
+      </details>
+      <details>
+        <summary>How can my pay change after a session?</summary>
+        <div class="a" id="faqPay"></div>
+      </details>
+      <details>
+        <summary>Who hears my voice, and what does my partner see about me?</summary>
+        <div class="a">Your partner hears your live voice for the length of the session, and you hear theirs. They never get your name, contact details, handle or a copy of the recording. Our trained linguists listen afterwards to verify the transcript; they see a random speaker ID, never who you are. Buyers receive pseudonymous datasets and are contractually barred from trying to identify anyone.</div>
+      </details>
+      <details>
+        <summary>Do I need to be able to read and write my language?</summary>
+        <div class="a">No. Scene cards are presented in your language as audio, recorded by a linguist, with the text there as a backup. You listen to the situation and improvise. You never read lines, and nobody checks your spelling; a linguist writes the transcript.</div>
+      </details>
+      <details>
+        <summary>What happens if a session is flagged, and can I respond?</summary>
+        <div class="a">A flag changes nothing on its own. A person reviews the session, you are told what was flagged and why in the app and by email, and you have 7 days to respond before any decision. Only confirmed dishonesty forfeits pay, and only for the sessions involved; everything else you earned is still paid. A poor-quality session is never treated as dishonesty. It is clause 15 of the agreement.</div>
       </details>
       <details>
         <summary>Who do I play with?</summary>
@@ -857,7 +873,7 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
           <li><a href="privacy.html">Privacy</a></li>
           <li><a href="terms.html">Terms</a></li>
           <li><a href="cookies.html">Cookies</a></li>
-          <li><a href="legal/Accent_Studio_Contributor_Agreement_v1.0.pdf" download>Contributor agreement (PDF)</a></li>
+          <li><a href="legal/Accent_Studio_Contributor_Agreement_v1.1.pdf" download>Contributor agreement (PDF)</a></li>
           <li><a href="brand-kit.html">Brand kit</a></li>
         </ul>
       </div>
@@ -1033,6 +1049,37 @@ try{
 function setConsent(v){try{localStorage.setItem('as-consent',v);}catch(e){}cc.classList.remove('show');}
 document.getElementById('ccOk').addEventListener('click',function(){setConsent('all');});
 document.getElementById('ccMin').addEventListener('click',function(){setConsent('essential');});
+})();
+</script>
+<script src="pay.js"></script>
+<script>
+(function(){
+  var P=window.ACCENT_PAY; if(!P) return;
+  var money=function(n){return '$'+(Number.isInteger(n)?n:n.toFixed(2));};
+  var base=P.base_rates_usd.standard;
+  var range=document.getElementById('payRange'); if(range) range.textContent=money(P.range_usd.min)+' – '+money(P.range_usd.max);
+  var unit=document.getElementById('payUnit'); if(unit) unit.textContent=P.unit;
+  var b=document.getElementById('payBase'); if(b) b.textContent='Standard base rate '+money(base)+' per speaker per hour. '+P.scarce_note;
+  var tiers=document.getElementById('payTiers');
+  if(tiers){
+    var h='';
+    P.multiplier.forEach(function(t){
+      var cond=t.max==null?('Peer rating '+t.min.toFixed(2)+' and above'):(t.min.toFixed(2)+' – '+t.max.toFixed(2));
+      h+='<div class="tier"><div><div class="nm">'+t.tier+'</div><div class="cond">'+cond+' · '+money(base*t.x)+' at the standard base</div></div><span class="x">× '+t.x.toFixed(1)+'</span></div>';
+    });
+    h+='<div class="tier"><div><div class="nm">Quality floor</div><div class="cond">Below '+P.quality_floor.below.toFixed(2)+' after a redo was offered · '+money(base*P.quality_floor.x)+' at the standard base. '+P.quality_floor.note+'</div></div><span class="x">× '+P.quality_floor.x.toFixed(1)+'</span></div>';
+    h+='<div class="tier dead"><div><div class="nm">Integrity outcome</div><div class="cond">'+P.integrity.note+'</div></div><span class="x">× 0</span></div>';
+    tiers.innerHTML=h;
+  }
+  var rails=document.getElementById('payRails');
+  if(rails) rails.innerHTML=P.rails.map(function(r){return '<div class="rail"><span class="nm">'+r.name+'</span><span class="min">'+money(r.min)+' minimum</span></div>';}).join('');
+  var note=document.getElementById('payNote');
+  if(note) note.innerHTML='<b>These are contractual terms.</b> Clause 7 of the Contributor Agreement points here. Rates are '+P.unit+'. Statements are '+P.statement+'; payouts land within '+P.payout_days+' days of a request. Changes are published here with a new date at least 14 days before they apply. <span class="mono" style="font-family:var(--mono);font-size:.78rem;color:var(--mut)">Last updated '+P.last_updated+' · stable link accentstudio.io/#earn</span>';
+  var faq=document.getElementById('faqPay');
+  if(faq){
+    var tiersTxt=P.multiplier.map(function(t){return t.tier+' ('+(t.max==null?t.min.toFixed(2)+' and above':t.min.toFixed(2)+' to '+t.max.toFixed(2))+') pays ×'+t.x.toFixed(1);}).join(', ');
+    faq.textContent='Your base rate is fixed before the session. After a linguist verifies it, the peer rating sets a multiplier: '+tiersTxt+'. Below '+P.quality_floor.below.toFixed(2)+' you are offered a redo, and a good-faith session that still falls short pays the quality floor of ×'+P.quality_floor.x.toFixed(1)+', never zero. So a session can pay up to 20% more or, at the floor, half the base rate. Only confirmed dishonesty, after human review and a chance to respond, pays zero, and only for the sessions involved.';
+  }
 })();
 </script>
 </body>
