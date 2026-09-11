@@ -1108,7 +1108,7 @@ document.getElementById('ccMin').addEventListener('click',function(){setConsent(
   function runner(root,total,build){
     var timers=[],cleanup=[],running=false;
     function reset(){timers.forEach(clearTimeout);timers=[];cleanup.forEach(function(f){f();});cleanup=[];all(root,'.b').forEach(function(b){b.classList.remove('on');});}
-    function cycle(){reset();build(function(at,fn){timers.push(setTimeout(fn,at));},function(f){cleanup.push(f);});timers.push(setTimeout(cycle,total));}
+    function cycle(){reset();timers.push(setTimeout(function(){build(function(at,fn){timers.push(setTimeout(fn,at));},function(f){cleanup.push(f);});},600));timers.push(setTimeout(cycle,total+600));}
     function start(){if(running)return;running=true;cycle();}
     function stop(){running=false;reset();}
     if('IntersectionObserver' in window){new IntersectionObserver(function(en){en.forEach(function(e){e.isIntersecting?start():stop();});},{threshold:.4}).observe(root);}
