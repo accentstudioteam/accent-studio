@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/auth/AuthProvider";
 import { Logo } from "@/components/Logo";
-import { LANG_NAME, mySessions, startRally, type RallySummary } from "@/lib/game";
+import { LANG_NAME, dueLabel, mySessions, startRally, type RallySummary } from "@/lib/game";
 import type { Onboarding } from "@/lib/types";
 import { demo, isDemo } from "@/lib/demo";
 
@@ -40,9 +40,10 @@ export function PlayerHome({ me, onOpenRally }: { me: Onboarding; onOpenRally: (
     }
   };
 
-  const yourTurn = rallies.filter((r) => r.my_turn && r.status !== "complete");
-  const waiting = rallies.filter((r) => !r.my_turn && r.status !== "complete");
-  const done = rallies.filter((r) => r.status === "complete");
+  const live = (r: RallySummary) => r.status === "waiting" || r.status === "active";
+  const yourTurn = rallies.filter((r) => live(r) && r.my_turn);
+  const waiting = rallies.filter((r) => live(r) && !r.my_turn);
+  const done = rallies.filter((r) => !live(r));
 
   return (
     <div className="app">
@@ -72,7 +73,7 @@ export function PlayerHome({ me, onOpenRally }: { me: Onboarding; onOpenRally: (
           <div className="shead"><i className="g" />How a rally works</div>
           <div className="tile">
             <div className="tbody muted">
-              You get a card in your language: a situation and who you are in it. You record one voice note, up to 30 seconds, your way. A stranger gets the other role, listens, rates your take on four things, and records theirs. Six turns and the rally is done. Below 4 out of 5 you say it again.
+              You get a card in your language: a situation and who you are in it. You record one voice note, up to 30 seconds, your way. A stranger gets the other role, listens, rates your take on four things, and records theirs. Six turns and the rally is done. Below 4 out of 5 you say it again. Each reply is due within 24 hours; if a partner goes quiet the rally closes, your takes still count, and your next Play pairs you fresh.
             </div>
           </div>
           <button className="pill mint" disabled={busy} onClick={() => void play()}>{busy ? "Finding a card…" : "Play a rally"}</button>
@@ -97,7 +98,7 @@ export function PlayerHome({ me, onOpenRally }: { me: Onboarding; onOpenRally: (
         )}
         {done.length > 0 && (
           <>
-            <span className="slabel">Completed · {done.length}</span>
+            <span className="slabel">Closed · {done.length}</span>
             <div className="stack" style={{ marginBottom: 18 }}>
               {done.map((r) => <RallyRow key={r.session_id} r={r} onOpen={onOpenRally} />)}
             </div>
@@ -119,7 +120,7 @@ export function PlayerHome({ me, onOpenRally }: { me: Onboarding; onOpenRally: (
 
 function RallyRow({ r, onOpen, accent }: { r: RallySummary; onOpen: (id: string) => void; accent?: boolean }) {
   const when = new Date(r.updated_at).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-  const sub = r.status === "complete" ? `Complete · ${r.turn_count} turns` : r.my_turn ? (r.turn_count === 0 ? "Record the first turn" : "Rate your partner, then record") : r.waiting_for_partner ? "Your take is in. Waiting for a partner to join" : "Partner's turn";
+  const sub = r.status === "complete" ? `Complete · ${r.turn_count} turns` : r.status === "abandoned" ? (r.abandoned_reason === "partner_quiet" ? "Partner went quiet · your takes are kept" : "Closed") : r.my_turn ? (r.turn_count === 0 ? "Record the first turn" : `Rate your partner, then record · due ${dueLabel(r.due_at)}`) : r.waiting_for_partner ? "Your take is in. Waiting for a partner to join" : `Partner's turn · due ${dueLabel(r.due_at)}`;
   return (
     <button type="button" className={accent ? "tile acc" : "tile"} onClick={() => onOpen(r.session_id)} style={{ textAlign: "left", cursor: "pointer", width: "100%" }}>
       <div className="spread">

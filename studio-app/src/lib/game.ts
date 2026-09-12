@@ -11,6 +11,8 @@ export interface RallySummary {
   updated_at: string;
   my_turn: boolean;
   waiting_for_partner: boolean;
+  due_at: string | null;
+  abandoned_reason: "partner_quiet" | "withdrawn" | "admin" | null;
 }
 
 export interface RallyTurn {
@@ -42,7 +44,22 @@ export interface Rally {
   next_turn_no: number;
   next_attempt: number;
   max_turn_seconds: number;
+  due_at: string | null;
+  i_owe: boolean;
+  abandoned_reason: "partner_quiet" | "withdrawn" | "admin" | null;
+  flags: string[];
   turns: RallyTurn[];
+}
+
+/** "in 3 h", "in 25 min", "overdue" */
+export function dueLabel(iso: string | null): string {
+  if (!iso) return "";
+  const ms = new Date(iso).getTime() - Date.now();
+  if (ms <= 0) return "overdue";
+  const min = Math.round(ms / 60000);
+  if (min < 60) return `in ${min} min`;
+  const h = Math.round(min / 60);
+  return h < 48 ? `in ${h} h` : `in ${Math.round(h / 24)} days`;
 }
 
 export const LANG_NAME: Record<string, string> = { pcm: "Nigerian Pidgin", yo: "Yoruba", ha: "Hausa", ig: "Igbo", sw: "Swahili", zu: "Zulu", en: "English" };

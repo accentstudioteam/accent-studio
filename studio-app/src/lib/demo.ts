@@ -42,6 +42,10 @@ interface DemoSession {
   turns: DemoTurn[];
   updated_at: string;
   lowRatingGiven: boolean;
+  due_at: string | null;
+  quietPartner: boolean;
+  abandoned_reason: "partner_quiet" | null;
+  flags: string[];
 }
 
 const state: { sessions: DemoSession[]; blobs: Record<string, string>; timers: number[] } = { sessions: [], blobs: {}, timers: [] };
@@ -82,18 +86,24 @@ function summary(s: DemoSession): RallySummary {
     turn_count: s.turn_count,
     turns_target: TURNS_TARGET,
     updated_at: s.updated_at,
-    my_turn: s.status !== "complete" && (s.next === "me" || oweRating),
+    my_turn: s.status !== "complete" && s.status !== "abandoned" && (s.next === "me" || oweRating),
     waiting_for_partner: s.status === "waiting" && s.turn_count >= 1,
+    due_at: s.due_at,
+    abandoned_reason: s.abandoned_reason,
   };
 }
 
 export const demo = {
-  mySessions: async (): Promise<RallySummary[]> => state.sessions.map(summary).sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1)),
+  mySessions: async (): Promise<RallySummary[]> => {
+    for (const s of state.sessions) await demo.loadRally(s.id); // applies the reply-window sweep
+    return state.sessions.map(summary).sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1));
+  },
 
   startRally: async (): Promise<{ session_id: string; joined: boolean }> => {
-    const open = state.sessions.find((s) => s.status !== "complete");
+    const open = state.sessions.find((s) => s.status === "waiting" || s.status === "active");
     if (open) return { session_id: open.id, joined: false };
-    const s: DemoSession = { id: `demo-${++counter}`, card: CARDS[(counter - 1) % CARDS.length], status: "waiting", has_partner: false, turn_count: 0, next: "me", turns: [], updated_at: now(), lowRatingGiven: false };
+    // every second rally in the demo gets a partner who goes quiet, to show the closure
+    const s: DemoSession = { id: `demo-${++counter}`, card: CARDS[(counter - 1) % CARDS.length], status: "waiting", has_partner: false, turn_count: 0, next: "me", turns: [], updated_at: now(), lowRatingGiven: false, due_at: null, quietPartner: counter % 2 === 0, abandoned_reason: null, flags: [] };
     state.sessions.unshift(s);
     return { session_id: s.id, joined: false };
   },
@@ -101,6 +111,14 @@ export const demo = {
   loadRally: async (id: string): Promise<Rally> => {
     const s = state.sessions.find((x) => x.id === id);
     if (!s) throw new Error("not your rally");
+    // the demo's reply window is 12 seconds instead of 24 hours
+    if (s.status === "active" && s.next === "partner" && s.due_at && new Date(s.due_at).getTime() < Date.now()) {
+      s.status = "abandoned";
+      s.abandoned_reason = "partner_quiet";
+      s.next = null;
+      s.due_at = null;
+      s.updated_at = now();
+    }
     const latest = latestByTurn(s);
     const partnerUnrated = [...latest].reverse().find((t) => !t.mine && t.status === "recorded");
     const redo = [...latest].reverse().find((t) => t.mine && t.status === "redo");
@@ -115,13 +133,17 @@ export const demo = {
       my_speaker_id: ME,
       i_am: "a",
       has_partner: s.has_partner,
-      my_turn: s.status !== "complete" && s.next === "me" && !oweRating,
-      owe_rating: oweRating,
+      my_turn: s.status !== "complete" && s.status !== "abandoned" && s.next === "me" && !oweRating,
+      owe_rating: oweRating && s.status !== "abandoned",
       rate_turn_id: partnerUnrated?.turn_id ?? null,
       redo: Boolean(redo),
       next_turn_no: redo ? redo.turn_no : s.turn_count + 1,
       next_attempt: redo ? redo.attempt + 1 : 1,
       max_turn_seconds: 30,
+      due_at: s.due_at,
+      i_owe: s.next === "me",
+      abandoned_reason: s.abandoned_reason,
+      flags: s.flags,
       turns: latest.map(({ url: _url, ...t }) => t),
     };
   },
@@ -140,7 +162,9 @@ export const demo = {
     s.turns.push({ turn_id: `t-${s.id}-${r.next_turn_no}-${r.next_attempt}`, turn_no: r.next_turn_no, attempt: r.next_attempt, mine: true, audio_path: path, seconds, status: "recorded", created_at: now(), rating: null, url });
     s.turn_count = Math.max(s.turn_count, r.next_turn_no);
     s.next = "partner";
+    s.due_at = new Date(Date.now() + (s.quietPartner ? 12_000 : 24 * 3600_000)).toISOString();
     s.updated_at = now();
+    if (s.quietPartner && s.has_partner) return; // the quiet partner never replies
     schedulePartner(s);
   },
 
@@ -162,7 +186,11 @@ export const demo = {
     if (complete) {
       s.status = "complete";
       s.next = null;
-    } else s.next = "me";
+      s.due_at = null;
+    } else {
+      s.next = "me";
+      s.due_at = new Date(Date.now() + 24 * 3600_000).toISOString();
+    }
     return { aggregate, redo: false, complete };
   },
 
@@ -219,6 +247,7 @@ function schedulePartner(s: DemoSession, redoOnly = false) {
       s.turns.push({ turn_id: `t-${s.id}-${no}-1`, turn_no: no, attempt: 1, mine: false, audio_path: `${s.id}/turn-${no}-a1-${PARTNER}.mp3`, seconds: 7, status: "recorded", created_at: now(), rating: null, url: clipUrl(clip) });
       s.turn_count = no;
       s.next = "me";
+      s.due_at = new Date(Date.now() + 24 * 3600_000).toISOString();
       s.updated_at = now();
     });
   });

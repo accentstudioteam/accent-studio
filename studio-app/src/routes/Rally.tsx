@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
 import { formatClock, useRecorder } from "@/lib/recorder";
 import { uploadRecording } from "@/lib/upload";
-import { cardAudioUrl, loadRally, rateTurn, submitTurn, turnUrl, type Rally as RallyState } from "@/lib/game";
+import { cardAudioUrl, dueLabel, loadRally, rateTurn, submitTurn, turnUrl, type Rally as RallyState } from "@/lib/game";
 import { demo, demoSampleTake, isDemo } from "@/lib/demo";
 
 const AXES: [keyof Scores, string, string][] = [
@@ -138,8 +138,8 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
         <span className="chip" style={{ fontFamily: "var(--mono)", fontSize: "0.7rem" }}>turn {Math.min(r.turn_count + 1, r.turns_target)} of {r.turns_target}</span>
       </div>
       <div className="shell">
-        <div className="eyebrow" style={{ marginBottom: 6 }}>{r.card.title}{r.status === "complete" ? " · complete" : r.has_partner ? "" : " · waiting for a partner"}</div>
-        <h1 className="h1" style={{ marginBottom: 14, fontSize: "clamp(1.4rem,6vw,2rem)" }}>{r.my_turn ? (r.redo ? "Say it again." : r.turn_count === 0 ? "Open the rally." : "Your reply.") : r.owe_rating ? "Listen, then rate." : r.status === "complete" ? "Rally done." : "Waiting on your partner."}</h1>
+        <div className="eyebrow" style={{ marginBottom: 6 }}>{r.card.title}{r.status === "complete" ? " · complete" : r.status === "abandoned" ? " · closed" : r.has_partner ? (r.due_at ? ` · ${r.i_owe ? "your reply due" : "partner's reply due"} ${dueLabel(r.due_at)}` : "") : " · waiting for a partner"}</div>
+        <h1 className="h1" style={{ marginBottom: 14, fontSize: "clamp(1.4rem,6vw,2rem)" }}>{r.status === "abandoned" ? "Your partner went quiet." : r.my_turn ? (r.redo ? "Say it again." : r.turn_count === 0 ? "Open the rally." : "Your reply.") : r.owe_rating ? "Listen, then rate." : r.status === "complete" ? "Rally done." : "Waiting on your partner."}</h1>
 
         <div className="sheet" style={{ marginBottom: 18 }}>
           <div className="handle" />
@@ -250,7 +250,12 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
         )}
         {r.status === "complete" && (
           <div className="tile" style={{ borderColor: "var(--acc)", marginBottom: 18 }}>
-            <div className="tbody">All {r.turns_target} turns are in and rated. A linguist verifies the transcript next; your verified time shows up in your earnings after that.</div>
+            <div className="tbody">All {r.turns_target} turns are in and rated. A linguist verifies the transcript next; your verified time shows up in your earnings after that.{r.flags.includes("short_rally") ? " This rally came out short, so the linguist will take a closer look; that is a check, not a penalty." : ""}</div>
+          </div>
+        )}
+        {r.status === "abandoned" && (
+          <div className="tile" style={{ borderColor: "var(--gold)", marginBottom: 18 }}>
+            <div className="tbody">Your partner didn't reply within 24 hours, so this rally is closed. Every take you recorded here is kept, goes to the linguist, and counts toward your verified time. Tap Play on the home screen and you'll be paired fresh.</div>
           </div>
         )}
       </div>
