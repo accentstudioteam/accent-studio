@@ -66,8 +66,8 @@ export const demoOnboarding: Onboarding = {
   invited: false,
   invitation: null,
   contributor: { speaker_id: ME, primary_language: "pcm", languages: ["pcm"], withdrawn_at: null },
-  consent: { agreement_version: "1.1", agreement_sha256: "bb776c828a00da7a594d40357df6aa5e615ef1eaaef6926fc1a8273fba297b15", signed_at: now(), record_sha256: "8d4c1f0a9e2b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d", withdrawn_at: null },
-  agreement: { version: "1.1", document_id: "ASC-CA-1.1", effective_date: "2026-09-11", sha256: "bb776c828a00da7a594d40357df6aa5e615ef1eaaef6926fc1a8273fba297b15", url: "https://accentstudio.io/legal/Accent_Studio_Contributor_Agreement_v1.1.pdf", active: true },
+  consent: { agreement_version: "1.2", agreement_sha256: "48ff6cdd711040ed76709162c9a3ad45a88c67ca6a6b1b6dcdfc07db883497d1", signed_at: now(), record_sha256: "8d4c1f0a9e2b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d", withdrawn_at: null },
+  agreement: { version: "1.2", document_id: "ASC-CA-1.2", effective_date: "2026-09-12", sha256: "48ff6cdd711040ed76709162c9a3ad45a88c67ca6a6b1b6dcdfc07db883497d1", url: "https://accentstudio.io/legal/Accent_Studio_Contributor_Agreement_v1.2.pdf", active: true },
 };
 
 function latestByTurn(s: DemoSession): DemoTurn[] {

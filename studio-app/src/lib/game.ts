@@ -56,6 +56,7 @@ export function dueLabel(iso: string | null): string {
   if (!iso) return "";
   const ms = new Date(iso).getTime() - Date.now();
   if (ms <= 0) return "overdue";
+  if (ms < 60_000) return `in ${Math.ceil(ms / 1000)} s`;
   const min = Math.round(ms / 60000);
   if (min < 60) return `in ${min} min`;
   const h = Math.round(min / 60);

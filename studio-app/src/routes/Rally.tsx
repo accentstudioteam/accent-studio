@@ -4,6 +4,7 @@ import { formatClock, useRecorder } from "@/lib/recorder";
 import { uploadRecording } from "@/lib/upload";
 import { cardAudioUrl, dueLabel, loadRally, rateTurn, submitTurn, turnUrl, type Rally as RallyState } from "@/lib/game";
 import { demo, demoSampleTake, isDemo } from "@/lib/demo";
+import { VoiceNote } from "@/components/VoiceNote";
 
 const AXES: [keyof Scores, string, string][] = [
   ["tone", "Tone", "Did it sound like the person on the card?"],
@@ -12,6 +13,32 @@ const AXES: [keyof Scores, string, string][] = [
   ["clarity", "Clarity", "Could you hear every word?"],
 ];
 type Scores = { tone: number; prompt_adherence: number; mood: number; clarity: number };
+
+/** What the partner still owes on a live rally, for the dashed bubble at the end of the thread. */
+function pendingPartner(r: RallyState): { turn: number | null; text: string } | null {
+  if (r.status !== "waiting" && r.status !== "active") return null;
+  if (!r.has_partner) return { turn: null, text: "Your take is in. A stranger who speaks your language joins, rates it and replies." };
+  if (r.i_owe || r.owe_rating) return null;
+  const theirRedo = r.turns.some((t) => !t.mine && t.status === "redo");
+  const redoTurn = r.turns.filter((t) => !t.mine).slice(-1)[0]?.turn_no ?? null;
+  return { turn: theirRedo ? redoTurn : r.turn_count + 1, text: `${theirRedo ? "Saying it again" : "Their reply"} · due ${dueLabel(r.due_at)}` };
+}
+
+const clockTime = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+function TurnBubble({ t, src }: { t: RallyState["turns"][number]; src: string | null }) {
+  const side = t.mine ? "me" : "them";
+  return (
+    <div className={`bubble ${side}${t.status === "redo" ? " redo" : ""}`}>
+      <div className="who">{t.mine ? "You" : "Partner"} · turn {t.turn_no}{t.attempt > 1 ? ` · take ${t.attempt}` : ""} · {clockTime(t.created_at)}</div>
+      <VoiceNote src={src} seconds={t.seconds} tone={side} />
+      {t.mine && t.rating && (
+        <div className="meta">Rated {Number(t.rating.aggregate).toFixed(2)} · tone {t.rating.tone} · situation {t.rating.prompt_adherence} · mood {t.rating.mood} · clarity {t.rating.clarity}</div>
+      )}
+      {t.status === "redo" && <div className="meta warn">{t.mine ? "Your partner asked for another take" : "You asked for another take"}</div>}
+    </div>
+  );
+}
 
 function extFor(mime: string): string {
   const base = mime.split(";")[0];
@@ -51,6 +78,7 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
     try {
       const next = await loadRally(sessionId);
       setR(next);
+      if (next.status === "abandoned") setFlash(null);
       // playback links for every turn we don't have yet
       const missing = next.turns.filter((t) => !urls[t.turn_id]);
       if (missing.length) {
@@ -126,6 +154,7 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
   }
 
   const cardAudio = cardAudioUrl(r.card.audio_path);
+  const pending = pendingPartner(r);
   const rateTarget = r.rate_turn_id ? r.turns.find((t) => t.turn_id === r.rate_turn_id) : null;
   const recording = rec.status === "recording" || rec.status === "requesting" || fake !== null;
   const liveSeconds = fake ? fake.seconds : rec.seconds;
@@ -158,21 +187,19 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
           </div>
         </div>
 
-        {r.turns.length > 0 && (
+        {(r.turns.length > 0 || r.status === "waiting") && (
           <div className="sheet" style={{ marginBottom: 18 }}>
             <div className="handle" />
             <div className="shead"><i />The rally so far</div>
-            {r.turns.map((t) => (
-              <div key={t.turn_id} className={t.mine ? "tile" : "tile dash"}>
-                <div className="tlbl">Turn {t.turn_no}{t.attempt > 1 ? ` · take ${t.attempt}` : ""} · {t.mine ? "you" : "your partner"} · {Math.round(t.seconds)}s{t.status === "redo" ? " · redo asked" : ""}</div>
-                {urls[t.turn_id] ? <audio controls preload="none" src={urls[t.turn_id]} style={{ width: "100%" }} /> : <div className="tbody muted">Loading audio…</div>}
-                {t.mine && t.rating && (
-                  <div className="tbody muted" style={{ marginTop: 6, fontSize: "0.8rem" }}>
-                    Rated {Number(t.rating.aggregate).toFixed(2)} · tone {t.rating.tone} · situation {t.rating.prompt_adherence} · mood {t.rating.mood} · clarity {t.rating.clarity}
-                  </div>
-                )}
-              </div>
-            ))}
+            <div className="thread">
+              {r.turns.map((t) => <TurnBubble key={t.turn_id} t={t} src={urls[t.turn_id] ?? null} />)}
+              {pending && (
+                <div className="bubble them pending">
+                  <div className="who">Partner{pending.turn ? ` · turn ${pending.turn}` : ""}</div>
+                  <div className="meta"><span className="dots" aria-hidden="true"><i /><i /><i /></span>{pending.text}</div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -243,10 +270,8 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
           </div>
         )}
 
-        {!r.my_turn && !r.owe_rating && r.status !== "complete" && (
-          <div className="tile" style={{ marginBottom: 18 }}>
-            <div className="tbody muted">{r.has_partner ? "Your partner has the next turn. This page refreshes on its own; you can also come back later from your rallies." : "Your take is in. As soon as a stranger who speaks your language joins, they'll rate it and reply."}</div>
-          </div>
+        {!r.my_turn && !r.owe_rating && (r.status === "waiting" || r.status === "active") && (
+          <div className="tbody muted" style={{ marginBottom: 18, fontSize: "0.85rem" }}>This page refreshes on its own. You can also come back later from your rallies.</div>
         )}
         {r.status === "complete" && (
           <div className="tile" style={{ borderColor: "var(--acc)", marginBottom: 18 }}>

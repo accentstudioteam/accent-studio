@@ -74,7 +74,7 @@ Deno.serve(async (req: Request) => {
   const inner = `
     <p style="margin:0 0 20px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.6;color:#c9bfad">We listened to your story and we would like you in the cast${project ? ` for <b style="color:#f4eee1">${esc(project.name)}</b>` : ""}. Sessions are in ${esc(language)}, played on your phone, paid per verified hour at the published rate.</p>
     ${tile("What happens when you accept", "<b style=\"color:#f4eee1\">1.</b> You sign in with a one-time link we email you. &nbsp;<b style=\"color:#f4eee1\">2.</b> You read and sign the Contributor Agreement, two ticks, no small print hidden. &nbsp;<b style=\"color:#f4eee1\">3.</b> A short recorded interview with a linguist in your language. &nbsp;<b style=\"color:#f4eee1\">4.</b> Onboarding, then your first paid session.")}
-    ${tile("Before you sign", `The agreement is 11 pages in plain language. Read it first if you like: <a href="${SITE}/legal/Accent_Studio_Contributor_Agreement_v1.1.pdf" style="color:#45e0a0">Contributor Agreement v1.1 (PDF)</a>. Pay terms are on <a href="${SITE}/#earn" style="color:#45e0a0">accentstudio.io/#earn</a>.`)}
+    ${tile("Before you sign", `The agreement is 11 pages in plain language. Read it first if you like: <a href="${SITE}/legal/Accent_Studio_Contributor_Agreement_v1.2.pdf" style="color:#45e0a0">Contributor Agreement v1.2 (PDF)</a>. Pay terms are on <a href="${SITE}/#earn" style="color:#45e0a0">accentstudio.io/#earn</a>.`)}
     ${button(link, "Accept the invitation")}
     <div style="font-family:Consolas,'Courier New',monospace;font-size:12px;color:#96897a;margin-top:10px">This link is for ${esc(app.email)} only and expires ${esc(expires)}.</div>`;
   const text = [
@@ -83,7 +83,7 @@ Deno.serve(async (req: Request) => {
     `We listened to your story and we would like you in the cast${project ? ` for ${project.name}` : ""}. Sessions are in ${language}, played on your phone, paid per verified hour at the published rate.`,
     "",
     "When you accept: sign in with a one-time link, read and sign the Contributor Agreement (two ticks), a short recorded interview with a linguist, then onboarding and your first paid session.",
-    `Agreement: ${SITE}/legal/Accent_Studio_Contributor_Agreement_v1.1.pdf · Pay terms: ${SITE}/#earn`,
+    `Agreement: ${SITE}/legal/Accent_Studio_Contributor_Agreement_v1.2.pdf · Pay terms: ${SITE}/#earn`,
     "",
     `Accept: ${link}`,
     `This link is for ${app.email} only and expires ${expires}.`,
