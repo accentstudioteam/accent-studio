@@ -37,14 +37,21 @@ export function LinguistDemo() {
           </div>
         </div>
         <div className="chips" style={{ marginBottom: 6 }}>
-          {([["queue", "Queue"], ["cases", "Cases"], ["payouts", "Payouts"], ["contributor", "The contributor's view"]] as [Tab, string][]).map(([k, label]) => (
+          {([["queue", "Queue"], ["cases", "Cases"], ["payouts", "Payouts (founder only)"], ["contributor", "The contributor's view"]] as [Tab, string][]).map(([k, label]) => (
             <button key={k} type="button" className={`chip${tab === k ? " on" : ""}`} onClick={() => { setTab(k); if (k !== "queue") setSid(null); }}>{label}</button>
           ))}
         </div>
       </div>
       {tab === "queue" && (sid ? <Workbench sessionId={sid} onBack={() => setSid(null)} onCases={() => setTab("cases")} embedded /> : <Verify onBack={() => undefined} onOpen={setSid} onCases={() => setTab("cases")} embedded />)}
       {tab === "cases" && <Integrity onBack={() => setTab("queue")} embedded />}
-      {tab === "payouts" && <Payouts onBack={() => setTab("queue")} embedded />}
+      {tab === "payouts" && (
+        <>
+          <div className="shell" style={{ maxWidth: 720, paddingTop: 0, paddingBottom: 0 }}>
+            <div className="tbody muted small" style={{ marginBottom: 8 }}>Only an admin (a founder) sees this screen and can mark a payout as sent. Linguists verify rallies; they never touch money.</div>
+          </div>
+          <Payouts onBack={() => setTab("queue")} embedded />
+        </>
+      )}
       {tab === "contributor" && (
         <>
           <div className="shell" style={{ maxWidth: 720, paddingTop: 0, paddingBottom: 0 }}>
