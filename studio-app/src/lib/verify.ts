@@ -70,6 +70,9 @@ export interface Draft {
   detected_language: string | null;
   error: string | null;
   updated_at: string;
+  gloss?: string | null;
+  gloss_engine?: string | null;
+  gloss_error?: string | null;
 }
 export interface SttRoute {
   engine: string;
@@ -276,6 +279,15 @@ export async function draft(sid: string, retry = false): Promise<{ ok: boolean; 
   if (error) throw new Error(error.message);
   if (!data?.ok) throw new Error((data as { error?: string } | null)?.error ?? "Drafting failed");
   return data as { ok: boolean; done: number; failed: number; skipped: number; reason?: string };
+}
+
+/** Asks the gloss model for an English gloss of an edited transcript. Returns it; stores nothing. */
+export async function regloss(turnId: string, text: string): Promise<{ gloss: string; engine: string }> {
+  if (isDemo()) return demoVerify.regloss(turnId, text);
+  const { data, error } = await supabase.functions.invoke("stt-draft", { body: { kind: "gloss", turn_id: turnId, text } });
+  if (error) throw new Error(error.message);
+  if (!data?.ok) throw new Error((data as { error?: string } | null)?.error ?? "Could not gloss");
+  return { gloss: String(data.gloss ?? ""), engine: String(data.engine ?? "") };
 }
 
 export const cases = (): Promise<Cases> => (isDemo() ? demoVerify.cases() : rpc<Cases>("ic_cases"));

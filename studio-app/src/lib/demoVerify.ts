@@ -21,6 +21,21 @@ const DRAFTS: Record<string, string> = {
 };
 const STT_NOTE = "English-trained model on Pidgin: expect English spellings and guessed words. Rewrite as spoken.";
 
+/** What the gloss model makes of each machine draft: close, with the draft's errors carried in. */
+const GLOSSES: Record<string, string> = {
+  scene_mkt_01: "Madam, how much is this basket of tomatoes? Please, don't say two thousand naira.",
+  scene_mkt_02: "My friend, these are fresh from the farm this morning. Give me one thousand eight hundred.",
+  scene_mkt_03: "Ah, that's too much! Take one thousand two hundred and let me go.",
+  scene_mkt_04: "Eh! Have you turned into a market woman like me? Give me one thousand five hundred, that is the final price!",
+  scene_mkt_05: "One thousand three hundred! Final offer, I don't have change.",
+  scene_mkt_06: "Okay, come and take them. Ah! You are a tough customer.",
+  scene_bank_01: "Good morning. I woke up this morning and saw that a POS I never used took 50k out of my account.",
+  scene_bank_02: "Ah, we are sorry, sir. Please stay calm, let me quickly check your account.",
+  scene_bank_03: "Please, quickly. I need my money back today!",
+  scene_bank_04: "Sir, I can see three unauthorised transactions. I will block them now and start your refund.",
+  scene_bank_05: "Great! Thank you. You have saved me a lot of trouble today.",
+};
+
 /** Word error rate: word-level edit distance over the reference length. */
 export function wer(ref: string, hyp: string): number {
   const words = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}\s'’-]/gu, " ").split(/\s+/).filter(Boolean);
@@ -260,8 +275,16 @@ export const demoVerify = {
     const todo = latest(s).filter((t) => !t.draft || t.draft.status === "failed" || t.draft.status === "skipped");
     for (const t of todo) t.draft = { status: "running", engine: "whisper-large-v3 (demo)", text: null, confidence: null, detected_language: null, error: null, updated_at: now() };
     await new Promise((res) => setTimeout(res, 2500));
-    for (const t of todo) t.draft = { status: "done", engine: "whisper-large-v3 (demo)", text: DRAFTS[t.clip] ?? null, confidence: 0.82, detected_language: "en", error: null, updated_at: now() };
+    for (const t of todo) t.draft = { status: "done", engine: "whisper-large-v3 (demo)", text: DRAFTS[t.clip] ?? null, confidence: 0.82, detected_language: "en", error: null, updated_at: now(), gloss: GLOSSES[t.clip] ?? null, gloss_engine: "claude-haiku-4-5 (demo)", gloss_error: null };
     return { ok: true, done: todo.length, failed: 0, skipped: 0 };
+  },
+
+  /** The demo's gloss model: after a short wait it returns the founders' own gloss for the take. */
+  regloss: async (turnId: string, _text: string): Promise<{ gloss: string; engine: string }> => {
+    seed();
+    await new Promise((res) => setTimeout(res, 900));
+    for (const s of state.sessions) for (const t of s.turns) if (t.turn_id === turnId) return { gloss: NOTES[t.clip]?.en ?? "", engine: "claude-haiku-4-5 (demo)" };
+    throw new Error("no such turn");
   },
 
   flag: async (sid: string, who: Speaker, reason: CaseReason, detail: string, tid: string | null): Promise<{ case_id: string }> => {

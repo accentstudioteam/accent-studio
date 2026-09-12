@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { VoiceNote } from "@/components/VoiceNote";
 import { WordAligner, type Alignment } from "@/components/WordAligner";
-import { CONFIDENCE, EMOTIONS, ISSUES, REASON_LABEL, saveTurn, type CaseReason, type RatingCheck, type Speaker, type WorkTurn, type Workbench } from "@/lib/verify";
+import { CONFIDENCE, EMOTIONS, ISSUES, REASON_LABEL, regloss, saveTurn, type CaseReason, type RatingCheck, type Speaker, type WorkTurn, type Workbench } from "@/lib/verify";
 import { isDemo } from "@/lib/demo";
 import { demoNotesFor } from "@/lib/demoVerify";
 
@@ -23,6 +23,7 @@ export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
   const v = t.verification;
   const d = w.stt.show ? t.draft : null;
   const draftText = d?.status === "done" && d.text ? d.text.trim() : null;
+  const draftGloss = d?.status === "done" && d.gloss ? d.gloss.trim() : null;
   const [text, setText] = useState(v?.verified_text ?? "");
   const [gloss, setGloss] = useState(v?.english_gloss ?? "");
   const [emotion, setEmotion] = useState(v?.emotion_label ?? "");
@@ -39,12 +40,32 @@ export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
   const [flagWho, setFlagWho] = useState<"speaker" | "rater">("speaker");
   const [flagReason, setFlagReason] = useState<CaseReason>("not_live");
   const [flagDetail, setFlagDetail] = useState("");
+  const [glossing, setGlossing] = useState(false);
+  const [glossEngine, setGlossEngine] = useState<string | null>(d?.gloss_engine ?? null);
 
-  // The machine draft lands straight in the box, ready to correct. Only when the box is empty.
+  // The machine drafts land straight in the boxes, ready to correct. Only when a box is empty.
   useEffect(() => {
     if (!canEdit || !draftText) return;
     setText((cur) => (cur.trim() ? cur : draftText));
   }, [draftText, canEdit]);
+  useEffect(() => {
+    if (!canEdit || !draftGloss) return;
+    setGloss((cur) => (cur.trim() ? cur : draftGloss));
+  }, [draftGloss, canEdit]);
+
+  const doRegloss = async () => {
+    if (!text.trim()) return setErr("Write or correct the transcript first.");
+    setGlossing(true);
+    setErr(null);
+    try {
+      const g = await regloss(t.turn_id, text);
+      setGloss(g.gloss);
+      setGlossEngine(g.engine);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message.replace(/^.*?: /, "") : "Couldn't gloss the transcript.");
+    }
+    setGlossing(false);
+  };
 
   const other: Speaker = t.speaker === "a" ? "b" : "a";
   const speakerId = t.speaker_id ?? w.speakers[t.speaker] ?? "";
@@ -121,10 +142,10 @@ export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
       {canEdit ? (
         <>
           <div className="field" style={{ marginTop: 12 }}>
-            <label>
-              Transcript · as spoken, in {lang}
-              {isDemo() && demoNotesFor(t.audio_path) && <button type="button" onClick={fillFromNotes} style={{ ...linkBtn, marginLeft: 10 }}>Fill from the founders' notes (demo)</button>}
-            </label>
+            <div className="spread" style={{ alignItems: "baseline" }}>
+              <label>Transcript · as spoken, in {lang}</label>
+              {isDemo() && demoNotesFor(t.audio_path) && <button type="button" onClick={fillFromNotes} style={{ ...linkBtn, fontSize: "0.8rem" }}>Fill from the founders' notes (demo)</button>}
+            </div>
             {d && d.status !== "done" && (
               <div className="tbody muted small">
                 {d.status === "pending" || d.status === "running" ? <><span className="dots" aria-hidden="true"><i /><i /><i /></span>Drafting{d.engine ? ` with ${d.engine}` : ""}… the draft lands here; you can start listening.</> : <>No machine draft{d.error ? `: ${d.error}` : "."} Write it from the audio.</>}
@@ -139,8 +160,18 @@ export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
             )}
           </div>
           <div className="field">
-            <label>English gloss · what it means, from what was said</label>
-            <textarea rows={2} value={gloss} onChange={(e) => setGloss(e.target.value)} placeholder="Plain English meaning" />
+            <div className="spread" style={{ alignItems: "baseline" }}>
+              <label>English gloss · what it means, from what was said</label>
+              {w.stt.engine !== "none" && <button type="button" onClick={() => void doRegloss()} disabled={glossing || !text.trim()} style={{ ...linkBtn, fontSize: "0.8rem", opacity: glossing || !text.trim() ? 0.5 : 1 }}>{glossing ? "Glossing…" : "Re-gloss from my transcript"}</button>}
+            </div>
+            <textarea rows={2} value={gloss} onChange={(e) => setGloss(e.target.value)} placeholder={draftText ? "The gloss draft lands here." : "Plain English meaning"} />
+            {(draftGloss || glossEngine) && (
+              <div className="tbody small" style={{ color: "var(--gold)" }}>
+                Prefilled by {glossEngine ?? d?.gloss_engine ?? "the model"} from the {draftText && text.trim() === draftText ? "machine transcript, errors included" : "transcript"}. Check it against what was actually said.{" "}
+                {draftGloss && gloss.trim() !== draftGloss && <button type="button" onClick={() => setGloss(draftGloss)} style={{ ...linkBtn, color: "var(--gold)" }}>Reset to the draft gloss</button>}
+              </div>
+            )}
+            {d?.status === "done" && !draftGloss && d.gloss_error && <div className="tbody muted small">No gloss draft: {d.gloss_error}</div>}
           </div>
 
           <div className="tlbl" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
