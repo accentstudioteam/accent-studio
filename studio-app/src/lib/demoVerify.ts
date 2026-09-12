@@ -222,7 +222,7 @@ export const demoVerify = {
     const t = s?.turns.find((x) => x.turn_id === i.turn_id);
     if (!s || !t) throw new Error("no such turn");
     if (s.status !== "in_progress" || s.claimed !== "me") throw new Error("claim the rally first");
-    const v: TurnVerification = { verified_text: i.verified_text.trim() || null, english_gloss: i.english_gloss.trim() || null, emotion_label: i.emotion, confidence: i.confidence, issues: i.issues, verified_seconds: i.verified_seconds, rating_check: i.rating_check, updated_at: now() };
+    const v: TurnVerification = { verified_text: i.verified_text.trim() || null, english_gloss: i.english_gloss.trim() || null, emotion_label: i.emotion, confidence: i.confidence, issues: i.issues, verified_seconds: i.verified_seconds, rating_check: i.rating_check, updated_at: now(), alignments: i.alignments ?? [], aligned_at: i.alignments?.length ? now() : null, aligner: i.alignments?.length ? ME : null };
     t.verification = v;
   },
 
@@ -246,7 +246,7 @@ export const demoVerify = {
       }
     }
     const draftWer = wers.length ? Math.round((wers.reduce((a, b) => a + b, 0) / wers.length) * 1000) / 1000 : null;
-    s.result = { peer_score: peer, quality_score: q, quality_tier: tier.tier, multiplier: tier.x, verified_seconds: secs, hold, draft_wer: draftWer };
+    s.result = { peer_score: peer, quality_score: q, quality_tier: tier.tier, multiplier: tier.x, verified_seconds: secs, hold, draft_wer: draftWer, aligned_turns: latest(s).filter((t) => (t.verification?.alignments?.length ?? 0) > 0).length };
     s.editor_score = editorScore;
     s.notes = notes.trim() || null;
     s.status = "verified";

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { VoiceNote } from "@/components/VoiceNote";
+import { WordAligner, type Alignment } from "@/components/WordAligner";
 import { CONFIDENCE, EMOTIONS, ISSUES, REASON_LABEL, saveTurn, type CaseReason, type RatingCheck, type Speaker, type WorkTurn, type Workbench } from "@/lib/verify";
 import { isDemo } from "@/lib/demo";
 import { demoNotesFor } from "@/lib/demoVerify";
@@ -15,10 +16,13 @@ interface Props {
 
 const REASONS_FOR_SPEAKER: CaseReason[] = ["not_live", "impersonation", "filler", "duplicate_content", "identity", "voice_taken_outside", "pairing_interference", "other"];
 const REASONS_FOR_RATER: CaseReason[] = ["rating_mismatch", "pairing_interference", "other"];
+const LANG_SHORT: Record<string, string> = { pcm: "Pidgin", yo: "Yoruba", ha: "Hausa", ig: "Igbo", sw: "Swahili", zu: "isiZulu" };
 
-/** One take on the workbench: listen, transcribe, gloss, mark confidence and issues, check the peer rating, flag if needed. */
+/** One take on the workbench: listen, correct the machine draft into the transcript, gloss, align words, mark confidence and issues, check the peer rating, flag if needed. */
 export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
   const v = t.verification;
+  const d = w.stt.show ? t.draft : null;
+  const draftText = d?.status === "done" && d.text ? d.text.trim() : null;
   const [text, setText] = useState(v?.verified_text ?? "");
   const [gloss, setGloss] = useState(v?.english_gloss ?? "");
   const [emotion, setEmotion] = useState(v?.emotion_label ?? "");
@@ -26,6 +30,8 @@ export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
   const [issues, setIssues] = useState<string[]>(v?.issues ?? []);
   const [seconds, setSeconds] = useState<string>(String(v?.verified_seconds ?? t.seconds));
   const [check, setCheck] = useState<RatingCheck | null>(v?.rating_check ?? null);
+  const [alignments, setAlignments] = useState<Alignment[]>((v?.alignments as Alignment[] | undefined) ?? []);
+  const [alignOpen, setAlignOpen] = useState(((v?.alignments as Alignment[] | undefined) ?? []).length > 0);
   const [busy, setBusy] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(v?.updated_at ?? null);
   const [err, setErr] = useState<string | null>(null);
@@ -34,17 +40,24 @@ export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
   const [flagReason, setFlagReason] = useState<CaseReason>("not_live");
   const [flagDetail, setFlagDetail] = useState("");
 
+  // The machine draft lands straight in the box, ready to correct. Only when the box is empty.
+  useEffect(() => {
+    if (!canEdit || !draftText) return;
+    setText((cur) => (cur.trim() ? cur : draftText));
+  }, [draftText, canEdit]);
+
   const other: Speaker = t.speaker === "a" ? "b" : "a";
   const speakerId = t.speaker_id ?? w.speakers[t.speaker] ?? "";
   const raterId = w.speakers[other] ?? "";
-  const dirty = text !== (v?.verified_text ?? "") || gloss !== (v?.english_gloss ?? "") || emotion !== (v?.emotion_label ?? "") || confidence !== (v?.confidence ?? null) || check !== (v?.rating_check ?? null) || issues.join() !== (v?.issues ?? []).join() || Number(seconds) !== (v?.verified_seconds ?? t.seconds);
+  const savedAlign = JSON.stringify(v?.alignments ?? []);
+  const dirty = text !== (v?.verified_text ?? "") || gloss !== (v?.english_gloss ?? "") || emotion !== (v?.emotion_label ?? "") || confidence !== (v?.confidence ?? null) || check !== (v?.rating_check ?? null) || issues.join() !== (v?.issues ?? []).join() || Number(seconds) !== (v?.verified_seconds ?? t.seconds) || JSON.stringify(alignments) !== savedAlign;
 
   const save = async () => {
     setBusy(true);
     setErr(null);
     try {
       const secs = Number(seconds);
-      await saveTurn({ turn_id: t.turn_id, verified_text: text, english_gloss: gloss, emotion: emotion || null, confidence, issues, verified_seconds: Number.isFinite(secs) ? secs : null, rating_check: check });
+      await saveTurn({ turn_id: t.turn_id, verified_text: text, english_gloss: gloss, emotion: emotion || null, confidence, issues, verified_seconds: Number.isFinite(secs) ? secs : null, rating_check: check, alignments });
       setSavedAt(new Date().toISOString());
       onSaved();
     } catch (e) {
@@ -76,8 +89,8 @@ export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
 
   const toggleIssue = (k: string) => setIssues((xs) => (xs.includes(k) ? xs.filter((x) => x !== k) : [...xs, k]));
   const r = t.rating;
-  const d = w.stt.show ? t.draft : null;
-  const draftInUse = Boolean(d?.text) && text.trim() === (d?.text ?? "").trim();
+  const lang = LANG_SHORT[w.language] ?? w.language;
+  const linkBtn = { background: "none", border: "none", color: "var(--acc)", padding: 0, font: "inherit", cursor: "pointer" } as const;
 
   return (
     <div className={`wt ${t.speaker}${t.latest ? "" : " old"}`}>
@@ -107,33 +120,35 @@ export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
 
       {canEdit ? (
         <>
-          {d && (
-            <div className="draft" style={{ marginTop: 12 }}>
-              {d.status === "done" && d.text ? (
-                <>
-                  <div className="tlbl">Machine draft · {d.engine ?? "stt"}{d.confidence != null ? ` · ${Math.round(Number(d.confidence) * 100)}%` : ""}{d.detected_language ? ` · heard as ${d.detected_language}` : ""}</div>
-                  <div className="tbody" style={{ fontStyle: "italic", color: "var(--ink2)" }}>{d.text}</div>
-                  {w.stt.note && <div className="tbody small" style={{ color: "var(--gold)", marginTop: 6 }}>{w.stt.note}</div>}
-                  <button type="button" className="pill ghost" style={{ width: "auto", marginTop: 8, padding: "9px 14px", minHeight: 0 }} disabled={draftInUse} onClick={() => { setText(d.text ?? ""); if (confidence == null) setConfidence(0.85); }}>{draftInUse ? "Draft in use, now correct it" : "Use the draft"}</button>
-                </>
-              ) : d.status === "pending" || d.status === "running" ? (
-                <div className="tbody muted small"><span className="dots" aria-hidden="true"><i /><i /><i /></span>Drafting{d.engine ? ` with ${d.engine}` : ""}… you can start listening.</div>
-              ) : (
-                <div className="tbody muted small">No machine draft{d.error ? `: ${d.error}` : "."} Write the transcript from the audio.</div>
-              )}
-            </div>
-          )}
           <div className="field" style={{ marginTop: 12 }}>
             <label>
-              Transcript · as spoken, in {w.language === "pcm" ? "Pidgin" : w.language}
-              {isDemo() && demoNotesFor(t.audio_path) && <button type="button" onClick={fillFromNotes} style={{ background: "none", border: "none", color: "var(--acc)", padding: 0, marginLeft: 10, font: "inherit", cursor: "pointer" }}>Fill from the founders' notes (demo)</button>}
+              Transcript · as spoken, in {lang}
+              {isDemo() && demoNotesFor(t.audio_path) && <button type="button" onClick={fillFromNotes} style={{ ...linkBtn, marginLeft: 10 }}>Fill from the founders' notes (demo)</button>}
             </label>
+            {d && d.status !== "done" && (
+              <div className="tbody muted small">
+                {d.status === "pending" || d.status === "running" ? <><span className="dots" aria-hidden="true"><i /><i /><i /></span>Drafting{d.engine ? ` with ${d.engine}` : ""}… the draft lands here; you can start listening.</> : <>No machine draft{d.error ? `: ${d.error}` : "."} Write it from the audio.</>}
+              </div>
+            )}
             <textarea rows={2} value={text} onChange={(e) => setText(e.target.value)} placeholder="Write exactly what was said. Pidgin as spoken, never corrected toward English." />
+            {draftText && (
+              <div className="tbody small" style={{ color: "var(--gold)" }}>
+                Prefilled by {d?.engine ?? "the machine"}{d?.confidence != null ? ` (${Math.round(Number(d.confidence) * 100)}% sure)` : ""}. {w.stt.note ?? "Correct it word by word."}{" "}
+                {text.trim() !== draftText && <button type="button" onClick={() => setText(draftText)} style={{ ...linkBtn, color: "var(--gold)" }}>Reset to the draft</button>}
+              </div>
+            )}
           </div>
           <div className="field">
             <label>English gloss · what it means, from what was said</label>
             <textarea rows={2} value={gloss} onChange={(e) => setGloss(e.target.value)} placeholder="Plain English meaning" />
           </div>
+
+          <div className="tlbl" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>Align words · {lang} ↔ English{alignments.length ? ` · ${alignments.length} link${alignments.length === 1 ? "" : "s"}` : ""}</span>
+            <button type="button" onClick={() => setAlignOpen((o) => !o)} style={{ ...linkBtn, textTransform: "none", letterSpacing: 0 }}>{alignOpen ? "Hide" : "Open"}</button>
+          </div>
+          {alignOpen && <div style={{ marginBottom: 12 }}><WordAligner transcript={text} gloss={gloss} language={lang} value={alignments} onChange={setAlignments} /></div>}
+
           <div className="row2">
             <div className="field">
               <label>Emotion</label>
@@ -187,8 +202,11 @@ export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
             <div className="tbody">{v.verified_text ?? <span className="muted">No transcript</span>}</div>
             {v.english_gloss && <div className="tbody muted small" style={{ marginTop: 4 }}>{v.english_gloss}</div>}
             <div className="tbody muted small" style={{ marginTop: 6, fontFamily: "var(--mono)", fontSize: "0.7rem" }}>
-              {v.emotion_label ? `${v.emotion_label.replace("_", " ")} · ` : ""}confidence {v.confidence ?? "?"} · {v.verified_seconds ?? t.seconds} s{v.issues.length ? ` · ${v.issues.join(", ")}` : ""}{v.rating_check ? ` · rating ${v.rating_check.replace("_", " ")}` : ""}{v.draft_wer != null ? ` · draft ${Math.round(Number(v.draft_wer) * 100)}% off (${v.draft_engine ?? "stt"})` : ""}
+              {v.emotion_label ? `${v.emotion_label.replace("_", " ")} · ` : ""}confidence {v.confidence ?? "?"} · {v.verified_seconds ?? t.seconds} s{v.issues.length ? ` · ${v.issues.join(", ")}` : ""}{v.rating_check ? ` · rating ${v.rating_check.replace("_", " ")}` : ""}{v.draft_wer != null ? ` · draft ${Math.round(Number(v.draft_wer) * 100)}% off (${v.draft_engine ?? "stt"})` : ""}{(v.alignments as Alignment[] | undefined)?.length ? ` · ${(v.alignments as Alignment[]).length} word links by ${v.aligner ?? "editor"}` : ""}
             </div>
+            {((v.alignments as Alignment[] | undefined)?.length ?? 0) > 0 && (
+              <div style={{ marginTop: 8 }}><WordAligner transcript={v.verified_text ?? ""} gloss={v.english_gloss ?? ""} language={lang} value={v.alignments as Alignment[]} onChange={() => undefined} disabled /></div>
+            )}
           </div>
         )
       )}

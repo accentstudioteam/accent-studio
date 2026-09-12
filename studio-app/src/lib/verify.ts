@@ -57,6 +57,9 @@ export interface TurnVerification {
   updated_at: string;
   draft_wer?: number | null;
   draft_engine?: string | null;
+  alignments?: unknown[];
+  aligned_at?: string | null;
+  aligner?: string | null;
 }
 /** The machine's first pass at a take. Never shown to contributors, never used to grade them. */
 export interface Draft {
@@ -110,6 +113,7 @@ export interface SessionVerification {
   verified_at: string | null;
   editor_id: string | null;
   audit_pick: boolean;
+  aligned_turns?: number | null;
 }
 export interface Workbench {
   session_id: string;
@@ -198,6 +202,7 @@ export interface SaveTurnInput {
   issues: string[];
   verified_seconds: number | null;
   rating_check: RatingCheck | null;
+  alignments: unknown[];
 }
 
 export const REASON_LABEL: Record<CaseReason, string> = {
@@ -248,7 +253,7 @@ export const workbench = (sid: string): Promise<Workbench> => (isDemo() ? demoVe
 export const saveTurn = (i: SaveTurnInput): Promise<void> =>
   isDemo()
     ? demoVerify.saveTurn(i)
-    : rpc<unknown>("vq_save_turn", { tid: i.turn_id, verified_text: i.verified_text, english_gloss: i.english_gloss, emotion: i.emotion, confidence: i.confidence, issues: i.issues, verified_seconds: i.verified_seconds, rating_check: i.rating_check }).then(() => undefined);
+    : rpc<unknown>("vq_save_turn", { tid: i.turn_id, verified_text: i.verified_text, english_gloss: i.english_gloss, emotion: i.emotion, confidence: i.confidence, issues: i.issues, verified_seconds: i.verified_seconds, rating_check: i.rating_check, alignments: i.alignments }).then(() => undefined);
 export interface VerifyResult {
   peer_score: number | null;
   quality_score: number;
@@ -257,6 +262,7 @@ export interface VerifyResult {
   verified_seconds: number;
   hold: boolean;
   draft_wer: number | null;
+  aligned_turns?: number;
 }
 export const verifySession = (sid: string, editorScore: number, notes: string): Promise<VerifyResult> =>
   isDemo() ? demoVerify.verify(sid, editorScore, notes) : rpc<VerifyResult>("vq_verify", { sid, editor_score: editorScore, notes });
