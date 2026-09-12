@@ -1,4 +1,5 @@
 import { SUPABASE_KEY, SUPABASE_URL, supabase } from "@/lib/supabase";
+import { demo, isDemo } from "@/lib/demo";
 
 export interface UploadResult {
   bytes: number;
@@ -53,6 +54,15 @@ export async function uploadRecording(
   onProgress: (pct: number, attemptNo: number) => void,
   bucket = "applications",
 ): Promise<UploadResult> {
+  if (isDemo()) {
+    // demo: no server; keep the take in memory and animate the progress bar
+    demo.storeBlob(path, URL.createObjectURL(blob));
+    for (let pct = 8; pct <= 96; pct += 22) {
+      onProgress(pct, 1);
+      await new Promise((r) => setTimeout(r, 160));
+    }
+    return { bytes: blob.size };
+  }
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token ?? SUPABASE_KEY;
   let last: UploadError | null = null;

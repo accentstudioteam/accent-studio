@@ -3,6 +3,7 @@ import { useAuth } from "@/auth/AuthProvider";
 import { Logo } from "@/components/Logo";
 import { LANG_NAME, mySessions, startRally, type RallySummary } from "@/lib/game";
 import type { Onboarding } from "@/lib/types";
+import { demo, isDemo } from "@/lib/demo";
 
 const POLL_MS = 20_000;
 
@@ -23,7 +24,7 @@ export function PlayerHome({ me, onOpenRally }: { me: Onboarding; onOpenRally: (
 
   useEffect(() => {
     void load();
-    const id = window.setInterval(() => void load(), POLL_MS);
+    const id = window.setInterval(() => void load(), isDemo() ? 2_500 : POLL_MS);
     return () => window.clearInterval(id);
   }, [load]);
 
@@ -50,6 +51,15 @@ export function PlayerHome({ me, onOpenRally }: { me: Onboarding; onOpenRally: (
         <span className="chip" style={{ fontFamily: "var(--mono)", fontSize: "0.7rem" }}>{me.contributor?.speaker_id ?? "cast"}</span>
       </div>
       <div className="shell">
+        {isDemo() && (
+          <div className="tile" style={{ borderColor: "var(--gold)", marginBottom: 16 }}>
+            <div className="tlbl" style={{ color: "var(--gold)" }}>Demo · nothing is saved</div>
+            <div className="tbody muted" style={{ fontSize: "0.85rem" }}>
+              You are a signed contributor. A simulated partner joins, rates your takes and replies with real Pidgin clips. The third take is rated low on purpose so you can see the redo.{" "}
+              <button type="button" onClick={() => { demo.reset(); void load(); }} style={{ background: "none", border: "none", color: "var(--acc)", padding: 0, font: "inherit", cursor: "pointer" }}>Reset the demo</button>
+            </div>
+          </div>
+        )}
         <div className="spread" style={{ marginBottom: 18, alignItems: "flex-start" }}>
           <div>
             <div className="eyebrow" style={{ marginBottom: 6 }}>Playing in {LANG_NAME[language] ?? language}</div>

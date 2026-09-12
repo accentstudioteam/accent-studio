@@ -3,6 +3,7 @@ import { Logo } from "@/components/Logo";
 import { formatClock, useRecorder } from "@/lib/recorder";
 import { uploadRecording } from "@/lib/upload";
 import { cardAudioUrl, loadRally, rateTurn, submitTurn, turnUrl, type Rally as RallyState } from "@/lib/game";
+import { demo, demoSampleTake, isDemo } from "@/lib/demo";
 
 const AXES: [keyof Scores, string, string][] = [
   ["tone", "Tone", "Did it sound like the person on the card?"],
@@ -28,6 +29,7 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
+  const [sample, setSample] = useState<{ url: string; seconds: number } | null>(null);
   const rec = useRecorder(r?.max_turn_seconds ?? 30);
 
   const load = useCallback(async () => {
@@ -47,20 +49,31 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
 
   useEffect(() => {
     void load();
-    const id = window.setInterval(() => void load(), 20_000);
+    const id = window.setInterval(() => void load(), isDemo() ? 2_500 : 20_000);
     return () => window.clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
   const send = async () => {
-    if (!r || !rec.blob) return;
+    if (!r || (!rec.blob && !sample)) return;
     setBusy(true);
     setErr(null);
     try {
-      const path = `${r.session_id}/turn-${r.next_turn_no}-a${r.next_attempt}-${r.my_speaker_id}.${extFor(rec.mime)}`;
-      const base = rec.mime.split(";")[0] || "audio/webm";
-      await uploadRecording(path, rec.blob, base, (pct) => setProgress(pct), "sessions");
-      await submitTurn(r.session_id, path, rec.seconds);
+      const path = `${r.session_id}/turn-${r.next_turn_no}-a${r.next_attempt}-${r.my_speaker_id}.${sample ? "mp3" : extFor(rec.mime)}`;
+      if (sample) {
+        // demo only: a founder's clip stands in for the microphone
+        demo.storeBlob(path, sample.url);
+        for (let pct = 8; pct <= 96; pct += 22) {
+          setProgress(pct);
+          await new Promise((res) => setTimeout(res, 140));
+        }
+        await submitTurn(r.session_id, path, sample.seconds);
+        setSample(null);
+      } else {
+        const base = rec.mime.split(";")[0] || "audio/webm";
+        await uploadRecording(path, rec.blob!, base, (pct) => setProgress(pct), "sessions");
+        await submitTurn(r.session_id, path, rec.seconds);
+      }
       rec.reset();
       setProgress(null);
       setFlash(r.has_partner ? "Sent. Your partner is up next." : "Sent. We'll pair you with a partner; you'll see it here when they reply.");
@@ -174,9 +187,9 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
             <div className="handle" />
             <div className="shead"><i />{r.redo ? `Turn ${r.next_turn_no} · take ${r.next_attempt}` : `Turn ${r.next_turn_no}`}</div>
             <div className={"tile rectile" + (recording ? " live" : "")}>
-              {rec.blob ? (
+              {rec.blob || sample ? (
                 <>
-                  <audio controls src={rec.url ?? undefined} style={{ width: "100%" }} />
+                  <audio controls src={sample ? sample.url : rec.url ?? undefined} style={{ width: "100%" }} />
                   {progress !== null ? (
                     <>
                       <div className="progress" style={{ width: "100%", marginTop: 12 }}><div className="fill" style={{ width: `${Math.max(3, progress)}%` }} /></div>
@@ -184,7 +197,7 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
                     </>
                   ) : (
                     <div className="btn-row" style={{ marginTop: 10 }}>
-                      <button className="pill ghost" disabled={busy} onClick={() => rec.reset()}>Re-record</button>
+                      <button className="pill ghost" disabled={busy} onClick={() => { rec.reset(); setSample(null); }}>Re-record</button>
                       <button className="pill mint" disabled={busy} onClick={() => void send()}>Send this take</button>
                     </div>
                   )}
@@ -206,6 +219,9 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
                 <div className="recwrap">
                   <button type="button" className="recbtn" onClick={() => void rec.start()} aria-label="Start recording"><span className="core" /></button>
                   <div className="rectime">{r.redo ? "Your partner asked for another take. Tap to record." : "Tap to record your turn. Improvise; there are no lines."}</div>
+                  {isDemo() && (
+                    <button type="button" className="pill ghost" style={{ marginTop: 12 }} onClick={() => setSample(demoSampleTake())}>No mic here? Use a sample take</button>
+                  )}
                 </div>
               )}
               {rec.error && <div className="tbody" style={{ color: "var(--coral)", marginTop: 8 }}>{rec.error}</div>}

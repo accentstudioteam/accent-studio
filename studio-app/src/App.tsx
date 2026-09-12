@@ -7,6 +7,7 @@ import { Prototype } from "@/prototype/Prototype";
 import { Apply } from "@/routes/Apply";
 import { Join } from "@/routes/Join";
 import { Player } from "@/routes/Player";
+import { isDemo } from "@/lib/demo";
 
 export function App() {
   const { session, profile, loading } = useAuth();
@@ -16,6 +17,9 @@ export function App() {
   if (typeof window !== "undefined" && /\/apply\/?$/.test(window.location.pathname)) {
     return <Apply />;
   }
+
+  // Demo of the player app on an in-memory backend: ?demo=player, or the chat artifact. Nothing is saved.
+  if (isDemo()) return <Player />;
 
   // Invited applicants join here: sign in by email, sign the agreement. Public until signed in.
   const joining = typeof window !== "undefined" && /\/studio\/join\/?$/.test(window.location.pathname);

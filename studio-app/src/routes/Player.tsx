@@ -5,6 +5,7 @@ import { PlayerHome } from "@/routes/PlayerHome";
 import { Rally } from "@/routes/Rally";
 import { Join } from "@/routes/Join";
 import type { Onboarding } from "@/lib/types";
+import { demoOnboarding, isDemo } from "@/lib/demo";
 
 /** The contributor's app: home with rallies, or one rally. Falls back to Join if they never signed. */
 export function Player() {
@@ -13,6 +14,10 @@ export function Player() {
   const [rally, setRally] = useState<string | null>(null);
 
   useEffect(() => {
+    if (isDemo()) {
+      setMe(demoOnboarding);
+      return;
+    }
     if (!session) return;
     void supabase.rpc("my_onboarding").then(({ data }) => setMe((data as Onboarding) ?? null));
   }, [session]);
