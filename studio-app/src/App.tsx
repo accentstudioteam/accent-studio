@@ -7,7 +7,8 @@ import { Prototype } from "@/prototype/Prototype";
 import { Apply } from "@/routes/Apply";
 import { Join } from "@/routes/Join";
 import { Player } from "@/routes/Player";
-import { isDemo } from "@/lib/demo";
+import { demoRole, isDemo } from "@/lib/demo";
+import { LinguistDemo } from "@/routes/LinguistDemo";
 
 export function App() {
   const { session, profile, loading } = useAuth();
@@ -19,7 +20,7 @@ export function App() {
   }
 
   // Demo of the player app on an in-memory backend: ?demo=player, or the chat artifact. Nothing is saved.
-  if (isDemo()) return <Player />;
+  if (isDemo()) return demoRole() === "linguist" ? <LinguistDemo /> : <Player />;
 
   // Invited applicants join here: sign in by email, sign the agreement. Public until signed in.
   const joining = typeof window !== "undefined" && /\/studio\/join\/?$/.test(window.location.pathname);
@@ -48,6 +49,8 @@ export function App() {
     if (!profile.locale) return <Onboarding />;
     return <Studio />;
   }
+  // Contracted linguists get the studio too; row-level security limits what they can read.
+  if (profile?.is_linguist) return <Studio />;
   if (profile?.is_allowlisted) return <Player />;
   return <Blocked />;
 }

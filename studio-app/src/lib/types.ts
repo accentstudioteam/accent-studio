@@ -28,6 +28,8 @@ export interface Profile {
   trust_score: number;
   is_allowlisted: boolean;
   is_admin: boolean;
+  is_linguist?: boolean;
+  editor_id?: string | null;
   created_at: string;
 }
 
@@ -153,7 +155,7 @@ export interface Onboarding {
     project_name: string | null;
     project_language: string | null;
   } | null;
-  contributor: { speaker_id: string; primary_language: string | null; languages: string[]; withdrawn_at: string | null } | null;
+  contributor: { speaker_id: string; primary_language: string | null; languages: string[]; withdrawn_at: string | null; closed_at: string | null } | null;
   consent: { agreement_version: string; agreement_sha256: string; signed_at: string; record_sha256: string; withdrawn_at: string | null } | null;
   agreement: AgreementVersion | null;
 }

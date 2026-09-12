@@ -4,12 +4,14 @@ import { Logo } from "@/components/Logo";
 import { LANG_NAME, dueLabel, mySessions, startRally, type RallySummary } from "@/lib/game";
 import type { Onboarding } from "@/lib/types";
 import { demo, isDemo } from "@/lib/demo";
+import { myCases, daysLeft, type MyCase } from "@/lib/verify";
 
 const POLL_MS = 20_000;
 
-export function PlayerHome({ me, onOpenRally }: { me: Onboarding; onOpenRally: (sessionId: string) => void }) {
+export function PlayerHome({ me, onOpenRally, onNotices }: { me: Onboarding; onOpenRally: (sessionId: string) => void; onNotices: () => void }) {
   const { signOut } = useAuth();
   const [rallies, setRallies] = useState<RallySummary[]>([]);
+  const [notices, setNotices] = useState<MyCase[]>([]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const language = me.contributor?.primary_language ?? "pcm";
@@ -17,6 +19,7 @@ export function PlayerHome({ me, onOpenRally }: { me: Onboarding; onOpenRally: (
   const load = useCallback(async () => {
     try {
       setRallies(await mySessions());
+      setNotices(await myCases().catch(() => []));
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Couldn't load your rallies.");
     }
@@ -60,6 +63,14 @@ export function PlayerHome({ me, onOpenRally }: { me: Onboarding; onOpenRally: (
               <button type="button" onClick={() => { demo.reset(); void load(); }} style={{ background: "none", border: "none", color: "var(--acc)", padding: 0, font: "inherit", cursor: "pointer" }}>Reset the demo</button>
             </div>
           </div>
+        )}
+        {notices.length > 0 && (
+          <button type="button" className="tile" onClick={onNotices} style={{ borderColor: "var(--gold)", marginBottom: 16, textAlign: "left", cursor: "pointer", width: "100%" }}>
+            <div className="tlbl" style={{ color: "var(--gold)" }}>Clause 15 · {notices.some((n) => n.status === "notice_sent") ? "a session of yours is being checked" : notices.some((n) => n.status === "responded") ? "your response is in" : "decided"}</div>
+            <div className="tbody" style={{ fontSize: "0.9rem" }}>
+              {notices.some((n) => n.status === "notice_sent") ? `You have ${daysLeft(notices.find((n) => n.status === "notice_sent")?.respond_by ?? null)} days to respond. Nothing else is withheld.` : "Open to read the details."}
+            </div>
+          </button>
         )}
         <div className="spread" style={{ marginBottom: 18, alignItems: "flex-start" }}>
           <div>

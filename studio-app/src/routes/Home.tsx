@@ -5,7 +5,7 @@ import { Logo } from "../components/Logo";
 
 const DEMO_BARS = [55, 32, 78, 44, 68, 88, 52, 72, 38, 58, 48, 34, 64, 40];
 
-export function Home({ onSettings, onApplications, onLabInquiries, onCards }: { onSettings: () => void; onApplications?: () => void; onLabInquiries?: () => void; onCards?: () => void }) {
+export function Home({ onSettings, onApplications, onLabInquiries, onCards, onVerify, onIntegrity }: { onSettings: () => void; onApplications?: () => void; onLabInquiries?: () => void; onCards?: () => void; onVerify?: () => void; onIntegrity?: () => void }) {
   const { profile, session } = useAuth();
   const name = profile?.handle ?? session?.user.email?.split("@")[0] ?? "player";
   const lang = profile?.locale ? LOCALE_NAME[profile.locale] : null;
@@ -45,6 +45,24 @@ export function Home({ onSettings, onApplications, onLabInquiries, onCards }: { 
         </div>
 
         <div className="stack">
+          {(profile?.is_admin || profile?.is_linguist) && (
+            <Sheet title="The Cutting Room" accent="gold">
+              <Tile label="Verification queue">
+                <div className="ttitle">Finished rallies waiting for a linguist</div>
+                <div className="tbody muted" style={{ marginTop: 6 }}>
+                  Listen, transcribe as spoken, gloss in English, mark confidence and issues, check each peer rating, verify. The tier and the verified seconds come out of this step.
+                </div>
+              </Tile>
+              <button className="pill mint" onClick={onVerify}>Open the queue</button>
+              <Tile label="Integrity · clause 15">
+                <div className="ttitle">Cases</div>
+                <div className="tbody muted" style={{ marginTop: 6 }}>
+                  Flags from the bench: review by a person, notice, a 7-day response, a decision by someone else, all logged.
+                </div>
+              </Tile>
+              <button className="pill ghost" onClick={onIntegrity}>Open the cases</button>
+            </Sheet>
+          )}
           {profile?.is_admin && (
             <Sheet title="Founder tools">
               <Tile label="Waitlist">

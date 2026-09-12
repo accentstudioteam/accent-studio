@@ -12,9 +12,14 @@ declare global {
 }
 
 export function isDemo(): boolean {
-  if (typeof window === "undefined") return false;
-  if (window.ACCENT_DEMO) return true;
-  return new URLSearchParams(window.location.search).get("demo") === "player";
+  return demoRole() !== null;
+}
+
+/** Which demo is running: the player app or the Cutting Room. */
+export function demoRole(): "player" | "linguist" | null {
+  if (typeof window === "undefined") return null;
+  const v = window.ACCENT_DEMO ?? new URLSearchParams(window.location.search).get("demo");
+  return v === "player" || v === "linguist" ? v : null;
 }
 
 const ME = "spk_pcm_ng_48213";
@@ -65,7 +70,7 @@ export function demoSampleTake(): { url: string; seconds: number } {
 export const demoOnboarding: Onboarding = {
   invited: false,
   invitation: null,
-  contributor: { speaker_id: ME, primary_language: "pcm", languages: ["pcm"], withdrawn_at: null },
+  contributor: { speaker_id: ME, primary_language: "pcm", languages: ["pcm"], withdrawn_at: null, closed_at: null },
   consent: { agreement_version: "1.2", agreement_sha256: "48ff6cdd711040ed76709162c9a3ad45a88c67ca6a6b1b6dcdfc07db883497d1", signed_at: now(), record_sha256: "8d4c1f0a9e2b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d", withdrawn_at: null },
   agreement: { version: "1.2", document_id: "ASC-CA-1.2", effective_date: "2026-09-12", sha256: "48ff6cdd711040ed76709162c9a3ad45a88c67ca6a6b1b6dcdfc07db883497d1", url: "https://accentstudio.io/legal/Accent_Studio_Contributor_Agreement_v1.2.pdf", active: true },
 };

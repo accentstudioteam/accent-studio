@@ -1210,3 +1210,77 @@ select {
   0%, 80%, 100% { opacity: 0.25; }
   40% { opacity: 1; }
 }
+
+/* --- the Cutting Room: work turns, chip pickers, timelines --- */
+.wt {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-left: 3px solid var(--gold);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.wt.b {
+  border-left-color: var(--acc);
+}
+.wt.old {
+  opacity: 0.6;
+}
+.small {
+  font-size: 0.8rem;
+}
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 420px) {
+  .row2 {
+    grid-template-columns: 1fr;
+  }
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chips .chip,
+button.chip {
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.chip.on {
+  background: var(--acc);
+  color: #0d0b08;
+  border-color: var(--acc);
+}
+.chip.on.gold,
+.chip.gold {
+  background: rgba(224, 162, 78, 0.16);
+  color: var(--goldb);
+  border-color: rgba(224, 162, 78, 0.4);
+}
+.chip.on.gold {
+  background: var(--gold);
+  color: #0d0b08;
+}
+.chip.coral {
+  background: rgba(224, 138, 92, 0.16);
+  color: var(--coral);
+  border-color: rgba(224, 138, 92, 0.45);
+}
+.timeline {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.timeline li {
+  display: flex;
+  gap: 10px;
+  font-size: 0.78rem;
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+  line-height: 1.4;
+}
+.timeline li:last-child {
+  border-bottom: 0;
+}

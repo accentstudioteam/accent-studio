@@ -4,14 +4,17 @@ import { useAuth } from "@/auth/AuthProvider";
 import { PlayerHome } from "@/routes/PlayerHome";
 import { Rally } from "@/routes/Rally";
 import { Join } from "@/routes/Join";
+import { CaseNotice } from "@/routes/CaseNotice";
+import { Logo } from "@/components/Logo";
 import type { Onboarding } from "@/lib/types";
 import { demoOnboarding, isDemo } from "@/lib/demo";
 
-/** The contributor's app: home with rallies, or one rally. Falls back to Join if they never signed. */
+/** The contributor's app: home with rallies, one rally, or the clause 15 notices. Falls back to Join if they never signed. */
 export function Player() {
-  const { session } = useAuth();
+  const { session, signOut } = useAuth();
   const [me, setMe] = useState<Onboarding | null>(null);
   const [rally, setRally] = useState<string | null>(null);
+  const [notices, setNotices] = useState(false);
 
   useEffect(() => {
     if (isDemo()) {
@@ -24,6 +27,22 @@ export function Player() {
 
   if (!me) return <div className="full-center"><div className="spin" /></div>;
   if (!me.contributor || !me.consent || me.consent.withdrawn_at) return <Join />;
+  if (me.contributor.closed_at) {
+    return (
+      <div className="app">
+        <div className="topbar"><Logo height={22} /></div>
+        <div className="shell">
+          <div className="eyebrow" style={{ marginBottom: 6 }}>Clause 15</div>
+          <h1 className="h1" style={{ marginBottom: 14 }}>This account is closed.</h1>
+          <div className="tile" style={{ marginBottom: 14 }}>
+            <div className="tbody">The decision and its reason were sent to your registered email. Verified earnings from sessions not involved in the decision are still paid on the normal schedule. You can ask for the record of the case, and you can complain to your data protection authority, by writing to privacy@accentstudio.io.</div>
+          </div>
+          <button className="pill ghost" onClick={() => void signOut()}>Sign out</button>
+        </div>
+      </div>
+    );
+  }
+  if (notices) return <CaseNotice onBack={() => setNotices(false)} />;
   if (rally) return <Rally sessionId={rally} onBack={() => setRally(null)} />;
-  return <PlayerHome me={me} onOpenRally={setRally} />;
+  return <PlayerHome me={me} onOpenRally={setRally} onNotices={() => setNotices(true)} />;
 }
