@@ -7,8 +7,9 @@ import { Cards } from "@/routes/Cards";
 import { Verify } from "@/routes/Verify";
 import { Workbench } from "@/routes/Workbench";
 import { Integrity } from "@/routes/Integrity";
+import { Payouts } from "@/routes/Payouts";
 
-type View = "home" | "settings" | "applications" | "labs" | "cards" | "verify" | "integrity";
+type View = "home" | "settings" | "applications" | "labs" | "cards" | "verify" | "integrity" | "payouts";
 
 /** The signed-in, onboarded studio. Holds the current in-app view. */
 export function Studio() {
@@ -20,9 +21,10 @@ export function Studio() {
   if (view === "labs") return <LabInquiries onBack={() => setView("home")} />;
   if (view === "cards") return <Cards onBack={() => setView("home")} />;
   if (view === "integrity") return <Integrity onBack={() => setView("home")} />;
+  if (view === "payouts") return <Payouts onBack={() => setView("home")} />;
   if (view === "verify") {
     if (sessionId) return <Workbench sessionId={sessionId} onBack={() => setSessionId(null)} onCases={() => setView("integrity")} />;
     return <Verify onBack={() => setView("home")} onOpen={setSessionId} onCases={() => setView("integrity")} />;
   }
-  return <Home onSettings={() => setView("settings")} onApplications={() => setView("applications")} onLabInquiries={() => setView("labs")} onCards={() => setView("cards")} onVerify={() => setView("verify")} onIntegrity={() => setView("integrity")} />;
+  return <Home onSettings={() => setView("settings")} onApplications={() => setView("applications")} onLabInquiries={() => setView("labs")} onCards={() => setView("cards")} onVerify={() => setView("verify")} onIntegrity={() => setView("integrity")} onPayouts={() => setView("payouts")} />;
 }

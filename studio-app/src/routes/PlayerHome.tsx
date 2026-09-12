@@ -5,13 +5,15 @@ import { LANG_NAME, dueLabel, mySessions, startRally, type RallySummary } from "
 import type { Onboarding } from "@/lib/types";
 import { demo, isDemo } from "@/lib/demo";
 import { myCases, daysLeft, type MyCase } from "@/lib/verify";
+import { money, myEarnings, type MyEarnings } from "@/lib/earn";
 
 const POLL_MS = 20_000;
 
-export function PlayerHome({ me, onOpenRally, onNotices }: { me: Onboarding; onOpenRally: (sessionId: string) => void; onNotices: () => void }) {
+export function PlayerHome({ me, onOpenRally, onNotices, onEarnings }: { me: Onboarding; onOpenRally: (sessionId: string) => void; onNotices: () => void; onEarnings: () => void }) {
   const { signOut } = useAuth();
   const [rallies, setRallies] = useState<RallySummary[]>([]);
   const [notices, setNotices] = useState<MyCase[]>([]);
+  const [earn, setEarn] = useState<MyEarnings | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const language = me.contributor?.primary_language ?? "pcm";
@@ -20,6 +22,7 @@ export function PlayerHome({ me, onOpenRally, onNotices }: { me: Onboarding; onO
     try {
       setRallies(await mySessions());
       setNotices(await myCases().catch(() => []));
+      setEarn(await myEarnings().catch(() => null));
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Couldn't load your rallies.");
     }
@@ -69,6 +72,18 @@ export function PlayerHome({ me, onOpenRally, onNotices }: { me: Onboarding; onO
             <div className="tlbl" style={{ color: "var(--gold)" }}>Clause 15 · {notices.some((n) => n.status === "notice_sent") ? "a session of yours is being checked" : notices.some((n) => n.status === "responded") ? "your response is in" : "decided"}</div>
             <div className="tbody" style={{ fontSize: "0.9rem" }}>
               {notices.some((n) => n.status === "notice_sent") ? `You have ${daysLeft(notices.find((n) => n.status === "notice_sent")?.respond_by ?? null)} days to respond. Nothing else is withheld.` : "Open to read the details."}
+            </div>
+          </button>
+        )}
+        {earn && (
+          <button type="button" className="tile" onClick={onEarnings} style={{ marginBottom: 16, textAlign: "left", cursor: "pointer", width: "100%" }}>
+            <div className="spread">
+              <div>
+                <div className="tlbl">Earnings</div>
+                <div className="ttitle">{money(earn.cleared_usd)} ready{Number(earn.held_usd) > 0 ? ` · ${money(earn.held_usd)} on hold` : ""}{Number(earn.requested_usd) > 0 ? ` · ${money(earn.requested_usd)} on its way` : ""}</div>
+                <div className="tbody muted" style={{ marginTop: 4, fontSize: "0.85rem" }}>{money(earn.base_rates.standard)} per verified hour times your tier · paid so far {money(earn.paid_usd)}</div>
+              </div>
+              <span className="chip" style={{ flex: "none" }}>Open</span>
             </div>
           </button>
         )}

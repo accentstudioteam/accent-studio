@@ -5,7 +5,7 @@ import { Logo } from "../components/Logo";
 
 const DEMO_BARS = [55, 32, 78, 44, 68, 88, 52, 72, 38, 58, 48, 34, 64, 40];
 
-export function Home({ onSettings, onApplications, onLabInquiries, onCards, onVerify, onIntegrity }: { onSettings: () => void; onApplications?: () => void; onLabInquiries?: () => void; onCards?: () => void; onVerify?: () => void; onIntegrity?: () => void }) {
+export function Home({ onSettings, onApplications, onLabInquiries, onCards, onVerify, onIntegrity, onPayouts }: { onSettings: () => void; onApplications?: () => void; onLabInquiries?: () => void; onCards?: () => void; onVerify?: () => void; onIntegrity?: () => void; onPayouts?: () => void }) {
   const { profile, session } = useAuth();
   const name = profile?.handle ?? session?.user.email?.split("@")[0] ?? "player";
   const lang = profile?.locale ? LOCALE_NAME[profile.locale] : null;
@@ -86,6 +86,13 @@ export function Home({ onSettings, onApplications, onLabInquiries, onCards, onVe
                 </div>
               </Tile>
               <button className="pill ghost" onClick={onCards}>Open the card library</button>
+              <Tile label="Ledger">
+                <div className="ttitle">Payouts</div>
+                <div className="tbody muted" style={{ marginTop: 6 }}>
+                  Requests to send, the money on hold under clause 15, and what has been paid. Mark each transfer with its reference.
+                </div>
+              </Tile>
+              <button className="pill ghost" onClick={onPayouts}>Open payouts</button>
             </Sheet>
           )}
           <Sheet title="Ping · ready when you are">

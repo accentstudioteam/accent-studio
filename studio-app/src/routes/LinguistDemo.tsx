@@ -4,9 +4,10 @@ import { Verify } from "@/routes/Verify";
 import { Workbench } from "@/routes/Workbench";
 import { Integrity } from "@/routes/Integrity";
 import { CaseNotice } from "@/routes/CaseNotice";
+import { Payouts } from "@/routes/Payouts";
 import { demoVerify } from "@/lib/demoVerify";
 
-type Tab = "queue" | "cases" | "contributor";
+type Tab = "queue" | "cases" | "payouts" | "contributor";
 
 /** The Cutting Room demo: the queue and workbench, the clause 15 cases, and the contributor's side of a case. Nothing is saved. */
 export function LinguistDemo() {
@@ -36,13 +37,14 @@ export function LinguistDemo() {
           </div>
         </div>
         <div className="chips" style={{ marginBottom: 6 }}>
-          {([["queue", "Queue"], ["cases", "Cases"], ["contributor", "The contributor's view"]] as [Tab, string][]).map(([k, label]) => (
+          {([["queue", "Queue"], ["cases", "Cases"], ["payouts", "Payouts"], ["contributor", "The contributor's view"]] as [Tab, string][]).map(([k, label]) => (
             <button key={k} type="button" className={`chip${tab === k ? " on" : ""}`} onClick={() => { setTab(k); if (k !== "queue") setSid(null); }}>{label}</button>
           ))}
         </div>
       </div>
       {tab === "queue" && (sid ? <Workbench sessionId={sid} onBack={() => setSid(null)} onCases={() => setTab("cases")} embedded /> : <Verify onBack={() => undefined} onOpen={setSid} onCases={() => setTab("cases")} embedded />)}
       {tab === "cases" && <Integrity onBack={() => setTab("queue")} embedded />}
+      {tab === "payouts" && <Payouts onBack={() => setTab("queue")} embedded />}
       {tab === "contributor" && (
         <>
           <div className="shell" style={{ maxWidth: 720, paddingTop: 0, paddingBottom: 0 }}>

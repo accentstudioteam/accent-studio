@@ -3,6 +3,7 @@
 // (the chat artifact sets it). Partner turns use the founders' recorded scene clips.
 import type { Rally, RallySummary, RallyTurn } from "@/lib/game";
 import type { Onboarding } from "@/lib/types";
+import type { EarningLine, MyEarnings, PayoutRow } from "@/lib/earn";
 
 declare global {
   interface Window {
@@ -98,7 +99,44 @@ function summary(s: DemoSession): RallySummary {
   };
 }
 
+const RAILS = [{ key: "mpesa", name: "M-Pesa", min: 5 }, { key: "paystack", name: "Paystack", min: 5 }, { key: "flutterwave", name: "Flutterwave", min: 5 }, { key: "stripe", name: "Stripe", min: 10 }, { key: "paypal", name: "PayPal", min: 10 }, { key: "usdc", name: "USDC · USDT", min: 2 }];
+const daysAgo = (d: number) => new Date(Date.now() - d * 86_400_000).toISOString();
+const line = (id: string, title: string, d: number, secs: number, tier: string, x: number, status: EarningLine["status"]): EarningLine => ({ id, session_id: id, title, date: daysAgo(d), language: "pcm", verified_seconds: secs, quality_tier: tier, multiplier: x, base_rate_usd: 16, amount_usd: Math.round((secs / 3600) * 16 * x * 10000) / 10000, status, month: daysAgo(d).slice(0, 7) });
+/** A month of play: nine rallies paid last month, six ready now, one on hold under clause 15. */
+const ledger: { lines: EarningLine[]; payouts: PayoutRow[] } = {
+  lines: [
+    line("e1", "Market Day", 1, 96, "gold", 1.0, "cleared"), line("e2", "Banking Wahala", 2, 88, "platinum", 1.2, "cleared"), line("e3", "Telco Trouble", 3, 104, "gold", 1.0, "cleared"),
+    line("e4", "Market Day", 4, 91, "silver", 0.7, "cleared"), line("e5", "Banking Wahala", 6, 99, "gold", 1.0, "cleared"), line("e6", "Telco Trouble", 8, 110, "platinum", 1.2, "cleared"),
+    line("e7", "Market Day", 5, 84, "gold", 1.0, "held"),
+    ...[31, 33, 34, 36, 38, 40, 41, 43, 45].map((d, i) => line(`p${i}`, ["Market Day", "Banking Wahala", "Telco Trouble"][i % 3], d, 90 + i * 7, ["gold", "platinum", "silver"][i % 3], [1.0, 1.2, 0.7][i % 3], "paid")),
+  ],
+  payouts: [{ id: "po-0", requested_at: daysAgo(30), rail: "paystack", amount_usd: 5.2, status: "paid", paid_at: daysAgo(28), reference: "PSK-88213" }],
+};
+
 export const demo = {
+  /** The player's earnings screen on the in-memory ledger. */
+  myEarnings: async (): Promise<MyEarnings> => {
+    const sum = (st: EarningLine["status"]) => Math.round(ledger.lines.filter((l) => l.status === st).reduce((n, l) => n + l.amount_usd, 0) * 100) / 100;
+    return { cleared_usd: sum("cleared"), held_usd: sum("held"), requested_usd: sum("requested"), paid_usd: sum("paid"), forfeited_usd: sum("forfeited"), ap_per_usd: 1000, payout_days: 14, base_rates: { standard: 16, scarce: 25 }, rails: RAILS, my_rail: "usdc", rail_min: 2, open_request: ledger.payouts.some((p) => p.status === "requested"), lines: [...ledger.lines].sort((a, b) => (a.date < b.date ? 1 : -1)), payouts: [...ledger.payouts] };
+  },
+  requestPayout: async (rail: string): Promise<{ amount_usd: number }> => {
+    const r = RAILS.find((x) => x.key === rail);
+    if (!r) throw new Error("pick a payout method");
+    if (ledger.payouts.some((p) => p.status === "requested")) throw new Error("a payout is already on its way");
+    const total = Math.round(ledger.lines.filter((l) => l.status === "cleared").reduce((n, l) => n + l.amount_usd, 0) * 100) / 100;
+    if (total < r.min) throw new Error(`the minimum for ${r.name} is US$${r.min}; you have US$${total.toFixed(2)} cleared`);
+    const id = `po-${ledger.payouts.length}`;
+    ledger.payouts.unshift({ id, requested_at: now(), rail, amount_usd: total, status: "requested", paid_at: null, reference: null });
+    for (const l of ledger.lines) if (l.status === "cleared") l.status = "requested";
+    return { amount_usd: total };
+  },
+  cancelPayout: async (pid: string): Promise<void> => {
+    const p = ledger.payouts.find((x) => x.id === pid);
+    if (!p || p.status !== "requested") throw new Error("no such payout");
+    p.status = "cancelled";
+    for (const l of ledger.lines) if (l.status === "requested") l.status = "cleared";
+  },
+
   mySessions: async (): Promise<RallySummary[]> => {
     for (const s of state.sessions) await demo.loadRally(s.id); // applies the reply-window sweep
     return state.sessions.map(summary).sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1));

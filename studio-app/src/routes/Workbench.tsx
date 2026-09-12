@@ -206,6 +206,14 @@ export function Workbench({ sessionId, onBack, onCases, embedded }: Props) {
               "Confirmed dishonesty under clause 15. Pending pay for this rally is forfeited; every other verified rally is still paid."
             )}
             {v.notes && <div className="muted small" style={{ marginTop: 6 }}>Notes: {v.notes}</div>}
+            {(result?.earnings ?? w.earnings ?? []).length > 0 && (
+              <div className="small" style={{ marginTop: 8 }}>
+                <div className="tlbl">Posted to the ledger · per speaker per verified hour</div>
+                {(result?.earnings ?? w.earnings ?? []).map((e) => (
+                  <div key={e.speaker} className="tbody small">Speaker {e.speaker.toUpperCase()} · {e.speaker_id} · {Math.round(Number(e.seconds))} s · {e.tier} x{e.multiplier} at ${Number(e.base_rate_usd)}/h → <b>${Number(e.amount_usd).toFixed(2)}</b> · {e.status === "held" ? "on hold, clause 15" : e.status}</div>
+                ))}
+              </div>
+            )}
             {result && !v.hold && <div className="muted small" style={{ marginTop: 6 }}>Locked. The transcripts ship in the next delivery export.</div>}
           </div>
         </div>

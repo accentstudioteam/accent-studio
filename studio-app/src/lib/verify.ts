@@ -133,6 +133,7 @@ export interface Workbench {
   cases: { id: string; who: Speaker; reason: CaseReason; status: CaseStatus; decision: Decision | null }[];
   tiers: Tier[];
   stt: SttRoute;
+  earnings?: EarningPost[];
   turns: WorkTurn[];
 }
 
@@ -257,6 +258,18 @@ export const saveTurn = (i: SaveTurnInput): Promise<void> =>
   isDemo()
     ? demoVerify.saveTurn(i)
     : rpc<unknown>("vq_save_turn", { tid: i.turn_id, verified_text: i.verified_text, english_gloss: i.english_gloss, emotion: i.emotion, confidence: i.confidence, issues: i.issues, verified_seconds: i.verified_seconds, rating_check: i.rating_check, alignments: i.alignments }).then(() => undefined);
+export interface EarningPost {
+  speaker: Speaker;
+  speaker_id: string | null;
+  seconds: number;
+  peer_score: number | null;
+  quality_score: number;
+  tier: string;
+  multiplier: number;
+  base_rate_usd: number;
+  amount_usd: number;
+  status: string;
+}
 export interface VerifyResult {
   peer_score: number | null;
   quality_score: number;
@@ -266,6 +279,7 @@ export interface VerifyResult {
   hold: boolean;
   draft_wer: number | null;
   aligned_turns?: number;
+  earnings?: EarningPost[];
 }
 export const verifySession = (sid: string, editorScore: number, notes: string): Promise<VerifyResult> =>
   isDemo() ? demoVerify.verify(sid, editorScore, notes) : rpc<VerifyResult>("vq_verify", { sid, editor_score: editorScore, notes });

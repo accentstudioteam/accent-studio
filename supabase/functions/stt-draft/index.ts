@@ -19,7 +19,7 @@ const SPITCH_LANGS = new Set(["yo", "ha", "ig", "en", "am"]);
 const LANG_NAME: Record<string, string> = { pcm: "Nigerian Pidgin", yo: "Yoruba", ha: "Hausa", ig: "Igbo", sw: "Swahili", zu: "isiZulu", en: "English" };
 
 interface Item { turn_id: string; audio_path: string; language: string; seconds: number; persona?: string | null }
-interface Route { engine: string; language: string | null; show?: boolean; note?: string }
+interface Route { engine: string; language: string | null; show?: boolean; note?: string; prompt?: string | null }
 interface Card { title?: string; situation?: string; english_note?: string | null }
 interface GlossModel { engine?: string; model?: string }
 interface Result { engine: string; text: string; confidence: number | null; detected_language: string | null; segments: unknown }
@@ -39,7 +39,7 @@ function confidenceFrom(segments: unknown): number | null {
 }
 
 // ---------------------------------------------------------------- speech vendors
-async function openaiWhisper(audioUrl: string, path: string, lang: string | null): Promise<Result> {
+async function openaiWhisper(audioUrl: string, path: string, lang: string | null, prompt?: string | null): Promise<Result> {
   const key = Deno.env.get("OPENAI_API_KEY")!;
   const bytes = await (await fetch(audioUrl)).arrayBuffer();
   const form = new FormData();
@@ -48,16 +48,17 @@ async function openaiWhisper(audioUrl: string, path: string, lang: string | null
   form.append("response_format", "verbose_json");
   form.append("temperature", "0");
   if (lang && WHISPER_LANGS.has(lang)) form.append("language", lang);
+  if (prompt) form.append("prompt", prompt.slice(0, 600)); // a sentence in the target orthography pulls the model toward it (tone marks, Pidgin spellings)
   const res = await fetch("https://api.openai.com/v1/audio/transcriptions", { method: "POST", headers: { Authorization: `Bearer ${key}` }, body: form });
   if (!res.ok) throw new Error(`openai ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const out = await res.json();
   return { engine: "whisper-1@openai", text: String(out.text ?? ""), confidence: confidenceFrom(out.segments), detected_language: out.language ?? null, segments: out.segments ?? null };
 }
 
-async function replicateWhisper(audioUrl: string, lang: string | null): Promise<Result> {
+async function replicateWhisper(audioUrl: string, lang: string | null, prompt?: string | null): Promise<Result> {
   const token = Deno.env.get("REPLICATE_API_TOKEN")!;
   const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json", Prefer: "wait=60" };
-  const input = { audio: audioUrl, model: "large-v3", transcription: "plain text", language: lang && WHISPER_LANGS.has(lang) ? lang : "auto", temperature: 0, condition_on_previous_text: false };
+  const input = { audio: audioUrl, model: "large-v3", transcription: "plain text", language: lang && WHISPER_LANGS.has(lang) ? lang : "auto", temperature: 0, condition_on_previous_text: false, ...(prompt ? { initial_prompt: prompt.slice(0, 600) } : {}) };
   let res = await fetch("https://api.replicate.com/v1/predictions", { method: "POST", headers, body: JSON.stringify({ version: WHISPER_VERSION, input }) });
   if (!res.ok) throw new Error(`replicate ${res.status}: ${(await res.text()).slice(0, 200)}`);
   let p = await res.json();
@@ -89,8 +90,8 @@ async function spitch(audioUrl: string, path: string, lang: string | null): Prom
 function resolve(route: Route): { run?: (url: string, path: string, lang: string | null) => Promise<Result>; reason?: string } {
   switch (route.engine) {
     case "whisper":
-      if (Deno.env.get("OPENAI_API_KEY")) return { run: (u, p, l) => openaiWhisper(u, p, l) };
-      if (Deno.env.get("REPLICATE_API_TOKEN")) return { run: (u, _p, l) => replicateWhisper(u, l) };
+      if (Deno.env.get("OPENAI_API_KEY")) return { run: (u, p, l) => openaiWhisper(u, p, l, route.prompt) };
+      if (Deno.env.get("REPLICATE_API_TOKEN")) return { run: (u, _p, l) => replicateWhisper(u, l, route.prompt) };
       return { reason: "no speech vendor key is set (add OPENAI_API_KEY or REPLICATE_API_TOKEN to the function secrets)" };
     case "spitch":
       if (Deno.env.get("SPITCH_API_KEY")) return { run: (u, p, l) => spitch(u, p, l) };

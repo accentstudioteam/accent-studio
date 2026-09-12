@@ -3,7 +3,8 @@
 // (clause 15: the person who raised a flag cannot decide it), and the contributor's view.
 // Nothing is saved.
 import { demo } from "@/lib/demo";
-import type { Case, CaseEvent, CaseReason, Cases, Decision, MyCase, Queue, SaveTurnInput, Speaker, TurnVerification, VerifyResult, Workbench, WorkTurn } from "@/lib/verify";
+import type { Case, CaseEvent, CaseReason, Cases, Decision, EarningPost, MyCase, Queue, SaveTurnInput, Speaker, TurnVerification, VerifyResult, Workbench, WorkTurn } from "@/lib/verify";
+import type { PayoutQueue, QueuedPayout } from "@/lib/earn";
 
 /** What an English-trained Whisper typically makes of these clips: the draft the editor corrects. */
 const DRAFTS: Record<string, string> = {
@@ -96,6 +97,7 @@ interface DemoSession {
   claimed: "me" | "other" | null;
   claimed_at: string | null;
   result: VerifyResult | null;
+  earnings: EarningPost[];
   editor_score: number | null;
   notes: string | null;
   hold: boolean;
@@ -119,7 +121,7 @@ const A1 = "spk_pcm_ng_48213";
 const B1 = "spk_pcm_ng_77104";
 const B2 = "spk_pcm_ng_30556";
 
-const state: { sessions: DemoSession[]; cases: DemoCase[]; seq: number } = { sessions: [], cases: [], seq: 0 };
+const state: { sessions: DemoSession[]; cases: DemoCase[]; payouts: QueuedPayout[]; seq: number } = { sessions: [], cases: [], payouts: [], seq: 0 };
 
 function seed() {
   if (state.sessions.length) return;
@@ -135,7 +137,7 @@ function seed() {
       turn("demo-s1", 5, "a", A1, "scene_mkt_05", 4, rating("b", 4, 5, 5, 4), 140),
       turn("demo-s1", 6, "b", B1, "scene_mkt_06", 4, rating("a", 5, 5, 5, 5), 130),
     ],
-    status: "pending", claimed: null, claimed_at: null, result: null, editor_score: null, notes: null, hold: false,
+    status: "pending", claimed: null, claimed_at: null, result: null, earnings: [], editor_score: null, notes: null, hold: false,
   };
   const bank: DemoSession = {
     id: "demo-s2", title: "Banking Wahala", situation: "Money don comot for your account wey you no spend. Na POS transaction wey you no know. You call the bank customer care.",
@@ -148,14 +150,14 @@ function seed() {
       turn("demo-s2", 4, "b", B2, "scene_bank_04", 7, rating("a", 5, 5, 4, 5), 48 * 60),
       turn("demo-s2", 5, "a", A1, "scene_bank_05", 4, null, 48 * 60), // the partner went quiet before rating it
     ],
-    status: "pending", claimed: null, claimed_at: null, result: null, editor_score: null, notes: null, hold: false,
+    status: "pending", claimed: null, claimed_at: null, result: null, earnings: [], editor_score: null, notes: null, hold: false,
   };
   const telco: DemoSession = {
     id: "demo-s3", title: "Telco Trouble", situation: "Your data bundle don finish overnight, and you no even use am. You call customer care.",
     persona_a: "Subscriber wey confuse and vex small. E wan know where the data go.", persona_b: "Customer care person wey dey try explain the plan and offer something.",
     domain: "telco_support", session_status: "complete", flags: [], abandoned_reason: null, completed_at: ago(25), speakers: { a: B1, b: B2 },
     turns: [1, 2, 3, 4, 5, 6].map((n) => turn("demo-s3", n, n % 2 ? "a" : "b", n % 2 ? B1 : B2, `scene_bank_0${((n - 1) % 5) + 1}`, 5, rating(n % 2 ? "b" : "a", 4, 5, 4, 5), 40 - n * 2)),
-    status: "in_progress", claimed: "other", claimed_at: ago(6), result: null, editor_score: null, notes: null, hold: false,
+    status: "in_progress", claimed: "other", claimed_at: ago(6), result: null, earnings: [], editor_score: null, notes: null, hold: false,
   };
   state.sessions = [bank, market, telco];
 }
@@ -225,6 +227,7 @@ export const demoVerify = {
         verified_at: s.result ? now() : null, editor_id: s.result ? ME : null, audit_pick: false,
       },
       cases: state.cases.filter((c) => c.sessions.some((x) => x.session_id === s.id)).map((c) => ({ id: c.id, who: c.contributor === s.speakers.a ? "a" : "b", reason: c.reason, status: c.status, decision: c.decision })),
+      earnings: s.earnings,
       tiers: TIERS,
       stt: { engine: "whisper", language: "en", show: true, note: STT_NOTE },
       turns: s.turns.map(({ clip: _clip, ...t }) => t),
@@ -261,7 +264,18 @@ export const demoVerify = {
       }
     }
     const draftWer = wers.length ? Math.round((wers.reduce((a, b) => a + b, 0) / wers.length) * 1000) / 1000 : null;
-    s.result = { peer_score: peer, quality_score: q, quality_tier: tier.tier, multiplier: tier.x, verified_seconds: secs, hold, draft_wer: draftWer, aligned_turns: latest(s).filter((t) => (t.verification?.alignments?.length ?? 0) > 0).length };
+    // one line per speaker, priced per verified hour at $16 times that speaker's own tier
+    s.earnings = (["a", "b"] as Speaker[]).map((sp) => {
+      const mine = latest(s).filter((t) => t.speaker === sp);
+      const sec = mine.reduce((n, t) => n + (t.verification?.verified_seconds ?? t.seconds), 0);
+      const rated2 = mine.filter((t) => t.rating);
+      const p2 = rated2.length ? Math.round((rated2.reduce((n, t) => n + (t.rating?.aggregate ?? 0), 0) / rated2.length) * 100) / 100 : null;
+      const q2 = p2 == null ? editorScore : Math.round(((p2 + editorScore) / 2) * 100) / 100;
+      const t2 = TIERS.find((t) => q2 >= t.min) ?? TIERS[TIERS.length - 1];
+      const open = state.cases.some((c) => c.status !== "decided" && c.contributor === s.speakers[sp] && c.sessions.some((x) => x.session_id === s.id));
+      return { speaker: sp, speaker_id: s.speakers[sp], seconds: sec, peer_score: p2, quality_score: q2, tier: t2.tier, multiplier: t2.x, base_rate_usd: 16, amount_usd: Math.round((sec / 3600) * 16 * t2.x * 10000) / 10000, status: open ? "held" : "cleared" };
+    });
+    s.result = { peer_score: peer, quality_score: q, quality_tier: tier.tier, multiplier: tier.x, verified_seconds: secs, hold, draft_wer: draftWer, aligned_turns: latest(s).filter((t) => (t.verification?.alignments?.length ?? 0) > 0).length, earnings: s.earnings };
     s.editor_score = editorScore;
     s.notes = notes.trim() || null;
     s.status = "verified";
@@ -380,9 +394,34 @@ export const demoVerify = {
     log(c, "responded", A1, { chars: text.trim().length });
   },
 
+  /** The founder's payout queue: one request waiting, one already sent. */
+  payoutsQueue: async (): Promise<PayoutQueue> => {
+    seed();
+    if (!state.payouts.length) state.payouts = [
+      { id: "pay-1", requested_at: ago(26 * 60), rail: "usdc", amount_usd: 2.31, status: "requested", paid_at: null, reference: null, speaker_id: "spk_pcm_ng_48213", lines: 6, paid_by: null },
+      { id: "pay-0", requested_at: ago(31 * 24 * 60), rail: "paystack", amount_usd: 5.2, status: "paid", paid_at: ago(29 * 24 * 60), reference: "PSK-88213", speaker_id: "spk_pcm_ng_77104", lines: 9, paid_by: OTHER },
+    ];
+    const requested = state.payouts.filter((p) => p.status === "requested").reduce((n, p) => n + p.amount_usd, 0);
+    const paid = state.payouts.filter((p) => p.status === "paid").reduce((n, p) => n + p.amount_usd, 0);
+    const held = state.sessions.flatMap((s) => s.earnings).filter((e) => e.status === "held").reduce((n, e) => n + e.amount_usd, 0);
+    const cleared = state.sessions.flatMap((s) => s.earnings).filter((e) => e.status === "cleared").reduce((n, e) => n + e.amount_usd, 0);
+    return { payouts: state.payouts, requested_usd: requested, held_usd: held, cleared_usd: cleared, paid_usd: paid };
+  },
+
+  markPaid: async (pid: string, reference: string): Promise<{ amount_usd: number }> => {
+    const p = state.payouts.find((x) => x.id === pid);
+    if (!p || p.status !== "requested") throw new Error("this payout is already sent");
+    p.status = "paid";
+    p.paid_at = now();
+    p.reference = reference;
+    p.paid_by = ME;
+    return { amount_usd: p.amount_usd };
+  },
+
   reset: () => {
     state.sessions = [];
     state.cases = [];
+    state.payouts = [];
     state.seq = 0;
   },
 };

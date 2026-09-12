@@ -5,6 +5,7 @@ import { PlayerHome } from "@/routes/PlayerHome";
 import { Rally } from "@/routes/Rally";
 import { Join } from "@/routes/Join";
 import { CaseNotice } from "@/routes/CaseNotice";
+import { Earnings } from "@/routes/Earnings";
 import { Logo } from "@/components/Logo";
 import type { Onboarding } from "@/lib/types";
 import { demoOnboarding, isDemo } from "@/lib/demo";
@@ -15,6 +16,7 @@ export function Player() {
   const [me, setMe] = useState<Onboarding | null>(null);
   const [rally, setRally] = useState<string | null>(null);
   const [notices, setNotices] = useState(false);
+  const [earnings, setEarnings] = useState(false);
 
   useEffect(() => {
     if (isDemo()) {
@@ -43,6 +45,7 @@ export function Player() {
     );
   }
   if (notices) return <CaseNotice onBack={() => setNotices(false)} />;
+  if (earnings) return <Earnings onBack={() => setEarnings(false)} />;
   if (rally) return <Rally sessionId={rally} onBack={() => setRally(null)} />;
-  return <PlayerHome me={me} onOpenRally={setRally} onNotices={() => setNotices(true)} />;
+  return <PlayerHome me={me} onOpenRally={setRally} onNotices={() => setNotices(true)} onEarnings={() => setEarnings(true)} />;
 }
