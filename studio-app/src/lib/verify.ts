@@ -15,6 +15,7 @@ export interface QueueItem {
   session_id: string;
   status: VerificationStatus;
   session_status: "complete" | "abandoned";
+  mode?: "async" | "live";
   title: string;
   language: string;
   domain: string | null;
@@ -121,6 +122,7 @@ export interface SessionVerification {
 export interface Workbench {
   session_id: string;
   session_status: "complete" | "abandoned";
+  mode?: "async" | "live";
   language: string;
   flags: string[];
   abandoned_reason: string | null;

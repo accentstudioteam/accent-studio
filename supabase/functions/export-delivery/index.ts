@@ -15,7 +15,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const BATCH = 24;
 
 interface Turn { turn_id: string; turn_no: number; attempt: number; speaker_id: string; channel: number; seconds: number; audio_path: string; created_at: string; verified_text: string | null; english_gloss: string | null; emotion_label: string | null; confidence: number | null; issues: string[]; verified_seconds: number | null; alignments: { src: { text: string } | null; tgt: { text: string } | null; type: string; confidence: number }[]; aligner: string | null; raw_stt_text: string | null; raw_stt_engine: string | null; raw_stt_confidence: number | null; draft_wer: number | null; peer_rating: Record<string, number> | null }
-interface Session { session_id: string; locale: string; language: string; scenario: string | null; scenario_title: string; scenario_prompt_hash: string | null; card_version: number; recorded_at: string; completed_at: string; abandoned_reason: string | null; flags: string[]; speaker_a: string; speaker_b: string | null; persona_a: string; persona_b: string; verification: { editor_id: string | null; verified_at: string; editor_score: number; peer_score: number | null; quality_score: number; quality_tier: string; verified_seconds: number; audit_pick: boolean; aligned_turns: number | null; confidence: number | null }; turns: Turn[] }
+interface Session { session_id: string; mode?: string; locale: string; language: string; scenario: string | null; scenario_title: string; scenario_prompt_hash: string | null; card_version: number; recorded_at: string; completed_at: string; abandoned_reason: string | null; flags: string[]; speaker_a: string; speaker_b: string | null; persona_a: string; persona_b: string; verification: { editor_id: string | null; verified_at: string; editor_score: number; peer_score: number | null; quality_score: number; quality_tier: string; verified_seconds: number; audit_pick: boolean; aligned_turns: number | null; confidence: number | null }; turns: Turn[] }
 interface Speaker { speaker_id: string; languages: string[]; primary_language: string | null; country: string | null; city: string | null; age_band: string | null; gender: string | null; device: string | null; consent: { agreement_version: string; agreement_sha256: string; accepted_terms: boolean; biometric_consent: boolean; signed_at: string; signature_method: string; record_sha256: string } | null }
 interface FileRow { turn_id: string; path: string; bytes: number | null; sha256: string | null }
 interface Payload { delivery: { id: string; bundle_id: string; schema_version: string; created_at: string; status: string; session_count: number; speaker_count: number; seconds: number; files_total: number; files_done: number; note: string | null }; project: { id: string; name: string; buyer: string; language: string; locale: string; tier: string; target_hours: number }; agreement: { version: string; document_id: string; sha256: string; url: string } | null; sessions: Session[]; speakers: Speaker[]; files: FileRow[] }
@@ -54,7 +54,7 @@ function manifestRow(p: Payload, s: Session, fileOf: Map<string, FileRow>) {
       start_ms: 0, end_ms: Math.round(Number(t.verified_seconds ?? t.seconds) * 1000), recorded_at: t.created_at, attempt: t.attempt,
       raw_stt_text: t.raw_stt_text, raw_stt_engine: t.raw_stt_engine, raw_stt_confidence: t.raw_stt_confidence, raw_stt_wer: t.draft_wer,
       verified_text: t.verified_text, english_gloss: t.english_gloss, english_source: t.english_gloss, emotion_label: t.emotion_label, editor_confidence: t.confidence, issues: t.issues ?? [],
-      inter_turn_latency_ms: 0, latency_source: "async_none", code_switches: [], pii_redactions: [],
+      inter_turn_latency_ms: 0, latency_source: s.mode === "live" ? "live_unsegmented" : "async_none", code_switches: [], pii_redactions: [],
       peer_rating: t.peer_rating,
       alignments: (t.alignments ?? []).map((a) => ({ src_span: a.src?.text ?? "", tgt_span: a.tgt?.text ?? "", type: a.type, confidence: a.confidence, reviewer_id: t.aligner ?? s.verification.editor_id ?? null })),
     };
@@ -62,8 +62,8 @@ function manifestRow(p: Payload, s: Session, fileOf: Map<string, FileRow>) {
   const v = s.verification;
   return {
     session_id: s.session_id, corpus_id: bundle, bundle_id: p.delivery.schema_version, locale: s.locale, scenario: s.scenario, scenario_title: s.scenario_title, scenario_prompt_hash: s.scenario_prompt_hash, card_version: s.card_version,
-    prompt_direction: "target_native", modality: "async_voice_notes", audio_layout: "per_turn_files", channels: null, sample_rate_hz: null, bit_depth: null,
-    duration_seconds: Number(Number(v.verified_seconds).toFixed(3)), recorded_at: s.recorded_at, completed_at: s.completed_at, latency_source: "async_none", recording_environment: null, device_class: null,
+    prompt_direction: "target_native", modality: s.mode === "live" ? "live_scene" : "async_voice_notes", audio_layout: s.mode === "live" ? "per_speaker_tracks" : "per_turn_files", channels: s.mode === "live" ? 2 : null, sample_rate_hz: null, bit_depth: null,
+    duration_seconds: Number(Number(v.verified_seconds).toFixed(3)), recorded_at: s.recorded_at, completed_at: s.completed_at, latency_source: s.mode === "live" ? "live_unsegmented" : "async_none", recording_environment: null, device_class: null,
     closed_early: s.abandoned_reason ?? null, game_flags: s.flags ?? [],
     participants: [participant(s.speaker_a, 0, s.persona_a), participant(s.speaker_b, 1, s.persona_b)].filter(Boolean),
     verified_by_qc: { editor_id: v.editor_id, verification_timestamp: v.verified_at, confidence_score: v.confidence, editor_score: v.editor_score, peer_score: v.peer_score, quality_score: v.quality_score, quality_tier: v.quality_tier, audit_status: v.audit_pick ? "sampled_pending" : "not_sampled", audit_reviewer_id: null, audit_notes: "" },
@@ -88,7 +88,7 @@ function readme(p: Payload, rows: Record<string, unknown>[], manifestSha: string
     "- checksums.txt: SHA-256 of every file in the bundle.",
     "- audio/<locale>/<session_id>/turn-NN-<speaker_id>.<ext>: one file per turn, as captured on the contributor's phone (Opus in WebM or MP4, no resampling). 24 kHz stereo WAV masters are the Live Arena format and do not apply to async rallies.", "",
     "## Notes on this layout", "",
-    "- Async rallies are voice notes exchanged in turns, so inter_turn_latency_ms is 0 with latency_source async_none. Real inter-turn timing is only claimed for Live Arena sessions.",
+    "- Async rallies are voice notes exchanged in turns, so inter_turn_latency_ms is 0 with latency_source async_none. Live scenes (modality live_scene) carry one whole-scene track per speaker, recorded on each phone (audio_layout per_speaker_tracks); turn segmentation and measured inter-turn latency are not yet produced, hence latency_source live_unsegmented.",
     "- audit_status sampled_pending marks sessions drawn for random re-audit whose audit has not run yet; a re-issue follows the audit.",
     "- Sessions closed early because a partner stopped replying are included when the remaining takes were verified; closed_early says so.",
     "- Every speaker in this bundle signed the Contributor Agreement" + (a ? ` v${a.version} (document ${a.document_id}, SHA-256 ${a.sha256}, ${a.url})` : "") + ". Buyers may never identify a speaker, clone an individual voice, verify identity with it, surveil anyone, or pass the raw data on (clause 5).", "",

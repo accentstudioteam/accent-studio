@@ -89,7 +89,7 @@ function QueueRow({ s, onOpen }: { s: QueueItem; onOpen: (id: string) => void })
         <div>
           <div className="ttitle">{s.title}</div>
           <div className="tbody muted" style={{ marginTop: 4, fontSize: "0.85rem" }}>
-            {LANG_NAME[s.language] ?? s.language} · {closed ? "closed, partner went quiet" : "complete"} · {s.turns} turns · {Math.round(s.seconds)} s · ready {since(s.ready_since)}
+            {LANG_NAME[s.language] ?? s.language} · {s.mode === "live" ? "live scene, two tracks" : closed ? "closed, partner went quiet" : "complete"} · {s.turns} {s.mode === "live" ? "tracks" : "turns"} · {Math.round(s.seconds)} s · ready {since(s.ready_since)}
           </div>
           <div className="tbody muted" style={{ marginTop: 2, fontSize: "0.75rem", fontFamily: "var(--mono)" }}>{s.speakers.filter(Boolean).join(" · ")}</div>
           <div className="chips" style={{ marginTop: 8 }}>

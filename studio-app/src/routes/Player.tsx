@@ -6,6 +6,8 @@ import { Rally } from "@/routes/Rally";
 import { Join } from "@/routes/Join";
 import { CaseNotice } from "@/routes/CaseNotice";
 import { Earnings } from "@/routes/Earnings";
+import { Booth } from "@/routes/Booth";
+import { Arena } from "@/routes/Arena";
 import { Logo } from "@/components/Logo";
 import type { Onboarding } from "@/lib/types";
 import { demoOnboarding, isDemo } from "@/lib/demo";
@@ -17,6 +19,8 @@ export function Player() {
   const [rally, setRally] = useState<string | null>(null);
   const [notices, setNotices] = useState(false);
   const [earnings, setEarnings] = useState(false);
+  const [booth, setBooth] = useState(false);
+  const [scene, setScene] = useState<string | null>(null);
 
   useEffect(() => {
     if (isDemo()) {
@@ -46,6 +50,8 @@ export function Player() {
   }
   if (notices) return <CaseNotice onBack={() => setNotices(false)} />;
   if (earnings) return <Earnings onBack={() => setEarnings(false)} />;
+  if (scene) return <Arena sessionId={scene} onBack={() => { setScene(null); setBooth(true); }} />;
+  if (booth) return <Booth language={me.contributor.primary_language ?? "pcm"} onBack={() => setBooth(false)} onJoin={(sid) => { setBooth(false); setScene(sid); }} />;
   if (rally) return <Rally sessionId={rally} onBack={() => setRally(null)} />;
-  return <PlayerHome me={me} onOpenRally={setRally} onNotices={() => setNotices(true)} onEarnings={() => setEarnings(true)} />;
+  return <PlayerHome me={me} onOpenRally={setRally} onNotices={() => setNotices(true)} onEarnings={() => setEarnings(true)} onBooth={() => setBooth(true)} onJoinScene={(sid) => setScene(sid)} />;
 }

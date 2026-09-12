@@ -1351,3 +1351,60 @@ button.chip {
   margin-top: 8px;
   line-height: 1.5;
 }
+
+/* --- the booth grid and the live scene --- */
+.slotgrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.slot {
+  position: relative;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  padding: 9px 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink);
+  cursor: pointer;
+}
+.slot:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.slot.waiting {
+  border-color: rgba(69, 224, 160, 0.6);
+  background: rgba(69, 224, 160, 0.12);
+}
+.slot.waiting i {
+  position: absolute;
+  top: -6px;
+  right: -4px;
+  font-style: normal;
+  font-size: 0.6rem;
+  background: var(--acc);
+  color: #0d0b08;
+  border-radius: 100px;
+  padding: 1px 6px;
+}
+.slot.on {
+  outline: 2px solid var(--acc);
+  outline-offset: 1px;
+}
+.lv {
+  height: 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin-top: 4px;
+}
+.lv i {
+  display: block;
+  height: 100%;
+  background: var(--acc);
+  transition: width 0.12s;
+}
+.lv.them i {
+  background: var(--gold);
+}

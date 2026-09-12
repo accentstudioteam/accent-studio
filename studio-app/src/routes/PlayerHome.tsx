@@ -6,14 +6,16 @@ import type { Onboarding } from "@/lib/types";
 import { demo, isDemo } from "@/lib/demo";
 import { myCases, daysLeft, type MyCase } from "@/lib/verify";
 import { money, myEarnings, type MyEarnings } from "@/lib/earn";
+import { lagos, mine as arenaMine, untilLabel, type Mine as ArenaMine } from "@/lib/arena";
 
 const POLL_MS = 20_000;
 
-export function PlayerHome({ me, onOpenRally, onNotices, onEarnings }: { me: Onboarding; onOpenRally: (sessionId: string) => void; onNotices: () => void; onEarnings: () => void }) {
+export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, onJoinScene }: { me: Onboarding; onOpenRally: (sessionId: string) => void; onNotices: () => void; onEarnings: () => void; onBooth: () => void; onJoinScene: (sid: string) => void }) {
   const { signOut } = useAuth();
   const [rallies, setRallies] = useState<RallySummary[]>([]);
   const [notices, setNotices] = useState<MyCase[]>([]);
   const [earn, setEarn] = useState<MyEarnings | null>(null);
+  const [arena, setArena] = useState<ArenaMine | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const language = me.contributor?.primary_language ?? "pcm";
@@ -23,6 +25,7 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings }: { me: Onb
       setRallies(await mySessions());
       setNotices(await myCases().catch(() => []));
       setEarn(await myEarnings().catch(() => null));
+      setArena(await arenaMine().catch(() => null));
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Couldn't load your rallies.");
     }
@@ -92,6 +95,25 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings }: { me: Onb
             <div className="eyebrow" style={{ marginBottom: 6 }}>Playing in {LANG_NAME[language] ?? language}</div>
             <h1 className="h1">Ping-Pong.</h1>
           </div>
+        </div>
+
+        <div className="sheet" style={{ marginBottom: 18 }}>
+          <div className="handle" />
+          <div className="shead"><i className="g" />Live Arena</div>
+          {(() => {
+            const next = arena?.upcoming[0];
+            const joinable = arena?.upcoming.find((b) => b.can_join && b.session_id);
+            return (
+              <>
+                <div className={next ? "tile acc" : "tile"}>
+                  <div className="tlbl">{next ? "Your next scene" : "Five minutes, live, with a stranger"}</div>
+                  <div className="ttitle" style={{ fontSize: "1rem" }}>{next ? `${lagos(next.starts_at)} · ${untilLabel(next.starts_at)}` : "Book a scene in the booth."}</div>
+                  <div className="tbody muted" style={{ marginTop: 4, fontSize: "0.85rem" }}>{next ? (next.status === "paired" ? `Paired with ${next.partner ?? "a stranger"}. Be there five minutes early.` : "Waiting for a partner to pick the same time.") : "Pick a 15-minute slot, get paired with whoever picks the same one, improvise a scene on your phones, each of you recorded separately."}</div>
+                </div>
+                {joinable ? <button className="pill" onClick={() => onJoinScene(joinable.session_id!)} style={{ background: "var(--live)", color: "#fff" }}>Join the room now</button> : <button className="pill ghost" onClick={onBooth}>{next ? "Open the booth" : "Book a scene"}</button>}
+              </>
+            );
+          })()}
         </div>
 
         <div className="sheet" style={{ marginBottom: 18 }}>

@@ -124,7 +124,7 @@ export function Workbench({ sessionId, onBack, onCases, embedded }: Props) {
   const body = (
     <div className="shell" style={{ maxWidth: 720 }}>
       {embedded && <button type="button" onClick={onBack} style={{ background: "none", border: "none", color: "var(--mut)", fontFamily: "var(--mono)", fontSize: "0.9rem", padding: 0, marginBottom: 10, cursor: "pointer" }}>‹ queue</button>}
-      <div className="eyebrow" style={{ marginBottom: 6 }}>{w.card.title} · {LANG_NAME[w.language] ?? w.language} · {w.session_status === "abandoned" ? "closed, partner went quiet" : "complete"} · {when(w.completed_at)}</div>
+      <div className="eyebrow" style={{ marginBottom: 6 }}>{w.card.title} · {LANG_NAME[w.language] ?? w.language} · {w.mode === "live" ? "live scene" : w.session_status === "abandoned" ? "closed, partner went quiet" : "complete"} · {when(w.completed_at)}</div>
       <h1 className="h1" style={{ marginBottom: 14, fontSize: "clamp(1.4rem,6vw,2rem)" }}>{title}</h1>
 
       <div className="sheet" style={{ marginBottom: 18 }}>
@@ -170,7 +170,8 @@ export function Workbench({ sessionId, onBack, onCases, embedded }: Props) {
 
       <div className="sheet" style={{ marginBottom: 18 }}>
         <div className="handle" />
-        <div className="shead"><i />The takes · {latest.length}{w.peer_score != null ? ` · peer score ${Number(w.peer_score).toFixed(2)}` : ""}</div>
+        <div className="shead"><i />{w.mode === "live" ? "The two tracks" : "The takes"} · {latest.length}{w.peer_score != null ? ` · peer score ${Number(w.peer_score).toFixed(2)}` : ""}</div>
+            {w.mode === "live" && <div className="tbody muted small">A live scene: each speaker's whole five minutes is one track, recorded on their own phone. Transcribe the track as spoken; the partner's words are not in it.</div>}
         {w.turns.map((t) => <WorkTurnCard key={`${t.turn_id}-${t.verification?.updated_at ?? ""}`} t={t} w={w} src={urls[t.turn_id] ?? null} canEdit={mine && t.latest} onSaved={() => void load()} onFlag={doFlag} />)}
       </div>
 
