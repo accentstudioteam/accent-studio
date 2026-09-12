@@ -5,7 +5,7 @@ import { Logo } from "../components/Logo";
 
 const DEMO_BARS = [55, 32, 78, 44, 68, 88, 52, 72, 38, 58, 48, 34, 64, 40];
 
-export function Home({ onSettings, onApplications, onLabInquiries }: { onSettings: () => void; onApplications?: () => void; onLabInquiries?: () => void }) {
+export function Home({ onSettings, onApplications, onLabInquiries, onCards }: { onSettings: () => void; onApplications?: () => void; onLabInquiries?: () => void; onCards?: () => void }) {
   const { profile, session } = useAuth();
   const name = profile?.handle ?? session?.user.email?.split("@")[0] ?? "player";
   const lang = profile?.locale ? LOCALE_NAME[profile.locale] : null;
@@ -61,6 +61,13 @@ export function Home({ onSettings, onApplications, onLabInquiries }: { onSetting
                 </div>
               </Tile>
               <button className="pill" onClick={onLabInquiries} style={{ background: "#f0a84b", color: "#0d0b08" }}>Open lab inquiries</button>
+              <Tile label="Cards">
+                <div className="ttitle">Scenario card library</div>
+                <div className="tbody muted" style={{ marginTop: 6 }}>
+                  Cards in the target language: situation, two personas, audio. Only active cards are dealt in Ping-Pong.
+                </div>
+              </Tile>
+              <button className="pill ghost" onClick={onCards}>Open the card library</button>
             </Sheet>
           )}
           <Sheet title="Ping · ready when you are">

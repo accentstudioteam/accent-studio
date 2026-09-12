@@ -6,6 +6,7 @@ import { Studio } from "@/routes/Studio";
 import { Prototype } from "@/prototype/Prototype";
 import { Apply } from "@/routes/Apply";
 import { Join } from "@/routes/Join";
+import { Player } from "@/routes/Player";
 
 export function App() {
   const { session, profile, loading } = useAuth();
@@ -36,13 +37,13 @@ export function App() {
 
   if (!session) return <SignIn />;
 
-  // Authenticated but the DB says they're not allowed in yet.
-  // The allowlist is also enforced by row-level security, so this is
-  // UX, not the security boundary.
-  if (!profile?.is_allowlisted) return <Blocked />;
-
-  // First run: no language picked yet. Locale is required to serve prompts.
-  if (!profile.locale) return <Onboarding />;
-
-  return <Studio />;
+  // Founders and linguists: the studio. Everyone else who is allowlisted is a
+  // signed contributor and gets the player app. Row-level security is the real
+  // boundary; this is routing.
+  if (profile?.is_admin) {
+    if (!profile.locale) return <Onboarding />;
+    return <Studio />;
+  }
+  if (profile?.is_allowlisted) return <Player />;
+  return <Blocked />;
 }

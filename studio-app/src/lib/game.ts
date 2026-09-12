@@ -1,0 +1,87 @@
+import { supabase } from "@/lib/supabase";
+
+export interface RallySummary {
+  session_id: string;
+  status: "waiting" | "active" | "complete" | "abandoned";
+  title: string;
+  language: string;
+  turn_count: number;
+  turns_target: number;
+  updated_at: string;
+  my_turn: boolean;
+  waiting_for_partner: boolean;
+}
+
+export interface RallyTurn {
+  turn_id: string;
+  turn_no: number;
+  attempt: number;
+  mine: boolean;
+  audio_path: string;
+  seconds: number;
+  status: "recorded" | "rated" | "redo" | "verified";
+  created_at: string;
+  rating: { tone: number; prompt_adherence: number; mood: number; clarity: number; aggregate: number } | null;
+}
+
+export interface Rally {
+  session_id: string;
+  status: RallySummary["status"];
+  language: string;
+  turn_count: number;
+  turns_target: number;
+  card: { title: string; situation: string; persona: string; partner_persona: string; audio_path: string | null; domain: string };
+  my_speaker_id: string;
+  i_am: "a" | "b";
+  has_partner: boolean;
+  my_turn: boolean;
+  owe_rating: boolean;
+  rate_turn_id: string | null;
+  redo: boolean;
+  next_turn_no: number;
+  next_attempt: number;
+  max_turn_seconds: number;
+  turns: RallyTurn[];
+}
+
+export const LANG_NAME: Record<string, string> = { pcm: "Nigerian Pidgin", yo: "Yoruba", ha: "Hausa", ig: "Igbo", sw: "Swahili", zu: "Zulu", en: "English" };
+
+export async function mySessions(): Promise<RallySummary[]> {
+  const { data, error } = await supabase.rpc("pp_my_sessions");
+  if (error) throw error;
+  return (data ?? []) as RallySummary[];
+}
+
+export async function startRally(language: string): Promise<{ session_id: string; joined: boolean }> {
+  const { data, error } = await supabase.rpc("pp_start", { lang: language });
+  if (error) throw error;
+  return data as { session_id: string; joined: boolean };
+}
+
+export async function loadRally(sessionId: string): Promise<Rally> {
+  const { data, error } = await supabase.rpc("pp_session", { sid: sessionId });
+  if (error) throw error;
+  return data as Rally;
+}
+
+export async function submitTurn(sessionId: string, path: string, seconds: number): Promise<void> {
+  const { error } = await supabase.rpc("pp_submit_turn", { sid: sessionId, path, secs: seconds });
+  if (error) throw error;
+}
+
+export async function rateTurn(turnId: string, r: { tone: number; prompt_adherence: number; mood: number; clarity: number }): Promise<{ aggregate: number; redo: boolean; complete?: boolean }> {
+  const { data, error } = await supabase.rpc("pp_rate_turn", { tid: turnId, ...r });
+  if (error) throw error;
+  return data as { aggregate: number; redo: boolean; complete?: boolean };
+}
+
+/** Short-lived playback URL for a turn in a rally the caller belongs to. */
+export async function turnUrl(path: string): Promise<string | null> {
+  const { data } = await supabase.storage.from("sessions").createSignedUrl(path, 600);
+  return data?.signedUrl ?? null;
+}
+
+export function cardAudioUrl(path: string | null): string | null {
+  if (!path) return null;
+  return supabase.storage.from("cards").getPublicUrl(path).data.publicUrl;
+}

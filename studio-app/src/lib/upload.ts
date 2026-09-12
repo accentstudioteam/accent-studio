@@ -1,4 +1,4 @@
-import { SUPABASE_KEY, SUPABASE_URL } from "@/lib/supabase";
+import { SUPABASE_KEY, SUPABASE_URL, supabase } from "@/lib/supabase";
 
 export interface UploadResult {
   bytes: number;
@@ -22,13 +22,13 @@ function describe(status: number, body: string): UploadError {
   return new UploadError("Upload failed. Tap Upload again.", status, true);
 }
 
-function attempt(path: string, blob: Blob, contentType: string, onProgress: (pct: number) => void): Promise<UploadResult> {
+function attempt(path: string, blob: Blob, contentType: string, onProgress: (pct: number) => void, bucket: string, token: string): Promise<UploadResult> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `${SUPABASE_URL}/storage/v1/object/applications/${path}`);
+    xhr.open("POST", `${SUPABASE_URL}/storage/v1/object/${bucket}/${path}`);
     xhr.timeout = 120_000;
     xhr.setRequestHeader("apikey", SUPABASE_KEY);
-    xhr.setRequestHeader("Authorization", `Bearer ${SUPABASE_KEY}`);
+    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
     xhr.setRequestHeader("Content-Type", contentType);
     xhr.setRequestHeader("x-upsert", "false");
     xhr.upload.onprogress = (ev) => {
@@ -51,11 +51,14 @@ export async function uploadRecording(
   blob: Blob,
   contentType: string,
   onProgress: (pct: number, attemptNo: number) => void,
+  bucket = "applications",
 ): Promise<UploadResult> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token ?? SUPABASE_KEY;
   let last: UploadError | null = null;
   for (let i = 0; i <= RETRY_DELAYS_MS.length; i++) {
     try {
-      return await attempt(path, blob, contentType, (pct) => onProgress(pct, i + 1));
+      return await attempt(path, blob, contentType, (pct) => onProgress(pct, i + 1), bucket, token);
     } catch (e) {
       last = e instanceof UploadError ? e : new UploadError("Upload failed. Tap Upload again.", 0, true);
       if (!last.retryable || i === RETRY_DELAYS_MS.length) break;
