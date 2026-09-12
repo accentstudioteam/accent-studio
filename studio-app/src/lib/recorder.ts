@@ -63,15 +63,54 @@ export function useRecorder(maxSeconds = 60) {
     }
   };
 
-  const startMeter = (stream: MediaStream) => {
+  /**
+   * Phone microphones are quiet once the browser's automatic gain is off, so the mic
+   * runs through our own chain: a fixed boost, a gentle compressor that evens out loud
+   * and soft passages, and a limiter that stops peaks from distorting. The recorder and
+   * the level meter both read the processed signal. Returns null if Web Audio is unavailable,
+   * in which case the raw stream is recorded.
+   */
+  const buildChain = (stream: MediaStream): { processed: MediaStream; analyser: AnalyserNode } | null => {
     try {
       const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (!Ctx) return;
+      if (!Ctx) return null;
       const ctx = new Ctx();
       audioCtxRef.current = ctx;
+      void ctx.resume().catch(() => undefined);
+      const src = ctx.createMediaStreamSource(stream);
+      const pre = ctx.createGain();
+      pre.gain.value = 3.2; // about +10 dB
+      const comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = -24;
+      comp.knee.value = 12;
+      comp.ratio.value = 4;
+      comp.attack.value = 0.003;
+      comp.release.value = 0.25;
+      const limiter = ctx.createDynamicsCompressor();
+      limiter.threshold.value = -4;
+      limiter.knee.value = 0;
+      limiter.ratio.value = 20;
+      limiter.attack.value = 0.001;
+      limiter.release.value = 0.08;
+      const post = ctx.createGain();
+      post.gain.value = 1.15;
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 512;
-      ctx.createMediaStreamSource(stream).connect(analyser);
+      const dest = ctx.createMediaStreamDestination();
+      src.connect(pre);
+      pre.connect(comp);
+      comp.connect(limiter);
+      limiter.connect(post);
+      post.connect(analyser);
+      post.connect(dest);
+      return { processed: dest.stream, analyser };
+    } catch {
+      return null;
+    }
+  };
+
+  const startMeter = (analyser: AnalyserNode) => {
+    try {
       const buf = new Uint8Array(analyser.fftSize);
       const tick = () => {
         analyser.getByteTimeDomainData(buf);
@@ -81,7 +120,7 @@ export function useRecorder(maxSeconds = 60) {
           sum += v * v;
         }
         const rms = Math.sqrt(sum / buf.length);
-        const level = Math.min(1, rms * 3.2);
+        const level = Math.min(1, rms * 2.4);
         setLevels((prev) => [...prev.slice(-(LEVEL_HISTORY - 1)), level]);
         rafRef.current = requestAnimationFrame(tick);
       };
@@ -108,8 +147,10 @@ export function useRecorder(maxSeconds = 60) {
         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1, sampleRate: 48000 },
       });
       streamRef.current = stream;
+      const chain = buildChain(stream);
+      const source = chain ? chain.processed : stream;
       const type = pickMimeType();
-      const rec = type ? new MediaRecorder(stream, { mimeType: type, audioBitsPerSecond: 128_000 }) : new MediaRecorder(stream, { audioBitsPerSecond: 128_000 });
+      const rec = type ? new MediaRecorder(source, { mimeType: type, audioBitsPerSecond: 128_000 }) : new MediaRecorder(source, { audioBitsPerSecond: 128_000 });
       recRef.current = rec;
       chunksRef.current = [];
       rec.ondataavailable = (ev) => {
@@ -136,7 +177,7 @@ export function useRecorder(maxSeconds = 60) {
       setSeconds(0);
       setLevels([]);
       setStatus("recording");
-      startMeter(stream);
+      if (chain) startMeter(chain.analyser);
       timerRef.current = window.setInterval(() => {
         const s = (Date.now() - startedAtRef.current) / 1000;
         setSeconds(Math.floor(s));
