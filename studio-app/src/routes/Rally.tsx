@@ -159,7 +159,7 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
                 <div className="tbody muted" style={{ fontSize: "0.8rem", marginBottom: 8 }}>{hint}</div>
                 <div className="stars" role="radiogroup" aria-label={label}>
                   {[1, 2, 3, 4, 5].map((n) => (
-                    <s key={n} role="radio" aria-checked={scores[key] === n} tabIndex={0} className={scores[key] >= n ? "" : "dim"} onClick={() => setScores((s) => ({ ...s, [key]: n }))} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setScores((s) => ({ ...s, [key]: n })); }} style={{ cursor: "pointer" }}>★</s>
+                    <button key={n} type="button" role="radio" aria-checked={scores[key] === n} aria-label={`${n} of 5`} className={scores[key] >= n ? "on" : ""} onClick={() => setScores((s) => ({ ...s, [key]: n }))}>★</button>
                   ))}
                 </div>
               </div>
