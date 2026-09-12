@@ -76,6 +76,8 @@ export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
 
   const toggleIssue = (k: string) => setIssues((xs) => (xs.includes(k) ? xs.filter((x) => x !== k) : [...xs, k]));
   const r = t.rating;
+  const d = w.stt.show ? t.draft : null;
+  const draftInUse = Boolean(d?.text) && text.trim() === (d?.text ?? "").trim();
 
   return (
     <div className={`wt ${t.speaker}${t.latest ? "" : " old"}`}>
@@ -105,6 +107,22 @@ export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
 
       {canEdit ? (
         <>
+          {d && (
+            <div className="draft" style={{ marginTop: 12 }}>
+              {d.status === "done" && d.text ? (
+                <>
+                  <div className="tlbl">Machine draft · {d.engine ?? "stt"}{d.confidence != null ? ` · ${Math.round(Number(d.confidence) * 100)}%` : ""}{d.detected_language ? ` · heard as ${d.detected_language}` : ""}</div>
+                  <div className="tbody" style={{ fontStyle: "italic", color: "var(--ink2)" }}>{d.text}</div>
+                  {w.stt.note && <div className="tbody small" style={{ color: "var(--gold)", marginTop: 6 }}>{w.stt.note}</div>}
+                  <button type="button" className="pill ghost" style={{ width: "auto", marginTop: 8, padding: "9px 14px", minHeight: 0 }} disabled={draftInUse} onClick={() => { setText(d.text ?? ""); if (confidence == null) setConfidence(0.85); }}>{draftInUse ? "Draft in use, now correct it" : "Use the draft"}</button>
+                </>
+              ) : d.status === "pending" || d.status === "running" ? (
+                <div className="tbody muted small"><span className="dots" aria-hidden="true"><i /><i /><i /></span>Drafting{d.engine ? ` with ${d.engine}` : ""}… you can start listening.</div>
+              ) : (
+                <div className="tbody muted small">No machine draft{d.error ? `: ${d.error}` : "."} Write the transcript from the audio.</div>
+              )}
+            </div>
+          )}
           <div className="field" style={{ marginTop: 12 }}>
             <label>
               Transcript · as spoken, in {w.language === "pcm" ? "Pidgin" : w.language}
@@ -169,7 +187,7 @@ export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
             <div className="tbody">{v.verified_text ?? <span className="muted">No transcript</span>}</div>
             {v.english_gloss && <div className="tbody muted small" style={{ marginTop: 4 }}>{v.english_gloss}</div>}
             <div className="tbody muted small" style={{ marginTop: 6, fontFamily: "var(--mono)", fontSize: "0.7rem" }}>
-              {v.emotion_label ? `${v.emotion_label.replace("_", " ")} · ` : ""}confidence {v.confidence ?? "?"} · {v.verified_seconds ?? t.seconds} s{v.issues.length ? ` · ${v.issues.join(", ")}` : ""}{v.rating_check ? ` · rating ${v.rating_check.replace("_", " ")}` : ""}
+              {v.emotion_label ? `${v.emotion_label.replace("_", " ")} · ` : ""}confidence {v.confidence ?? "?"} · {v.verified_seconds ?? t.seconds} s{v.issues.length ? ` · ${v.issues.join(", ")}` : ""}{v.rating_check ? ` · rating ${v.rating_check.replace("_", " ")}` : ""}{v.draft_wer != null ? ` · draft ${Math.round(Number(v.draft_wer) * 100)}% off (${v.draft_engine ?? "stt"})` : ""}
             </div>
           </div>
         )

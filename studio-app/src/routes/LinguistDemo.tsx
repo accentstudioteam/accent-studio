@@ -31,7 +31,7 @@ export function LinguistDemo() {
         <div className="tile" style={{ borderColor: "var(--gold)", marginBottom: 12 }}>
           <div className="tlbl" style={{ color: "var(--gold)" }}>Demo · nothing is saved</div>
           <div className="tbody muted" style={{ fontSize: "0.85rem" }}>
-            You are a linguist. Two finished rallies wait in the queue, built from the founders' own clips. Turn 4 of Market Day is a clean take that its partner rated 2.25: mark the rating "too low", flag the rater, then follow the case through review, notice, the contributor's response and a decision signed by a second team member.{" "}
+            You are a linguist. Two finished rallies wait in the queue, built from the founders' own clips. Claim one and a machine draft arrives for every take a few seconds later (an English-trained model on Pidgin, so it needs correcting; the founders' notes show what a careful linguist writes). Turn 4 of Market Day is a clean take that its partner rated 2.25: mark the rating "too low", flag the rater, then follow the case through review, notice, the contributor's response and a decision signed by a second team member.{" "}
             <button type="button" onClick={reset} style={{ background: "none", border: "none", color: "var(--acc)", padding: 0, font: "inherit", cursor: "pointer" }}>Reset the demo</button>
           </div>
         </div>

@@ -55,6 +55,24 @@ export interface TurnVerification {
   verified_seconds: number | null;
   rating_check: RatingCheck | null;
   updated_at: string;
+  draft_wer?: number | null;
+  draft_engine?: string | null;
+}
+/** The machine's first pass at a take. Never shown to contributors, never used to grade them. */
+export interface Draft {
+  status: "pending" | "running" | "done" | "failed" | "skipped";
+  engine: string | null;
+  text: string | null;
+  confidence: number | null;
+  detected_language: string | null;
+  error: string | null;
+  updated_at: string;
+}
+export interface SttRoute {
+  engine: string;
+  language: string | null;
+  show: boolean;
+  note?: string;
 }
 export interface WorkTurn {
   turn_id: string;
@@ -69,6 +87,7 @@ export interface WorkTurn {
   created_at: string;
   rating: TurnRating | null;
   verification: TurnVerification | null;
+  draft: Draft | null;
 }
 export interface Tier {
   tier: string;
@@ -106,6 +125,7 @@ export interface Workbench {
   verification: SessionVerification;
   cases: { id: string; who: Speaker; reason: CaseReason; status: CaseStatus; decision: Decision | null }[];
   tiers: Tier[];
+  stt: SttRoute;
   turns: WorkTurn[];
 }
 
@@ -236,11 +256,21 @@ export interface VerifyResult {
   multiplier: number;
   verified_seconds: number;
   hold: boolean;
+  draft_wer: number | null;
 }
 export const verifySession = (sid: string, editorScore: number, notes: string): Promise<VerifyResult> =>
   isDemo() ? demoVerify.verify(sid, editorScore, notes) : rpc<VerifyResult>("vq_verify", { sid, editor_score: editorScore, notes });
 export const flag = (sid: string, who: Speaker, reason: CaseReason, detail: string, tid: string | null): Promise<{ case_id: string }> =>
   isDemo() ? demoVerify.flag(sid, who, reason, detail, tid) : rpc<{ case_id: string }>("vq_flag", { sid, who, reason, detail, tid });
+
+/** Asks the stt-draft function for a machine draft of every take that lacks one. Resolves when the vendor is done. */
+export async function draft(sid: string, retry = false): Promise<{ ok: boolean; done: number; failed: number; skipped: number; reason?: string }> {
+  if (isDemo()) return demoVerify.draft(sid);
+  const { data, error } = await supabase.functions.invoke("stt-draft", { body: { session_id: sid, retry } });
+  if (error) throw new Error(error.message);
+  if (!data?.ok) throw new Error((data as { error?: string } | null)?.error ?? "Drafting failed");
+  return data as { ok: boolean; done: number; failed: number; skipped: number; reason?: string };
+}
 
 export const cases = (): Promise<Cases> => (isDemo() ? demoVerify.cases() : rpc<Cases>("ic_cases"));
 export const review = (cid: string, note: string, proceed: boolean): Promise<void> =>

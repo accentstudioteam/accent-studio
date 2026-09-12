@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
 import { LANG_NAME, cardAudioUrl, turnUrl } from "@/lib/game";
-import { REASON_LABEL, STATUS_LABEL, claim, flag, verifySession, when, workbench, type CaseReason, type Speaker, type VerifyResult, type Workbench as Bench } from "@/lib/verify";
+import { REASON_LABEL, STATUS_LABEL, claim, draft as requestDraft, flag, verifySession, when, workbench, type CaseReason, type Speaker, type VerifyResult, type Workbench as Bench } from "@/lib/verify";
 import { WorkTurnCard } from "@/routes/WorkTurnCard";
 import { isDemo } from "@/lib/demo";
 
@@ -45,12 +45,35 @@ export function Workbench({ sessionId, onBack, onCases, embedded }: Props) {
     void load();
   }, [load]);
 
+  // while the vendor is drafting, keep the bench fresh
+  const drafting = Boolean(w && w.verification.status === "in_progress" && w.turns.some((t) => t.latest && t.draft && (t.draft.status === "pending" || t.draft.status === "running")));
+  useEffect(() => {
+    if (!drafting) return;
+    const id = window.setInterval(() => void load(), isDemo() ? 1_200 : 4_000);
+    return () => window.clearInterval(id);
+  }, [drafting, load]);
+
+  const [draftErr, setDraftErr] = useState<string | null>(null);
+  const runDrafts = async (retry: boolean) => {
+    setDraftErr(null);
+    const pending = requestDraft(sessionId, retry);
+    window.setTimeout(() => void load(), 600); // show the running state while the vendor works; polling takes over from there
+    try {
+      const r = await pending;
+      if (r.skipped > 0 && r.reason) setDraftErr(r.reason);
+    } catch (e) {
+      setDraftErr(e instanceof Error ? e.message.replace(/^.*?: /, "") : "Drafting failed.");
+    }
+    await load();
+  };
+
   const doClaim = async () => {
     setBusy(true);
     setErr(null);
     try {
       await claim(sessionId);
       await load();
+      void runDrafts(false); // the vendor works while the editor starts listening
     } catch (e) {
       setErr(e instanceof Error ? e.message.replace(/^.*?: /, "") : "Couldn't claim the rally.");
     }
@@ -135,7 +158,11 @@ export function Workbench({ sessionId, onBack, onCases, embedded }: Props) {
         )}
         {v.status === "pending" && <button className="pill mint" disabled={busy} onClick={() => void doClaim()}>{busy ? "Claiming…" : "Claim this rally"}</button>}
         {heldByOther && <div className="tbody muted small">Another editor is working on it. It frees itself when their hold expires.</div>}
-        {mine && <div className="tbody muted small">Held by you since {when(v.claimed_at)}. {saved} of {latest.length} takes saved.</div>}
+        {mine && <div className="tbody muted small">Held by you since {when(v.claimed_at)}. {saved} of {latest.length} takes saved.{w.stt.show && w.stt.engine !== "none" ? ` Machine drafts: ${latest.filter((t) => t.draft?.status === "done").length} of ${latest.length}${drafting ? ", drafting…" : ""}.` : ""}</div>}
+        {mine && !drafting && w.stt.engine !== "none" && latest.some((t) => !t.draft || t.draft.status === "failed" || t.draft.status === "skipped") && (
+          <button className="pill ghost" onClick={() => void runDrafts(true)}>{latest.some((t) => t.draft) ? "Retry the machine drafts" : "Ask for machine drafts"}</button>
+        )}
+        {draftErr && <div className="tbody small" style={{ color: "var(--gold)" }}>Drafts: {draftErr}</div>}
       </div>
 
       {flash && <div className="tile" style={{ borderColor: "var(--gold)", marginBottom: 14 }}><div className="tbody">{flash}</div></div>}
@@ -174,7 +201,7 @@ export function Workbench({ sessionId, onBack, onCases, embedded }: Props) {
           <div className="tlbl">{v.status === "verified" ? `Verified by ${v.editor_id ?? "you"} · ${when(v.verified_at)}` : "Forfeited"}</div>
           <div className="tbody">
             {v.status === "verified" ? (
-              <>Peer {v.peer_score != null ? Number(v.peer_score).toFixed(2) : "none"} + editor {v.editor_score} → <b>{Number(v.quality_score).toFixed(2)}</b> · <b>{TIER_LABEL[v.quality_tier ?? ""] ?? v.quality_tier}</b> x{v.multiplier} · {Number(v.verified_seconds).toFixed(1)} verified seconds{v.audit_pick ? " · picked for random audit" : ""}{v.hold ? ". Pay is on hold until the open case is decided." : "."}</>
+              <>Peer {v.peer_score != null ? Number(v.peer_score).toFixed(2) : "none"} + editor {v.editor_score} → <b>{Number(v.quality_score).toFixed(2)}</b> · <b>{TIER_LABEL[v.quality_tier ?? ""] ?? v.quality_tier}</b> x{v.multiplier} · {Number(v.verified_seconds).toFixed(1)} verified seconds{v.audit_pick ? " · picked for random audit" : ""}{v.hold ? ". Pay is on hold until the open case is decided." : "."}{(() => { const ws = latest.map((t) => t.verification?.draft_wer).filter((x): x is number => x != null); return ws.length ? ` Machine drafts were ${Math.round((ws.reduce((a, b) => a + Number(b), 0) / ws.length) * 100)}% off on average.` : ""; })()}</>
             ) : (
               "Confirmed dishonesty under clause 15. Pending pay for this rally is forfeited; every other verified rally is still paid."
             )}

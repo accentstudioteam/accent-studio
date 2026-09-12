@@ -5,6 +5,37 @@
 import { demo } from "@/lib/demo";
 import type { Case, CaseEvent, CaseReason, Cases, Decision, MyCase, Queue, SaveTurnInput, Speaker, TurnVerification, VerifyResult, Workbench, WorkTurn } from "@/lib/verify";
 
+/** What an English-trained Whisper typically makes of these clips: the draft the editor corrects. */
+const DRAFTS: Record<string, string> = {
+  scene_mkt_01: "Madam, how much for this basket of tomato? I beg, don't talk, say now two thousand naira, oh.",
+  scene_mkt_02: "My friend, this one is fresh from farm this morning. Give me one thousand eight hundred.",
+  scene_mkt_03: "Ah, it's too much, oh! Take one thousand two hundred, make I they go.",
+  scene_mkt_04: "Eh! You don't turn market woman like me? Give me one thousand five hundred, now final price be that, oh!",
+  scene_mkt_05: "One thousand three hundred! Last last, I no get change.",
+  scene_mkt_06: "Okay, come collect them. Ah! You be strong customer, oh.",
+  scene_bank_01: "Morning, oh. Now so I wake this morning, see say POS where I no use come out 50k for my account.",
+  scene_bank_02: "Ah, we are sorry, sir. I beg, they calm, make I quick check your account.",
+  scene_bank_03: "I beg, sharp sharp. I need my money back today, today!",
+  scene_bank_04: "Oga, I they see three unauthorized transaction. I go block them now, make I run your refund.",
+  scene_bank_05: "Sharp! Thank you. You don't save me plenty wahala today.",
+};
+const STT_NOTE = "English-trained model on Pidgin: expect English spellings and guessed words. Rewrite as spoken.";
+
+/** Word error rate: word-level edit distance over the reference length. */
+export function wer(ref: string, hyp: string): number {
+  const words = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}\s'’-]/gu, " ").split(/\s+/).filter(Boolean);
+  const r = words(ref);
+  const h = words(hyp);
+  if (r.length === 0) return h.length === 0 ? 0 : 1;
+  let prev = Array.from({ length: h.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= r.length; i++) {
+    const cur = [i];
+    for (let j = 1; j <= h.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (r[i - 1] === h[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return Math.round((prev[h.length] / r.length) * 1000) / 1000;
+}
+
 const ME = "edt_00108";
 const OTHER = "edt_00417"; // "Ada", the second team member in the demo
 const TIERS = [
@@ -66,7 +97,7 @@ const rating = (rater: Speaker, tone: number, sit: number, mood: number, clarity
 function turn(session: string, no: number, speaker: Speaker, speakerId: string, clip: string, seconds: number, r: WorkTurn["rating"], minutesAgo: number): DemoTurn {
   const path = `${session}/turn-${no}-a1-${speakerId}.mp3`;
   demo.storeBlob(path, clipUrl(clip)); // so the shared turnUrl() resolves it like a real signed URL
-  return { turn_id: `${session}-t${no}`, turn_no: no, attempt: 1, latest: true, speaker, speaker_id: speakerId, audio_path: path, seconds, status: "rated", created_at: ago(minutesAgo), rating: r, verification: null, clip };
+  return { turn_id: `${session}-t${no}`, turn_no: no, attempt: 1, latest: true, speaker, speaker_id: speakerId, audio_path: path, seconds, status: "rated", created_at: ago(minutesAgo), rating: r, verification: null, draft: null, clip };
 }
 
 const A1 = "spk_pcm_ng_48213";
@@ -180,6 +211,7 @@ export const demoVerify = {
       },
       cases: state.cases.filter((c) => c.sessions.some((x) => x.session_id === s.id)).map((c) => ({ id: c.id, who: c.contributor === s.speakers.a ? "a" : "b", reason: c.reason, status: c.status, decision: c.decision })),
       tiers: TIERS,
+      stt: { engine: "whisper", language: "en", show: true, note: STT_NOTE },
       turns: s.turns.map(({ clip: _clip, ...t }) => t),
     };
   },
@@ -205,12 +237,31 @@ export const demoVerify = {
     const tier = TIERS.find((t) => q >= t.min) ?? TIERS[TIERS.length - 1];
     const secs = latest(s).reduce((n, t) => n + (t.verification?.verified_seconds ?? t.seconds), 0);
     const hold = state.cases.some((c) => c.status !== "decided" && c.sessions.some((x) => x.session_id === s.id));
-    s.result = { peer_score: peer, quality_score: q, quality_tier: tier.tier, multiplier: tier.x, verified_seconds: secs, hold };
+    const wers: number[] = [];
+    for (const t of latest(s)) {
+      if (t.draft?.status === "done" && t.draft.text && t.verification?.verified_text) {
+        const w = wer(t.verification.verified_text, t.draft.text);
+        t.verification = { ...t.verification, draft_wer: w, draft_engine: t.draft.engine };
+        wers.push(w);
+      }
+    }
+    const draftWer = wers.length ? Math.round((wers.reduce((a, b) => a + b, 0) / wers.length) * 1000) / 1000 : null;
+    s.result = { peer_score: peer, quality_score: q, quality_tier: tier.tier, multiplier: tier.x, verified_seconds: secs, hold, draft_wer: draftWer };
     s.editor_score = editorScore;
     s.notes = notes.trim() || null;
     s.status = "verified";
     s.hold = hold;
     return s.result;
+  },
+
+  /** The demo's vendor: every take gets a draft a couple of seconds after the rally is claimed. */
+  draft: async (sid: string): Promise<{ ok: boolean; done: number; failed: number; skipped: number }> => {
+    const s = find(sid);
+    const todo = latest(s).filter((t) => !t.draft || t.draft.status === "failed" || t.draft.status === "skipped");
+    for (const t of todo) t.draft = { status: "running", engine: "whisper-large-v3 (demo)", text: null, confidence: null, detected_language: null, error: null, updated_at: now() };
+    await new Promise((res) => setTimeout(res, 2500));
+    for (const t of todo) t.draft = { status: "done", engine: "whisper-large-v3 (demo)", text: DRAFTS[t.clip] ?? null, confidence: 0.82, detected_language: "en", error: null, updated_at: now() };
+    return { ok: true, done: todo.length, failed: 0, skipped: 0 };
   },
 
   flag: async (sid: string, who: Speaker, reason: CaseReason, detail: string, tid: string | null): Promise<{ case_id: string }> => {

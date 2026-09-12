@@ -1284,3 +1284,11 @@ button.chip {
 .timeline li:last-child {
   border-bottom: 0;
 }
+
+/* --- machine draft on the workbench --- */
+.draft {
+  background: rgba(224, 162, 78, 0.06);
+  border: 1px dashed rgba(224, 162, 78, 0.35);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
