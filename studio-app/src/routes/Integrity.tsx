@@ -39,7 +39,7 @@ export function Integrity({ onBack, embedded }: Props) {
           <div className="eyebrow" style={{ marginBottom: 6 }}>Integrity · clause 15{data ? ` · you are ${data.my_editor}` : ""}</div>
           <h1 className="h1">Cases{data ? ` · ${data.cases.length}` : ""}</h1>
         </div>
-        <button className="pill ghost" style={{ flex: "none" }} onClick={() => void load()}>Refresh</button>
+        <button className="pill ghost" style={{ flex: "none", width: "auto" }} onClick={() => void load()}>Refresh</button>
       </div>
       <div className="tile" style={{ marginBottom: 14 }}>
         <div className="tbody muted" style={{ fontSize: "0.85rem" }}>
