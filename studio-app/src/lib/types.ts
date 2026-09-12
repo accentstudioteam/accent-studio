@@ -62,7 +62,7 @@ export interface Rating {
   created_at: string;
 }
 
-export type ApplicationStatus = "submitted" | "invited" | "in_review" | "accepted" | "waitlisted" | "rejected";
+export type ApplicationStatus = "submitted" | "invited" | "interview_scheduled" | "interviewed" | "in_review" | "accepted" | "accepted_to_project" | "onboarded" | "waitlisted" | "rejected";
 
 export interface ApplicationSample {
   language: string;
@@ -115,4 +115,45 @@ export interface LabInquiry {
   notes: string | null;
   notified_at: string | null;
   ack_sent_at: string | null;
+}
+
+export interface Project {
+  id: string;
+  created_at: string;
+  name: string;
+  buyer: string;
+  language: string;
+  target_hours: number;
+  tier: "standard" | "aligned" | "exclusive";
+  deadline: string | null;
+  status: "open" | "delivering" | "closed";
+  notes: string | null;
+}
+
+export interface AgreementVersion {
+  version: string;
+  document_id: string;
+  effective_date: string;
+  sha256: string;
+  url: string;
+  active: boolean;
+}
+
+/** What public.my_onboarding() returns for the signed-in person. */
+export interface Onboarding {
+  invited: boolean;
+  invitation: {
+    token: string;
+    expires_at: string;
+    accepted_at: string | null;
+    full_name: string;
+    primary_language: string;
+    languages: string[];
+    country: string;
+    project_name: string | null;
+    project_language: string | null;
+  } | null;
+  contributor: { speaker_id: string; primary_language: string | null; languages: string[]; withdrawn_at: string | null } | null;
+  consent: { agreement_version: string; agreement_sha256: string; signed_at: string; record_sha256: string; withdrawn_at: string | null } | null;
+  agreement: AgreementVersion | null;
 }

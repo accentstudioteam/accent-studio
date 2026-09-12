@@ -67,6 +67,10 @@
   ],
   "rewrites": [
     {
+      "source": "/studio/join",
+      "destination": "/studio"
+    },
+    {
       "source": "/apply",
       "destination": "/studio"
     }

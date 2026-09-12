@@ -5,6 +5,7 @@ import { Onboarding } from "@/routes/Onboarding";
 import { Studio } from "@/routes/Studio";
 import { Prototype } from "@/prototype/Prototype";
 import { Apply } from "@/routes/Apply";
+import { Join } from "@/routes/Join";
 
 export function App() {
   const { session, profile, loading } = useAuth();
@@ -14,6 +15,10 @@ export function App() {
   if (typeof window !== "undefined" && /\/apply\/?$/.test(window.location.pathname)) {
     return <Apply />;
   }
+
+  // Invited applicants join here: sign in by email, sign the agreement. Public until signed in.
+  const joining = typeof window !== "undefined" && /\/studio\/join\/?$/.test(window.location.pathname);
+  if (joining && !loading) return <Join />;
 
   // Click-through prototype of every screen, activated via /studio?proto.
   // Renders before the auth gate so flows can be reviewed without signing in.

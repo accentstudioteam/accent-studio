@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import type { Application, ApplicationSample, ApplicationStatus } from "@/lib/types";
+import type { Application, ApplicationSample, ApplicationStatus, Project } from "@/lib/types";
 import { Logo } from "@/components/Logo";
 
-const STATUSES: ApplicationStatus[] = ["submitted", "invited", "in_review", "accepted", "waitlisted", "rejected"];
+const STATUSES: ApplicationStatus[] = ["submitted", "invited", "interview_scheduled", "interviewed", "in_review", "accepted", "accepted_to_project", "onboarded", "waitlisted", "rejected"];
 const LANG: Record<string, string> = {
   pcm: "Pidgin",
   yo: "Yoruba",
@@ -53,6 +53,28 @@ export function Applications({ onBack }: { onBack: () => void }) {
   const [open, setOpen] = useState<string | null>(null);
   const [audio, setAudio] = useState<Record<string, string>>({});
   const [notesDraft, setNotesDraft] = useState<Record<string, string>>({});
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectPick, setProjectPick] = useState<Record<string, string>>({});
+  const [inviting, setInviting] = useState<string | null>(null);
+  const [inviteMsg, setInviteMsg] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    void supabase.from("projects").select("*").eq("status", "open").order("created_at").then(({ data }) => setProjects((data ?? []) as Project[]));
+  }, []);
+
+  const invite = async (a: Application) => {
+    setInviting(a.id);
+    setInviteMsg((m) => ({ ...m, [a.id]: "" }));
+    const project_id = projectPick[a.id] ?? projects[0]?.id ?? null;
+    const { data, error } = await supabase.functions.invoke("invite-contributor", { body: { application_id: a.id, project_id } });
+    setInviting(null);
+    if (error || !data?.ok) {
+      setInviteMsg((m) => ({ ...m, [a.id]: (data as { error?: string } | null)?.error ?? "Invite failed. Try again." }));
+      return;
+    }
+    setInviteMsg((m) => ({ ...m, [a.id]: data.mailed ? `Invited. Email sent, link valid until ${new Date(data.expires_at).toLocaleDateString()}.` : "Invitation created but the email did not send. Check RESEND_API_KEY." }));
+    setRows((rs) => rs.map((r) => (r.id === a.id && !["onboarded", "accepted_to_project"].includes(r.status) ? { ...r, status: "invited" } : r)));
+  };
 
   const load = async () => {
     setLoading(true);
@@ -199,6 +221,21 @@ export function Applications({ onBack }: { onBack: () => void }) {
                         )}
                       </div>
                     ))}
+                    <div className="tile acc">
+                      <div className="tlbl">Invite to the cast</div>
+                      <div className="field" style={{ marginBottom: 10 }}>
+                        <label>Project</label>
+                        <select value={projectPick[a.id] ?? projects[0]?.id ?? ""} onChange={(e) => setProjectPick((p) => ({ ...p, [a.id]: e.target.value }))}>
+                          {projects.map((p) => (
+                            <option key={p.id} value={p.id}>{p.name} · {LANG[p.language] ?? p.language}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <button className="pill mint" disabled={inviting === a.id || a.status === "onboarded"} onClick={() => void invite(a)}>
+                        {inviting === a.id ? "Sending…" : a.status === "onboarded" ? "Signed and onboarded" : a.status === "invited" ? "Resend invitation" : "Send invitation"}
+                      </button>
+                      {inviteMsg[a.id] && <div className="tbody" style={{ marginTop: 8, color: inviteMsg[a.id].startsWith("Invited") ? "var(--acc)" : "var(--coral)" }}>{inviteMsg[a.id]}</div>}
+                    </div>
                     <div className="tile">
                       <div className="field" style={{ marginBottom: 10 }}>
                         <label>Status</label>
