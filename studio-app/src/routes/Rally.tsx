@@ -30,7 +30,22 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
   const [progress, setProgress] = useState<number | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
   const [sample, setSample] = useState<{ url: string; seconds: number } | null>(null);
+  const [fake, setFake] = useState<{ seconds: number; levels: number[] } | null>(null);
   const rec = useRecorder(r?.max_turn_seconds ?? 30);
+
+  // Demo: act out a recording for a few seconds, then stand in one of the founders' clips. The mic is never touched.
+  const startFakeRecording = () => {
+    const started = Date.now();
+    const id = window.setInterval(() => {
+      const s = (Date.now() - started) / 1000;
+      setFake((f) => ({ seconds: s, levels: [...(f?.levels ?? []).slice(-27), 0.25 + Math.random() * 0.6] }));
+      if (s >= 4.2) {
+        window.clearInterval(id);
+        setFake(null);
+        setSample(demoSampleTake());
+      }
+    }, 100);
+  };
 
   const load = useCallback(async () => {
     try {
@@ -112,7 +127,9 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
 
   const cardAudio = cardAudioUrl(r.card.audio_path);
   const rateTarget = r.rate_turn_id ? r.turns.find((t) => t.turn_id === r.rate_turn_id) : null;
-  const recording = rec.status === "recording" || rec.status === "requesting";
+  const recording = rec.status === "recording" || rec.status === "requesting" || fake !== null;
+  const liveSeconds = fake ? fake.seconds : rec.seconds;
+  const liveLevels = fake ? fake.levels : rec.levels;
 
   return (
     <div className="app">
@@ -204,24 +221,21 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
                 </>
               ) : recording ? (
                 <div className="recwrap">
-                  <div className="reclive" aria-hidden="true"><span className="recdot" />REC {formatClock(rec.seconds)}</div>
-                  <button type="button" className="recbtn rec" onClick={() => rec.stop()} aria-label="Stop recording"><span className="core" /></button>
+                  <div className="reclive" aria-hidden="true"><span className="recdot" />REC {formatClock(liveSeconds)}</div>
+                  <button type="button" className="recbtn rec" onClick={() => (fake ? undefined : rec.stop())} aria-label="Stop recording"><span className="core" /></button>
                   <div className="wv livewv" aria-hidden="true">
                     {Array.from({ length: 28 }).map((_, j) => {
-                      const v = rec.levels[rec.levels.length - 28 + j] ?? 0;
+                      const v = liveLevels[liveLevels.length - 28 + j] ?? 0;
                       return <i key={j} className="live" style={{ height: `${Math.max(8, Math.round(v * 100))}%` }} />;
                     })}
                   </div>
-                  <div className="rectime" style={{ color: "var(--coral)" }}>{rec.status === "requesting" ? "Asking for the mic…" : `Recording… up to ${r.max_turn_seconds}s`}</div>
-                  <div className="progress" style={{ width: "100%" }}><div className="fill" style={{ width: `${Math.min(100, (rec.seconds / r.max_turn_seconds) * 100)}%`, background: "var(--coral)" }} /></div>
+                  <div className="rectime" style={{ color: "var(--coral)" }}>{fake ? "Recording (demo)… a sample take stands in for your voice" : rec.status === "requesting" ? "Asking for the mic…" : `Recording… up to ${r.max_turn_seconds}s`}</div>
+                  <div className="progress" style={{ width: "100%" }}><div className="fill" style={{ width: `${Math.min(100, (liveSeconds / r.max_turn_seconds) * 100)}%`, background: "var(--coral)" }} /></div>
                 </div>
               ) : (
                 <div className="recwrap">
-                  <button type="button" className="recbtn" onClick={() => void rec.start()} aria-label="Start recording"><span className="core" /></button>
-                  <div className="rectime">{r.redo ? "Your partner asked for another take. Tap to record." : "Tap to record your turn. Improvise; there are no lines."}</div>
-                  {isDemo() && (
-                    <button type="button" className="pill ghost" style={{ marginTop: 12 }} onClick={() => setSample(demoSampleTake())}>No mic here? Use a sample take</button>
-                  )}
+                  <button type="button" className="recbtn" onClick={() => (isDemo() ? startFakeRecording() : void rec.start())} aria-label="Start recording"><span className="core" /></button>
+                  <div className="rectime">{isDemo() ? (r.redo ? "Your partner asked for another take. Tap to act out a recording." : "Tap to act out a recording. In the demo a sample clip stands in for your voice; no microphone is used.") : r.redo ? "Your partner asked for another take. Tap to record." : "Tap to record your turn. Improvise; there are no lines."}</div>
                 </div>
               )}
               {rec.error && <div className="tbody" style={{ color: "var(--coral)", marginTop: 8 }}>{rec.error}</div>}
