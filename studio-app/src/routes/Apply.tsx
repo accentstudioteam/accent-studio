@@ -538,7 +538,7 @@ export function Apply() {
                         <audio controls src={s.url} style={{ width: "100%" }} />
                         {s.status === "uploaded" ? (
                           <>
-                            <div className="tbody" style={{ marginTop: 10, color: "var(--acc)", fontWeight: 600 }}>✓ Uploaded · {(s.bytes / 1024 / 1024).toFixed(1)} MB · {Math.round(s.seconds)}s</div>
+                            <div className="tbody" style={{ marginTop: 10, color: "var(--acc)", fontWeight: 600 }}>✓ Uploaded · {s.bytes < 1048576 ? `${Math.max(1, Math.round(s.bytes / 1024))} KB` : `${(s.bytes / 1048576).toFixed(1)} MB`} · {Math.round(s.seconds)}s</div>
                             <button className="pill ghost" style={{ marginTop: 10 }} onClick={() => dropSample(key)}>Delete and record again</button>
                           </>
                         ) : s.status === "uploading" ? (
