@@ -5,9 +5,10 @@ import { Workbench } from "@/routes/Workbench";
 import { Integrity } from "@/routes/Integrity";
 import { CaseNotice } from "@/routes/CaseNotice";
 import { Payouts } from "@/routes/Payouts";
+import { Projects } from "@/routes/Projects";
 import { demoVerify } from "@/lib/demoVerify";
 
-type Tab = "queue" | "cases" | "payouts" | "contributor";
+type Tab = "queue" | "cases" | "payouts" | "projects" | "contributor";
 
 /** The Cutting Room demo: the queue and workbench, the clause 15 cases, and the contributor's side of a case. Nothing is saved. */
 export function LinguistDemo() {
@@ -37,7 +38,7 @@ export function LinguistDemo() {
           </div>
         </div>
         <div className="chips" style={{ marginBottom: 6 }}>
-          {([["queue", "Queue"], ["cases", "Cases"], ["payouts", "Payouts (founder only)"], ["contributor", "The contributor's view"]] as [Tab, string][]).map(([k, label]) => (
+          {([["queue", "Queue"], ["cases", "Cases"], ["payouts", "Payouts (founder only)"], ["projects", "Projects (founder only)"], ["contributor", "The contributor's view"]] as [Tab, string][]).map(([k, label]) => (
             <button key={k} type="button" className={`chip${tab === k ? " on" : ""}`} onClick={() => { setTab(k); if (k !== "queue") setSid(null); }}>{label}</button>
           ))}
         </div>
@@ -50,6 +51,14 @@ export function LinguistDemo() {
             <div className="tbody muted small" style={{ marginBottom: 8 }}>Only an admin (a founder) sees this screen and can mark a payout as sent. Linguists verify rallies; they never touch money.</div>
           </div>
           <Payouts onBack={() => setTab("queue")} embedded />
+        </>
+      )}
+      {tab === "projects" && (
+        <>
+          <div className="shell" style={{ maxWidth: 720, paddingTop: 0, paddingBottom: 0 }}>
+            <div className="tbody muted small" style={{ marginBottom: 8 }}>Founder view. Plan a delivery, build it and preview the manifest a lab receives. Verify Market Day first and it joins the bundle.</div>
+          </div>
+          <Projects onBack={() => setTab("queue")} embedded />
         </>
       )}
       {tab === "contributor" && (

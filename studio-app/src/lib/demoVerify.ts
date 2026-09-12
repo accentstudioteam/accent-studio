@@ -5,6 +5,7 @@
 import { demo } from "@/lib/demo";
 import type { Case, CaseEvent, CaseReason, Cases, Decision, EarningPost, MyCase, Queue, SaveTurnInput, Speaker, TurnVerification, VerifyResult, Workbench, WorkTurn } from "@/lib/verify";
 import type { PayoutQueue, QueuedPayout } from "@/lib/earn";
+import type { Delivery, ExportStep, Plan, Project, ProjectInput } from "@/lib/projects";
 
 /** What an English-trained Whisper typically makes of these clips: the draft the editor corrects. */
 const DRAFTS: Record<string, string> = {
@@ -121,7 +122,10 @@ const A1 = "spk_pcm_ng_48213";
 const B1 = "spk_pcm_ng_77104";
 const B2 = "spk_pcm_ng_30556";
 
-const state: { sessions: DemoSession[]; cases: DemoCase[]; payouts: QueuedPayout[]; seq: number } = { sessions: [], cases: [], payouts: [], seq: 0 };
+const state: { sessions: DemoSession[]; cases: DemoCase[]; payouts: QueuedPayout[]; projects: Project[]; deliveries: Delivery[]; seq: number } = { sessions: [], cases: [], payouts: [], projects: [], deliveries: [], seq: 0 };
+const BASE_READY_SECONDS = 3712; // rallies verified before the demo started
+const BASE_READY_SESSIONS = 41;
+const fakeSha = (seed: string) => Array.from({ length: 64 }, (_, i) => "0123456789abcdef"[(seed.charCodeAt(i % seed.length) * (i + 7)) % 16]).join("");
 
 function seed() {
   if (state.sessions.length) return;
@@ -418,10 +422,108 @@ export const demoVerify = {
     return { amount_usd: p.amount_usd };
   },
 
+  /** Founder tab: one standing project; verified demo rallies join its pool. */
+  projects: async (): Promise<Project[]> => {
+    seed();
+    if (!state.projects.length) state.projects = [{ id: "proj-1", name: "Standing Nigerian Pidgin corpus", buyer: "Accent Studio (standing)", language: "pcm", locale: "pcm-NG", target_hours: 50, tier: "standard", deadline: null, status: "open", notes: "Banking, market and telco scenes", created_at: ago(20 * 24 * 60), contributors: 12, available_seconds: 0, available_sessions: 0, held_sessions: 0, delivered_seconds: 0, deliveries: 0 }];
+    const verified = state.sessions.filter((s) => s.status === "verified" && !s.hold);
+    const delivered = state.deliveries.filter((d) => d.status === "ready");
+    const deliveredSessions = new Set<string>(); // the demo remembers which demo rallies went out
+    for (const d of delivered) for (const id of ((d as Delivery & { session_ids?: string[] }).session_ids ?? [])) deliveredSessions.add(id);
+    const pool = verified.filter((s) => !deliveredSessions.has(s.id));
+    const baseLeft = delivered.length ? 0 : BASE_READY_SECONDS;
+    const p = state.projects[0];
+    p.available_seconds = baseLeft + pool.reduce((n, s) => n + (s.result?.verified_seconds ?? 0), 0);
+    p.available_sessions = (delivered.length ? 0 : BASE_READY_SESSIONS) + pool.length;
+    p.held_sessions = state.sessions.filter((s) => s.status === "verified" && s.hold).length;
+    p.delivered_seconds = delivered.reduce((n, d) => n + d.seconds, 0);
+    p.deliveries = state.deliveries.length;
+    p.status = delivered.length ? "delivering" : p.status;
+    return state.projects;
+  },
+
+  saveProject: async (i: ProjectInput): Promise<{ id: string }> => {
+    await demoVerify.projects();
+    if (i.id) {
+      const p = state.projects.find((x) => x.id === i.id);
+      if (!p) throw new Error("no such project");
+      Object.assign(p, { name: i.name, buyer: i.buyer, language: i.language, target_hours: i.target_hours, tier: i.tier, deadline: i.deadline, status: i.status, notes: i.notes || null });
+      return { id: p.id };
+    }
+    const id = `proj-${state.projects.length + 1}`;
+    state.projects.push({ id, name: i.name, buyer: i.buyer, language: i.language, locale: `${i.language}-NG`, target_hours: i.target_hours, tier: i.tier, deadline: i.deadline, status: i.status, notes: i.notes || null, created_at: now(), contributors: 0, available_seconds: 0, available_sessions: 0, held_sessions: 0, delivered_seconds: 0, deliveries: 0 });
+    return { id };
+  },
+
+  deliveryPlan: async (pid: string): Promise<Plan> => {
+    const p = (await demoVerify.projects()).find((x) => x.id === pid);
+    if (!p) throw new Error("no such project");
+    return { sessions: p.available_sessions, seconds: p.available_seconds, speakers: p.available_sessions ? 12 : 0, excluded: { held: p.held_sessions, withdrawn: 0, forfeited: state.sessions.filter((s) => s.status === "forfeited").length, delivered: state.deliveries.reduce((n, d) => n + d.session_count, 0), exclusive_elsewhere: 0, reserved: 0, other_project: 0, sold_elsewhere: 0 } };
+  },
+
+  createDelivery: async (pid: string, note: string): Promise<{ delivery_id: string; bundle_id: string; sessions: number; files: number }> => {
+    const plan = await demoVerify.deliveryPlan(pid);
+    if (plan.sessions === 0) throw new Error("nothing to deliver yet");
+    const id = `del-${state.deliveries.length + 1}`;
+    const bundle = `acc_pcm_standing_nigerian_pidgin_corpus_${new Date().toISOString().slice(0, 10).replace(/-/g, "")}_${String(state.deliveries.length + 1).padStart(2, "0")}`;
+    const pool = state.sessions.filter((s) => s.status === "verified" && !s.hold);
+    const files = plan.sessions * 6;
+    const d: Delivery & { session_ids: string[] } = { id, bundle_id: bundle, created_at: now(), status: "building", session_count: plan.sessions, speaker_count: plan.speakers, seconds: plan.seconds, files_total: files, files_done: 0, manifest_sha256: null, bundle_files: null, note: note.trim() || null, error: null, finished_at: null, created_by: ME, session_ids: pool.map((s) => s.id) };
+    state.deliveries.unshift(d);
+    return { delivery_id: id, bundle_id: bundle, sessions: plan.sessions, files };
+  },
+
+  deliveries: async (_pid: string): Promise<Delivery[]> => {
+    seed();
+    return state.deliveries;
+  },
+
+  exportStage: async (did: string, stage: "audio" | "meta"): Promise<ExportStep> => {
+    const d = state.deliveries.find((x) => x.id === did);
+    if (!d) throw new Error("no such delivery");
+    await new Promise((res) => setTimeout(res, 350));
+    if (stage === "audio") {
+      const copied = Math.min(24, d.files_total - d.files_done);
+      d.files_done += copied;
+      return { ok: true, copied, remaining: d.files_total - d.files_done, total: d.files_total, errors: [] };
+    }
+    d.status = "ready";
+    d.finished_at = now();
+    d.manifest_sha256 = fakeSha(d.bundle_id);
+    d.bundle_files = ["manifest.jsonl", "alignments.jsonl", "speakers.jsonl", "consent_log.jsonl", "index.csv", "README.md", "checksums.txt"].map((n) => ({ path: `${d.bundle_id}/${n}`, bytes: 2048 + n.length * 700, sha256: fakeSha(n) }))
+      .concat(Array.from({ length: d.files_total }, (_, i) => ({ path: `${d.bundle_id}/audio/pcm-NG/sess_${Math.floor(i / 6) + 1}/turn-${String((i % 6) + 1).padStart(2, "0")}.mp3`, bytes: 96_000 + (i * 7919) % 40_000, sha256: fakeSha(`audio${i}`) })));
+    return { ok: true, manifest_sha256: d.manifest_sha256, files: d.bundle_files.length, sessions: d.session_count, preview: JSON.parse(await demoVerify.bundlePreview(did)) };
+  },
+
+  /** The first manifest row, from the demo's Market Day rally when it has been verified. */
+  bundlePreview: async (did: string): Promise<string> => {
+    const d = state.deliveries.find((x) => x.id === did);
+    const s = state.sessions.find((x) => x.id === "demo-s1" && x.status === "verified") ?? state.sessions.find((x) => x.status === "verified");
+    const bundle = d?.bundle_id ?? "acc_pcm_demo";
+    const turns = (s ? latest(s) : []).map((t) => ({
+      turn_id: t.turn_no, speaker_id: t.speaker_id, channel: t.speaker === "a" ? 0 : 1, audio_file: `audio/pcm-NG/${s?.id}/turn-${String(t.turn_no).padStart(2, "0")}-${t.speaker_id}.mp3`, audio_sha256: fakeSha(t.turn_id),
+      start_ms: 0, end_ms: Math.round((t.verification?.verified_seconds ?? t.seconds) * 1000), raw_stt_text: t.draft?.text ?? null, raw_stt_engine: t.draft?.engine ?? null, raw_stt_wer: t.verification?.draft_wer ?? null,
+      verified_text: t.verification?.verified_text ?? null, english_gloss: t.verification?.english_gloss ?? null, english_source: t.verification?.english_gloss ?? null, emotion_label: t.verification?.emotion_label ?? null, editor_confidence: t.verification?.confidence ?? null,
+      inter_turn_latency_ms: 0, latency_source: "async_none", peer_rating: t.rating ? { tone: t.rating.tone, prompt_adherence: t.rating.prompt_adherence, mood: t.rating.mood, clarity: t.rating.clarity, aggregate: t.rating.aggregate } : null,
+      alignments: ((t.verification?.alignments as { src: { text: string } | null; tgt: { text: string } | null; type: string; confidence: number }[] | undefined) ?? []).map((a) => ({ src_span: a.src?.text ?? "", tgt_span: a.tgt?.text ?? "", type: a.type, confidence: a.confidence, reviewer_id: ME })),
+    }));
+    const row = {
+      session_id: s?.id ?? "demo-s1", corpus_id: bundle, bundle_id: "multiling_conversational_v1.1", locale: "pcm-NG", scenario: s?.domain ?? "retail_market_haggle", scenario_title: s?.title ?? "Market Day", scenario_prompt_hash: fakeSha(s?.title ?? "x"),
+      prompt_direction: "target_native", modality: "async_voice_notes", audio_layout: "per_turn_files", duration_seconds: s?.result?.verified_seconds ?? 30, recorded_at: s?.turns[0]?.created_at ?? now(), latency_source: "async_none",
+      participants: [{ speaker_id: s?.speakers.a ?? A1, channel: 0, role: "speaker_a", persona_card: s?.persona_a, demographics: { age_band: "25-34", gender: "Man", accent_region: "Lagos_NG" }, consent_record_sha256: fakeSha("consent-a") }, { speaker_id: s?.speakers.b ?? B1, channel: 1, role: "speaker_b", persona_card: s?.persona_b, demographics: { age_band: "35-44", gender: "Woman", accent_region: "Ibadan_NG" }, consent_record_sha256: fakeSha("consent-b") }],
+      verified_by_qc: { editor_id: ME, verification_timestamp: now(), confidence_score: 0.96, editor_score: s?.editor_score ?? 5, peer_score: s?.result?.peer_score ?? null, quality_score: s?.result?.quality_score ?? null, quality_tier: s?.result?.quality_tier ?? null, audit_status: "not_sampled" },
+      license: { type: "commercial_non_exclusive", territory: "worldwide", term: "perpetual", license_id: `LIC-${bundle}`, buyer_ref: "buyer_accent_studio_standing" },
+      turns,
+    };
+    return JSON.stringify(row, null, 2);
+  },
+
   reset: () => {
     state.sessions = [];
     state.cases = [];
     state.payouts = [];
+    state.projects = [];
+    state.deliveries = [];
     state.seq = 0;
   },
 };

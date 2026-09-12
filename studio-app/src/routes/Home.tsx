@@ -5,7 +5,7 @@ import { Logo } from "../components/Logo";
 
 const DEMO_BARS = [55, 32, 78, 44, 68, 88, 52, 72, 38, 58, 48, 34, 64, 40];
 
-export function Home({ onSettings, onApplications, onLabInquiries, onCards, onVerify, onIntegrity, onPayouts }: { onSettings: () => void; onApplications?: () => void; onLabInquiries?: () => void; onCards?: () => void; onVerify?: () => void; onIntegrity?: () => void; onPayouts?: () => void }) {
+export function Home({ onSettings, onApplications, onLabInquiries, onCards, onVerify, onIntegrity, onPayouts, onProjects }: { onSettings: () => void; onApplications?: () => void; onLabInquiries?: () => void; onCards?: () => void; onVerify?: () => void; onIntegrity?: () => void; onPayouts?: () => void; onProjects?: () => void }) {
   const { profile, session } = useAuth();
   const name = profile?.handle ?? session?.user.email?.split("@")[0] ?? "player";
   const lang = profile?.locale ? LOCALE_NAME[profile.locale] : null;
@@ -93,6 +93,13 @@ export function Home({ onSettings, onApplications, onLabInquiries, onCards, onVe
                 </div>
               </Tile>
               <button className="pill ghost" onClick={onPayouts}>Open payouts</button>
+              <Tile label="Labs">
+                <div className="ttitle">Projects and deliveries</div>
+                <div className="tbody muted" style={{ marginTop: 6 }}>
+                  Each lab's order, the verified hours ready for it, and the bundles handed over: manifest, alignments, speakers, consent log, audio with checksums.
+                </div>
+              </Tile>
+              <button className="pill" onClick={onProjects} style={{ background: "#f0a84b", color: "#0d0b08" }}>Open projects</button>
             </Sheet>
           )}
           <Sheet title="Ping · ready when you are">
