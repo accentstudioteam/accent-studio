@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Logo } from "@/components/Logo";
 import { CheckRow, ScreenHead, Stepper } from "@/prototype/ui";
 import { formatClock, useRecorder } from "@/lib/recorder";
+import { deleteRecording, uploadRecording } from "@/lib/upload";
 
 const STEPS = 4;
 const MAX_SAMPLE_SECONDS = 60;
@@ -87,11 +88,28 @@ interface Form {
   website: string; // honeypot, must stay empty
 }
 
+type SampleStatus = "recorded" | "uploading" | "uploaded" | "failed";
+
 interface Sample {
   blob: Blob;
   mime: string;
   seconds: number;
   url: string;
+  status: SampleStatus;
+  progress: number;
+  attempt: number;
+  take: number;
+  path: string;
+  bytes: number;
+  error: string | null;
+}
+
+function newId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === "x" ? r : (r & 3) | 8).toString(16);
+  });
 }
 
 const EMPTY: Form = {
@@ -197,6 +215,8 @@ export function Apply() {
     return ref ? { ...EMPTY, referral: ref.slice(0, 200) } : EMPTY;
   });
   const [samples, setSamples] = useState<Record<string, Sample>>({});
+  const [appId] = useState(newId);
+  const takesRef = useRef<Record<string, number>>({});
   const [current, setCurrent] = useState("");
   const [currentPart, setCurrentPart] = useState(PARTS[0][0]);
   const [problem, setProblem] = useState<string | null>(null);
@@ -221,12 +241,31 @@ export function Apply() {
     const mime = rec.mime;
     const seconds = rec.seconds;
     const key = `${current}/${currentPart}`;
+    const take = (takesRef.current[key] ?? 0) + 1;
+    takesRef.current[key] = take;
+    const path = `${appId}/sample-${current}-${currentPart}-t${take}.${extFor(mime)}`;
     setSamples((s) => {
       if (s[key]) URL.revokeObjectURL(s[key].url);
-      return { ...s, [key]: { blob, mime, seconds, url: URL.createObjectURL(blob) } };
+      return { ...s, [key]: { blob, mime, seconds, url: URL.createObjectURL(blob), status: "recorded", progress: 0, attempt: 0, take, path, bytes: blob.size, error: null } };
     });
     rec.reset();
-  }, [rec, current, currentPart]);
+  }, [rec, current, currentPart, appId]);
+
+  const patchSample = (key: string, changes: Partial<Sample>) =>
+    setSamples((s) => (s[key] ? { ...s, [key]: { ...s[key], ...changes } } : s));
+
+  const uploadSample = async (key: string) => {
+    const s = samples[key];
+    if (!s || s.status === "uploading" || s.status === "uploaded") return;
+    patchSample(key, { status: "uploading", progress: 0, attempt: 1, error: null });
+    try {
+      const base = s.mime.split(";")[0] || "audio/webm";
+      const { bytes } = await uploadRecording(s.path, s.blob, base, (pct, attemptNo) => patchSample(key, { progress: pct, attempt: attemptNo }));
+      patchSample(key, { status: "uploaded", progress: 100, bytes, error: null });
+    } catch (e) {
+      patchSample(key, { status: "failed", progress: 0, error: e instanceof Error ? e.message : "Upload failed. Tap Upload again." });
+    }
+  };
 
   const set = <K extends keyof Form>(key: K, value: Form[K]) => setForm((f) => ({ ...f, [key]: value }));
 
@@ -239,10 +278,12 @@ export function Apply() {
     });
 
   const dropSample = (key: string) => {
-    setSamples((s) => {
-      if (!s[key]) return s;
-      URL.revokeObjectURL(s[key].url);
-      const next = { ...s };
+    const s = samples[key];
+    if (s?.status === "uploaded") void deleteRecording(s.path);
+    setSamples((all) => {
+      if (!all[key]) return all;
+      URL.revokeObjectURL(all[key].url);
+      const next = { ...all };
       delete next[key];
       return next;
     });
@@ -266,7 +307,8 @@ export function Apply() {
   };
 
   const sampleCount = Object.keys(samples).length;
-  const partsDone = (lang: string) => PARTS.filter(([p]) => samples[`${lang}/${p}`]).length;
+  const partsDone = (lang: string) => PARTS.filter(([p]) => samples[`${lang}/${p}`]?.status === "uploaded").length;
+  const anyUploading = Object.values(samples).some((s) => s.status === "uploading");
   const hasPrimarySample = partsDone(form.primary_language) === PARTS.length;
 
   const submit = async () => {
@@ -281,20 +323,14 @@ export function Apply() {
     setBusy(true);
     setProblem(null);
     try {
-      const id = crypto.randomUUID();
-      const uploaded: { language: string; part: string; path: string; seconds: number }[] = [];
-      for (const [key, s] of Object.entries(samples)) {
-        const [language, part] = key.split("/");
-        const base = s.mime.split(";")[0] || "audio/webm";
-        const path = `${id}/sample-${language}-${part}.${extFor(s.mime)}`;
-        const { error } = await supabase.storage.from("applications").upload(path, s.blob, { contentType: base, upsert: false });
-        if (error) {
-          setProblem(`Your ${langName(language, form.other_language)} recording didn't upload. Check your connection and try again.`);
-          setBusy(false);
-          return;
-        }
-        uploaded.push({ language, part, path, seconds: s.seconds });
-      }
+      const id = appId;
+      // Recordings were uploaded on the voice step, with progress, before Continue unlocked.
+      const uploaded = Object.entries(samples)
+        .filter(([, s]) => s.status === "uploaded")
+        .map(([key, s]) => {
+          const [language, part] = key.split("/");
+          return { language, part, path: s.path, seconds: s.seconds };
+        });
       const primary = uploaded.find((u) => u.language === form.primary_language && u.part === PARTS[0][0]) ?? uploaded[0] ?? null;
       const { error } = await supabase.from("applications").insert({
         id,
@@ -500,7 +536,30 @@ export function Apply() {
                     {s ? (
                       <>
                         <audio controls src={s.url} style={{ width: "100%" }} />
-                        <button className="pill ghost" style={{ marginTop: 10 }} onClick={() => dropSample(key)}>Re-record</button>
+                        {s.status === "uploaded" ? (
+                          <>
+                            <div className="tbody" style={{ marginTop: 10, color: "var(--acc)", fontWeight: 600 }}>✓ Uploaded · {(s.bytes / 1024 / 1024).toFixed(1)} MB · {Math.round(s.seconds)}s</div>
+                            <button className="pill ghost" style={{ marginTop: 10 }} onClick={() => dropSample(key)}>Delete and record again</button>
+                          </>
+                        ) : s.status === "uploading" ? (
+                          <>
+                            <div className="progress" style={{ width: "100%", marginTop: 12 }}>
+                              <div className="fill" style={{ width: `${Math.max(3, s.progress)}%` }} />
+                            </div>
+                            <div className="rectime" style={{ marginTop: 6 }}>
+                              {s.progress >= 99 ? "Almost there…" : `Uploading… ${s.progress}%`}{s.attempt > 1 ? ` · retry ${s.attempt - 1}` : ""}
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            {s.status === "failed" && <div style={{ marginTop: 10 }}><Problem text={s.error} /></div>}
+                            <div className="btn-row" style={{ marginTop: 10 }}>
+                              <button className="pill ghost" onClick={() => dropSample(key)}>Re-record</button>
+                              <button className="pill mint" onClick={() => void uploadSample(key)}>{s.status === "failed" ? "Try upload again" : "Upload this take"}</button>
+                            </div>
+                            <div className="tbody muted" style={{ marginTop: 8, fontSize: "0.82rem" }}>Listen first. Happy with it? Upload it, then you can continue.</div>
+                          </>
+                        )}
                       </>
                     ) : active ? (
                       <div className="recwrap">
@@ -547,8 +606,8 @@ export function Apply() {
               ) : (
                 <button className="pill ghost" onClick={() => setPhase("languages")}>Back</button>
               )}
-              <button className="pill mint" disabled={!hasPrimarySample} onClick={() => setPhase("finish")}>
-                {hasPrimarySample ? "Continue" : "Record your story first"}
+              <button className="pill mint" disabled={!hasPrimarySample || anyUploading} onClick={() => setPhase("finish")}>
+                {anyUploading ? "Uploading…" : hasPrimarySample ? "Continue" : sampleCount > 0 ? "Upload your take first" : "Record your story first"}
               </button>
             </div>
           </>

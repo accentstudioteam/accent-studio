@@ -101,12 +101,15 @@ export function useRecorder(maxSeconds = 60) {
     setError(null);
     setStatus("requesting");
     try {
+      // Raw capture. The browser's speech-call processing (echo cancellation, noise
+      // suppression, automatic gain) is tuned for phone calls and makes voices sound
+      // muffled and pumped; for a voice assessment we want the microphone as it is.
       const stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1, sampleRate: 48000 },
       });
       streamRef.current = stream;
       const type = pickMimeType();
-      const rec = type ? new MediaRecorder(stream, { mimeType: type }) : new MediaRecorder(stream);
+      const rec = type ? new MediaRecorder(stream, { mimeType: type, audioBitsPerSecond: 128_000 }) : new MediaRecorder(stream, { audioBitsPerSecond: 128_000 });
       recRef.current = rec;
       chunksRef.current = [];
       rec.ondataavailable = (ev) => {

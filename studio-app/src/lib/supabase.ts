@@ -11,6 +11,9 @@ if (!url || !anon) {
   );
 }
 
+export const SUPABASE_URL: string = url ?? "";
+export const SUPABASE_KEY: string = anon ?? "";
+
 export const supabase = createClient(url ?? "", anon ?? "", {
   auth: {
     persistSession: true,

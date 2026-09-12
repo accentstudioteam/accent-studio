@@ -1,0 +1,18 @@
+# Keeps the Supabase project active: free-tier projects are paused after a week without
+# API traffic, which takes the waitlist, the labs form and the emails down with them.
+name: keepalive
+on:
+  schedule:
+    - cron: "17 6 */2 * *"   # every other day, 06:17 UTC
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Touch the REST API and the storage API
+        run: |
+          set -e
+          K="sb_publishable_cV8x-VgtGRj26so-iS9kgQ_MjvbYZzJ"
+          U="https://uazcoxinsnkjjogfovlg.supabase.co"
+          curl -fsS -o /dev/null -w "rest %{http_code}\n" -H "apikey: $K" -H "Authorization: Bearer $K" "$U/rest/v1/lab_inquiries?select=id&limit=1" || true
+          curl -fsS -o /dev/null -w "storage %{http_code}\n" -H "apikey: $K" -H "Authorization: Bearer $K" "$U/storage/v1/bucket" || true
