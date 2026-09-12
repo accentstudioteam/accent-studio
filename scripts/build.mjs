@@ -22,6 +22,7 @@ const staticFiles = [
   "brand-kit.html",
   "pay.js",
   "robots.txt",
+  "sitemap.xml",
   "privacy.html",
   "terms.html",
   "cookies.html",
