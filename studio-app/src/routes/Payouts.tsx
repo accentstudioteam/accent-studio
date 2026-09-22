@@ -108,6 +108,11 @@ function PayoutCard({ p, onChanged }: { p: QueuedPayout; onChanged: () => Promis
         </div>
         <span className="chip" style={{ flex: "none", borderColor: "var(--gold)", color: "var(--gold)" }}>to send</span>
       </div>
+      {p.details && Object.keys(p.details).length > 0 ? (
+        <div className="tile"><div className="tlbl">Send to</div><div className="tbody small" style={{ fontFamily: "var(--mono)" }}>{Object.entries(p.details).map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`).join(" · ")}</div>{p.identity && <div className="tbody muted small" style={{ marginTop: 4 }}>identity {p.identity}</div>}</div>
+      ) : (
+        <div className="tile dash"><div className="tbody muted small">No payout details on file for this rail; ask the contributor to add them in Account.</div></div>
+      )}
       <div className="field"><label>Transaction reference</label><input value={ref} onChange={(e) => setRef(e.target.value)} placeholder="e.g. M-Pesa QGH7… or USDC tx 0x…" /></div>
       <button className="pill mint" disabled={busy || ref.trim().length < 3} onClick={() => void pay()}>{busy ? "Saving…" : "Mark paid"}</button>
       {err && <div className="tbody small" style={{ color: "var(--coral)" }}>{err}</div>}

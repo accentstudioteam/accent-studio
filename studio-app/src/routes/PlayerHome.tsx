@@ -4,13 +4,14 @@ import { Logo } from "@/components/Logo";
 import { LANG_NAME, dueLabel, mySessions, startRally, type RallySummary } from "@/lib/game";
 import type { Onboarding } from "@/lib/types";
 import { demo, isDemo } from "@/lib/demo";
+import { demoAccount } from "@/lib/demoAccount";
 import { myCases, daysLeft, type MyCase } from "@/lib/verify";
 import { money, myEarnings, type MyEarnings } from "@/lib/earn";
 import { lagos, mine as arenaMine, untilLabel, type Mine as ArenaMine } from "@/lib/arena";
 
 const POLL_MS = 20_000;
 
-export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, onJoinScene }: { me: Onboarding; onOpenRally: (sessionId: string) => void; onNotices: () => void; onEarnings: () => void; onBooth: () => void; onJoinScene: (sid: string) => void }) {
+export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, onJoinScene, onAccount }: { me: Onboarding; onOpenRally: (sessionId: string) => void; onNotices: () => void; onEarnings: () => void; onBooth: () => void; onJoinScene: (sid: string) => void; onAccount: () => void }) {
   const { signOut } = useAuth();
   const [rallies, setRallies] = useState<RallySummary[]>([]);
   const [notices, setNotices] = useState<MyCase[]>([]);
@@ -58,7 +59,7 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, on
     <div className="app">
       <div className="topbar">
         <Logo height={22} />
-        <span className="chip" style={{ fontFamily: "var(--mono)", fontSize: "0.7rem" }}>{me.contributor?.speaker_id ?? "cast"}</span>
+        <button type="button" className="chip" aria-label="Account" style={{ fontFamily: "var(--mono)", fontSize: "0.7rem", cursor: "pointer" }} onClick={onAccount}>{me.contributor?.speaker_id ?? "cast"} · account</button>
       </div>
       <div className="shell">
         {isDemo() && (
@@ -66,7 +67,7 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, on
             <div className="tlbl" style={{ color: "var(--gold)" }}>Demo · nothing is saved</div>
             <div className="tbody muted" style={{ fontSize: "0.85rem" }}>
               You are a signed contributor. A simulated partner joins, rates your takes and replies with real Pidgin clips. The third take is rated low on purpose so you can see the redo.{" "}
-              <button type="button" onClick={() => { demo.reset(); void load(); }} style={{ background: "none", border: "none", color: "var(--acc)", padding: 0, font: "inherit", cursor: "pointer" }}>Reset the demo</button>
+              <button type="button" onClick={() => { demo.reset(); demoAccount.reset(); void load(); }} style={{ background: "none", border: "none", color: "var(--acc)", padding: 0, font: "inherit", cursor: "pointer" }}>Reset the demo</button>
             </div>
           </div>
         )}
@@ -157,10 +158,13 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, on
         <div className="tile" style={{ marginBottom: 14 }}>
           <div className="tlbl">Your agreement</div>
           <div className="tbody muted" style={{ fontSize: "0.85rem" }}>
-            Signed v{me.consent?.agreement_version} · record {me.consent?.record_sha256.slice(0, 12)}… · Withdraw any time by emailing privacy@accentstudio.io from your registered address.
+            Signed v{me.consent?.agreement_version} · record {me.consent?.record_sha256.slice(0, 12)}… · Withdraw any time from your account.
           </div>
         </div>
-        <button className="pill ghost" onClick={() => void signOut()}>Sign out</button>
+        <div className="btn-row">
+          <button className="pill ghost" onClick={onAccount}>Your account</button>
+          <button className="pill ghost" onClick={() => void signOut()}>Sign out</button>
+        </div>
       </div>
     </div>
   );

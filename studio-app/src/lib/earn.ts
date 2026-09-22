@@ -53,6 +53,8 @@ export interface QueuedPayout extends PayoutRow {
   speaker_id: string;
   lines: number;
   paid_by: string | null;
+  details?: Record<string, string> | null;
+  identity?: string | null;
 }
 export interface PayoutQueue {
   payouts: QueuedPayout[];

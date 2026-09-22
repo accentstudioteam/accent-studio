@@ -83,6 +83,28 @@ export interface ContributorRow {
   open_cases: number;
   confirmed_cases: number;
   consent: { agreement_version: string; signed_at: string; withdrawn_at: string | null; record_sha256: string } | null;
+  identity_status: "pending" | "verified" | "rejected" | null;
+  payout_rail: string | null;
+  open_data_requests: number;
+}
+export interface ContributorIdentity {
+  status: "pending" | "verified" | "rejected";
+  doc_kind: string | null;
+  doc_path: string | null;
+  selfie_path: string | null;
+  submitted_at: string;
+  reviewed_at: string | null;
+  reviewer_id: string | null;
+  note: string | null;
+}
+export interface ContributorDataRequest {
+  id: string;
+  kind: "copy" | "delete";
+  note: string | null;
+  status: "open" | "done" | "declined";
+  created_at: string;
+  handled_at: string | null;
+  response: string | null;
 }
 export interface ContributorSession {
   id: string;
@@ -133,6 +155,9 @@ export interface SentNotification {
   error: string | null;
 }
 export interface ContributorDetail extends ContributorRow {
+  identity: ContributorIdentity | null;
+  payout: { rail: string; details: Record<string, string>; updated_at: string } | null;
+  data_requests: ContributorDataRequest[];
   notifications: SentNotification[];
   sessions: ContributorSession[];
   payouts: ContributorPayout[];
@@ -236,6 +261,10 @@ export const contributors = (): Promise<Roster> => (isDemo() ? demoAdmin.contrib
 export const contributor = (cid: string): Promise<ContributorDetail> => (isDemo() ? demoAdmin.contributor(cid) : rpc<ContributorDetail>("admin_contributor", { cid }));
 export const contributorSet = (cid: string, action: ContributorAction, reason: string | null, days: number | null): Promise<ContributorRow> =>
   isDemo() ? demoAdmin.contributorSet(cid, action, reason, days) : rpc<ContributorRow>("admin_contributor_set", { cid, action, reason, days });
+export const identityReview = (cid: string, status: "verified" | "rejected", note: string): Promise<{ status: string }> =>
+  isDemo() ? demoAdmin.identityReview(cid, status, note) : rpc("identity_review", { cid, status, note });
+export const dataRequestSet = (rid: string, status: "done" | "declined", response: string): Promise<{ ok: boolean }> =>
+  isDemo() ? demoAdmin.dataRequestSet(rid, status, response) : rpc("data_request_set", { rid, status, response });
 export const auditQueue = (): Promise<AuditQueue> => (isDemo() ? demoVerify.auditQueue() : rpc<AuditQueue>("audit_queue"));
 export const auditRecord = (sid: string, outcome: "upheld" | "adjusted", score: number | null, note: string): Promise<AuditResult> =>
   isDemo() ? demoVerify.auditRecord(sid, outcome, score, note) : rpc<AuditResult>("audit_record", { sid, outcome, score, note });

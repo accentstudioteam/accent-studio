@@ -38,6 +38,12 @@ const row = (i: Partial<ContributorDetail> & Pick<ContributorDetail, "id" | "spe
   open_cases: 0,
   confirmed_cases: 0,
   consent: { agreement_version: "1.2", signed_at: ago(40 * 24 * 60), withdrawn_at: null, record_sha256: "3f1c9a02e7b14d6c8a5f0e9b2c7d4a1f6e3b8c5d2a9f7e4b1c6d3a8f5e2b9c7d" },
+  identity_status: null,
+  payout_rail: null,
+  open_data_requests: 0,
+  identity: null,
+  payout: null,
+  data_requests: [],
   notifications: [],
   sessions: [],
   payouts: [],
@@ -73,13 +79,17 @@ function seed() {
         { id: "pay-a0", rail: "usdc", amount_usd: 5.2, status: "paid", requested_at: ago(31 * 24 * 60), paid_at: ago(29 * 24 * 60), reference: "0x9c…41" },
       ],
       bookings: [{ id: "b1", starts_at: ahead(1), status: "paired", language: "pcm" }],
+      identity_status: "pending", payout_rail: "usdc",
+      identity: { status: "pending", doc_kind: "nin", doc_path: null, selfie_path: null, submitted_at: ago(2 * 24 * 60), reviewed_at: null, reviewer_id: null, note: null },
+      payout: { rail: "usdc", details: { network: "base", token: "USDC", address: "0x9c4bE2f1a0d3C7e8B6a5F4d3C2b1A0e9D8c7B641" }, updated_at: ago(3 * 24 * 60) },
       notifications: [
         { id: 31, kind: "statement", created_at: ago(21 * 24 * 60), sent_at: ago(21 * 24 * 60), attempts: 1, error: null },
         { id: 40, kind: "reply_due", created_at: ago(3 * 24 * 60), sent_at: ago(3 * 24 * 60), attempts: 1, error: null },
       ],
     }),
     row({ id: "c-77104", speaker_id: "spk_pcm_ng_77104", full_name: "Ngozi A.", email: "ngozi@example.com", rallies: 21, scenes: 3, verified_seconds: 4020, avg_quality: 4.72, earned_usd: 21.4, paid_usd: 15.9, cleared_usd: 5.5, last_active_at: ago(40) }),
-    row({ id: "c-30556", speaker_id: "spk_pcm_ng_30556", full_name: "Emeka U.", email: "emeka@example.com", rallies: 9, scenes: 0, abandoned: 3, quiet_count: 3, verified_seconds: 1300, avg_quality: 3.9, earned_usd: 4.62, paid_usd: 0, cleared_usd: 4.62, last_active_at: ago(3 * 24 * 60), arena_strikes: 1 }),
+    row({ id: "c-30556", speaker_id: "spk_pcm_ng_30556", full_name: "Emeka U.", email: "emeka@example.com", rallies: 9, scenes: 0, abandoned: 3, quiet_count: 3, verified_seconds: 1300, avg_quality: 3.9, earned_usd: 4.62, paid_usd: 0, cleared_usd: 4.62, last_active_at: ago(3 * 24 * 60), arena_strikes: 1, open_data_requests: 1,
+      data_requests: [{ id: "dr-1", kind: "copy", note: "everything from August", status: "open", created_at: ago(26 * 60), handled_at: null, response: null }] }),
     row({ id: "c-51920", speaker_id: "spk_yo_ng_51920", full_name: "Bola F.", email: "bola@example.com", languages: ["yo", "pcm"], primary_language: "yo", city: "Ibadan", rallies: 4, scenes: 0, verified_seconds: 610, avg_quality: 4.5, earned_usd: 2.71, paid_usd: 0, cleared_usd: 2.71, last_active_at: ago(5 * 24 * 60) }),
     row({
       id: "c-09311", speaker_id: "spk_pcm_ng_09311", full_name: "Seun K.", email: "seun@example.com", rallies: 2, scenes: 0, verified_seconds: 240, avg_quality: 2.9, earned_usd: 0.53, paid_usd: 0, cleared_usd: 0, held_usd: 0.53, open_cases: 1, last_active_at: ago(9 * 24 * 60),
@@ -90,7 +100,7 @@ function seed() {
 }
 
 const strip = (c: ContributorDetail): ContributorRow => {
-  const { sessions: _s, payouts: _p, cases: _c, bookings: _b, events: _e, notifications: _n, ...r } = c;
+  const { sessions: _s, payouts: _p, cases: _c, bookings: _b, events: _e, notifications: _n, identity: _i, payout: _po, data_requests: _d, ...r } = c;
   return r;
 };
 const find = (cid: string): ContributorDetail => {
@@ -196,6 +206,24 @@ export const demoAdmin = {
     }
     log(`contributor_${action}`, c, { speaker_id: c.speaker_id, reason: r, days });
     return strip(c);
+  },
+
+  identityReview: async (cid: string, status: "verified" | "rejected", note: string) => {
+    const c = find(cid);
+    if (!c.identity || c.identity.status !== "pending") throw new Error("nothing pending for this contributor");
+    c.identity = { ...c.identity, status, reviewed_at: now(), reviewer_id: ME, note: note.trim() || null };
+    c.identity_status = status;
+    log(`identity_${status}`, c, { note: note.trim() || null });
+    return { status };
+  },
+
+  dataRequestSet: async (rid: string, status: "done" | "declined", response: string) => {
+    const c = state.contributors.find((x) => x.data_requests.some((r) => r.id === rid && r.status === "open"));
+    if (!c) throw new Error("no open request with that id");
+    c.data_requests = c.data_requests.map((r) => (r.id === rid ? { ...r, status, handled_at: now(), response: response.trim() || null } : r));
+    c.open_data_requests = c.data_requests.filter((r) => r.status === "open").length;
+    log(`data_request_${status}`, c, { request_id: rid });
+    return { ok: true };
   },
 
   notifyLog: async (): Promise<NotifyLog> => {

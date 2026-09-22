@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
 import { LANG_NAME } from "@/lib/game";
-import { KIND_LABEL, NOTIFY_LABEL, STATUS_LABEL, contributor, contributorSet, contributors, hours, type ContributorAction, type ContributorDetail, type ContributorRow, type Roster } from "@/lib/admin";
+import { KIND_LABEL, NOTIFY_LABEL, STATUS_LABEL, contributor, contributorSet, contributors, dataRequestSet, hours, identityReview, type ContributorAction, type ContributorDetail, type ContributorRow, type Roster } from "@/lib/admin";
+import { DOC_KINDS, identityUrl } from "@/lib/account";
 import { TIER_WORD, money } from "@/lib/earn";
 import { REASON_LABEL, when } from "@/lib/verify";
 
@@ -97,11 +98,77 @@ function Row({ p, onOpen }: { p: ContributorRow; onOpen: () => void }) {
             {p.confirmed_cases > 0 && <span className="chip coral">{p.confirmed_cases} confirmed</span>}
             {p.arena_strikes > 0 && <span className="chip">{p.arena_strikes} arena strike{p.arena_strikes === 1 ? "" : "s"}</span>}
             {p.quiet_count > 0 && <span className="chip">went quiet {p.quiet_count}×</span>}
+            {p.identity_status === "pending" && <span className="chip gold">identity to check</span>}
+            {p.open_data_requests > 0 && <span className="chip gold">{p.open_data_requests} data request{p.open_data_requests === 1 ? "" : "s"}</span>}
           </div>
         </div>
         <span className="chip" style={{ flex: "none", borderColor: STATUS_COLOR[p.status], color: STATUS_COLOR[p.status] }}>{STATUS_LABEL[p.status]}</span>
       </div>
     </button>
+  );
+}
+
+function IdentityAndPayout({ d, onChanged }: { d: ContributorDetail; onChanged: () => Promise<void> }) {
+  const [note, setNote] = useState("");
+  const [links, setLinks] = useState<{ doc: string | null; selfie: string | null } | null>(null);
+  const [reply, setReply] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const id = d.identity;
+  const act = async (fn: () => Promise<unknown>) => {
+    setErr(null);
+    try {
+      await fn();
+      await onChanged();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message.replace(/^.*?: /, "") : "That didn't work.");
+    }
+  };
+  const view = async () => {
+    if (!id?.doc_path || !id.selfie_path) return;
+    setLinks({ doc: await identityUrl(id.doc_path), selfie: await identityUrl(id.selfie_path) });
+  };
+  const open = d.data_requests.filter((r) => r.status === "open");
+  return (
+    <div className="sheet" style={{ marginBottom: 18 }}>
+      <div className="handle" />
+      <div className="shead"><i className="g" />Identity, payout, data</div>
+      {err && <div className="tbody small" style={{ color: "var(--coral)" }}>{err}</div>}
+      <div className="tile" style={{ borderColor: id?.status === "pending" ? "var(--gold)" : undefined }}>
+        <div className="tlbl">Identity · {id ? id.status : "not sent"}</div>
+        {id && <div className="tbody small">{DOC_KINDS.find((k) => k.code === id.doc_kind)?.name ?? id.doc_kind} · sent {when(id.submitted_at)}{id.reviewed_at ? ` · ${id.status} by ${id.reviewer_id ?? "?"} ${when(id.reviewed_at)}` : ""}{id.note ? ` · ${id.note}` : ""}</div>}
+        {id?.doc_path && !links && <button type="button" className="pill ghost" style={{ marginTop: 8, width: "auto" }} onClick={() => void view()}>Open the photos</button>}
+        {links && <div className="tbody small" style={{ marginTop: 6 }}>{links.doc ? <a href={links.doc} target="_blank" rel="noopener noreferrer" style={{ color: "var(--acc)" }}>document</a> : "document (demo)"} · {links.selfie ? <a href={links.selfie} target="_blank" rel="noopener noreferrer" style={{ color: "var(--acc)" }}>selfie</a> : "selfie (demo)"}</div>}
+        {id?.status === "pending" && (
+          <>
+            <div className="field" style={{ marginTop: 8 }}><label>Note · the contributor sees it if rejected</label><input value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. the name does not match the application" /></div>
+            <div className="btn-row">
+              <button className="pill mint" style={{ width: "auto" }} onClick={() => void act(() => identityReview(d.id, "verified", note))}>Verify identity</button>
+              <button className="pill ghost" style={{ width: "auto" }} disabled={note.trim().length < 3} onClick={() => void act(() => identityReview(d.id, "rejected", note))}>Reject</button>
+            </div>
+          </>
+        )}
+      </div>
+      <div className="tile">
+        <div className="tlbl">Payout details · {d.payout ? d.payout.rail : "none yet"}</div>
+        {d.payout ? <div className="tbody small" style={{ fontFamily: "var(--mono)" }}>{Object.entries(d.payout.details).map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`).join(" · ")}</div> : <div className="tbody muted small">They add these in Account before a payout.</div>}
+      </div>
+      {d.data_requests.length > 0 && (
+        <div className="tile" style={{ borderColor: open.length ? "var(--gold)" : undefined }}>
+          <div className="tlbl">Data requests · {open.length} open</div>
+          {d.data_requests.map((r) => <div key={r.id} className="tbody small">{r.kind === "copy" ? "A copy of their data" : "Deletion"} · {r.status} · {when(r.created_at)}{r.note ? ` · "${r.note}"` : ""}{r.response ? ` · answered: ${r.response}` : ""}</div>)}
+          {open.length > 0 && (
+            <>
+              <div className="field" style={{ marginTop: 8 }}><label>What was done · the contributor sees it</label><input value={reply} onChange={(e) => setReply(e.target.value)} placeholder="e.g. sent as a zip by email on the 22nd" /></div>
+              <div className="btn-row">
+                <button className="pill mint" style={{ width: "auto" }} disabled={reply.trim().length < 3} onClick={() => void act(() => dataRequestSet(open[0].id, "done", reply))}>Mark done</button>
+                <button className="pill ghost" style={{ width: "auto" }} disabled={reply.trim().length < 3} onClick={() => void act(() => dataRequestSet(open[0].id, "declined", reply))}>Decline</button>
+              </div>
+              <div className="tbody muted small">Copies within 30 days; deletion removes name, email and photos, while delivered recordings stay pseudonymous under the agreement.</div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -190,6 +257,8 @@ function Detail({ cid, onBack }: { cid: string; onBack: () => void }) {
             <div className="field"><label>Private note · staff only</label><textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Anything the team should know." /></div>
             <button className="pill ghost" style={{ width: "auto" }} disabled={busy || note === (d.admin_note ?? "")} onClick={() => void act("note", note, null)}>Save the note</button>
           </div>
+
+          <IdentityAndPayout d={d} onChanged={load} />
 
           <div className="sheet" style={{ marginBottom: 18 }}>
             <div className="handle" />

@@ -8,6 +8,7 @@ import { CaseNotice } from "@/routes/CaseNotice";
 import { Earnings } from "@/routes/Earnings";
 import { Booth } from "@/routes/Booth";
 import { Arena } from "@/routes/Arena";
+import { Account } from "@/routes/Account";
 import { Logo } from "@/components/Logo";
 import type { Onboarding } from "@/lib/types";
 import { demoOnboarding, isDemo } from "@/lib/demo";
@@ -21,6 +22,11 @@ export function Player() {
   const [earnings, setEarnings] = useState(false);
   const [booth, setBooth] = useState(false);
   const [scene, setScene] = useState<string | null>(null);
+  const [account, setAccount] = useState(false);
+  const reloadMe = () => {
+    if (isDemo()) return;
+    void supabase.rpc("my_onboarding").then(({ data }) => setMe((data as Onboarding) ?? null));
+  };
 
   useEffect(() => {
     if (isDemo()) {
@@ -71,10 +77,11 @@ export function Player() {
       </div>
     );
   }
+  if (account) return <Account onBack={() => { setAccount(false); reloadMe(); }} onChanged={reloadMe} />;
   if (notices) return <CaseNotice onBack={() => setNotices(false)} />;
   if (earnings) return <Earnings onBack={() => setEarnings(false)} />;
   if (scene) return <Arena sessionId={scene} onBack={() => { setScene(null); setBooth(true); }} />;
   if (booth) return <Booth language={me.contributor.primary_language ?? "pcm"} onBack={() => setBooth(false)} onJoin={(sid) => { setBooth(false); setScene(sid); }} />;
   if (rally) return <Rally sessionId={rally} onBack={() => setRally(null)} />;
-  return <PlayerHome me={me} onOpenRally={setRally} onNotices={() => setNotices(true)} onEarnings={() => setEarnings(true)} onBooth={() => setBooth(true)} onJoinScene={(sid) => setScene(sid)} />;
+  return <PlayerHome me={me} onOpenRally={setRally} onNotices={() => setNotices(true)} onEarnings={() => setEarnings(true)} onBooth={() => setBooth(true)} onJoinScene={(sid) => setScene(sid)} onAccount={() => setAccount(true)} />;
 }

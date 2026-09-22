@@ -426,7 +426,7 @@ export const demoVerify = {
   payoutsQueue: async (): Promise<PayoutQueue> => {
     seed();
     if (!state.payouts.length) state.payouts = [
-      { id: "pay-1", requested_at: ago(26 * 60), rail: "usdc", amount_usd: 2.31, status: "requested", paid_at: null, reference: null, speaker_id: "spk_pcm_ng_48213", lines: 6, paid_by: null },
+      { id: "pay-1", requested_at: ago(26 * 60), rail: "usdc", amount_usd: 2.31, status: "requested", paid_at: null, reference: null, speaker_id: "spk_pcm_ng_48213", lines: 6, paid_by: null, details: { network: "base", token: "USDC", address: "0x9c4bE2f1a0d3C7e8B6a5F4d3C2b1A0e9D8c7B641" }, identity: "pending" },
       { id: "pay-0", requested_at: ago(31 * 24 * 60), rail: "paystack", amount_usd: 5.2, status: "paid", paid_at: ago(29 * 24 * 60), reference: "PSK-88213", speaker_id: "spk_pcm_ng_77104", lines: 9, paid_by: OTHER },
     ];
     const requested = state.payouts.filter((p) => p.status === "requested").reduce((n, p) => n + p.amount_usd, 0);
