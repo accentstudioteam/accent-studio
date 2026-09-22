@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { VoiceNote } from "@/components/VoiceNote";
 import { WordAligner, type Alignment } from "@/components/WordAligner";
-import { CONFIDENCE, EMOTIONS, ISSUES, REASON_LABEL, regloss, saveTurn, type CaseReason, type RatingCheck, type Speaker, type WorkTurn, type Workbench } from "@/lib/verify";
+import { CONFIDENCE, EMOTIONS, ISSUES, PII_TYPES, REASON_LABEL, regloss, savePii, saveTurn, suggestPii, type CaseReason, type PiiSpan, type PiiType, type RatingCheck, type Speaker, type WorkTurn, type Workbench } from "@/lib/verify";
 import { isDemo } from "@/lib/demo";
 import { demoNotesFor } from "@/lib/demoVerify";
 
@@ -42,6 +42,9 @@ export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
   const [flagDetail, setFlagDetail] = useState("");
   const [glossing, setGlossing] = useState(false);
   const [glossEngine, setGlossEngine] = useState<string | null>(d?.gloss_engine ?? null);
+  const [pii, setPii] = useState<PiiSpan[]>(v?.pii_redactions ?? []);
+  const [piiText, setPiiText] = useState("");
+  const [piiType, setPiiType] = useState<PiiType>("phone");
 
   // The machine drafts land straight in the boxes, ready to correct. Only when a box is empty.
   useEffect(() => {
@@ -71,7 +74,12 @@ export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
   const speakerId = t.speaker_id ?? w.speakers[t.speaker] ?? "";
   const raterId = w.speakers[other] ?? "";
   const savedAlign = JSON.stringify(v?.alignments ?? []);
-  const dirty = text !== (v?.verified_text ?? "") || gloss !== (v?.english_gloss ?? "") || emotion !== (v?.emotion_label ?? "") || confidence !== (v?.confidence ?? null) || check !== (v?.rating_check ?? null) || issues.join() !== (v?.issues ?? []).join() || Number(seconds) !== (v?.verified_seconds ?? t.seconds) || JSON.stringify(alignments) !== savedAlign;
+  const savedPii = JSON.stringify(v?.pii_redactions ?? []);
+  const piiDirty = JSON.stringify(pii) !== savedPii;
+  const suggestions = suggestPii(text).filter((s) => !pii.some((p) => p.text === s.text));
+  const piiLabel = (k: PiiType) => PII_TYPES.find(([c]) => c === k)?.[1] ?? k;
+  const addPii = (s: PiiSpan) => setPii((xs) => (xs.some((x) => x.text === s.text) ? xs : [...xs, s]));
+  const dirty = piiDirty || text !== (v?.verified_text ?? "") || gloss !== (v?.english_gloss ?? "") || emotion !== (v?.emotion_label ?? "") || confidence !== (v?.confidence ?? null) || check !== (v?.rating_check ?? null) || issues.join() !== (v?.issues ?? []).join() || Number(seconds) !== (v?.verified_seconds ?? t.seconds) || JSON.stringify(alignments) !== savedAlign;
 
   const save = async () => {
     setBusy(true);
@@ -79,6 +87,7 @@ export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
     try {
       const secs = Number(seconds);
       await saveTurn({ turn_id: t.turn_id, verified_text: text, english_gloss: gloss, emotion: emotion || null, confidence, issues, verified_seconds: Number.isFinite(secs) ? secs : null, rating_check: check, alignments });
+      if (piiDirty) await savePii(t.turn_id, pii);
       setSavedAt(new Date().toISOString());
       onSaved();
     } catch (e) {
@@ -201,6 +210,23 @@ export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
           <div className="chips" style={{ marginBottom: 12 }}>
             {ISSUES.map(([k, label]) => <button key={k} type="button" className={`chip${issues.includes(k) ? " on gold" : ""}`} onClick={() => toggleIssue(k)}>{label}</button>)}
           </div>
+          <div className="tlbl">Personal data in this take{pii.length ? ` · ${pii.length} marked` : ""}</div>
+          <div className="tbody muted small" style={{ marginBottom: 6 }}>Phone numbers, account or ID numbers, real names, addresses, emails. A marked span is replaced in the delivered text and listed so the lab cuts it from the audio.</div>
+          {suggestions.length > 0 && (
+            <div className="chips" style={{ marginBottom: 6 }}>
+              {suggestions.map((s) => <button key={s.text} type="button" className="chip gold" onClick={() => addPii(s)}>+ {s.text} · {piiLabel(s.type)}</button>)}
+            </div>
+          )}
+          {pii.length > 0 && (
+            <div className="chips" style={{ marginBottom: 6 }}>
+              {pii.map((s, i) => <button key={`${s.text}-${i}`} type="button" className="chip on coral" title="remove" onClick={() => setPii((xs) => xs.filter((_, j) => j !== i))}>{s.text} · {piiLabel(s.type)} ×</button>)}
+            </div>
+          )}
+          <div className="row2" style={{ alignItems: "flex-end" }}>
+            <div className="field" style={{ marginBottom: 8 }}><label>Mark a span</label><input value={piiText} onChange={(e) => setPiiText(e.target.value)} placeholder="the exact words, as in the transcript" /></div>
+            <div className="field" style={{ marginBottom: 8 }}><label>What it is</label><select value={piiType} onChange={(e) => setPiiType(e.target.value as PiiType)}>{PII_TYPES.map(([k, label]) => <option key={k} value={k}>{label}</option>)}</select></div>
+          </div>
+          <button className="pill ghost" style={{ width: "auto", marginBottom: 12 }} disabled={!piiText.trim()} onClick={() => { addPii({ text: piiText.trim(), type: piiType }); setPiiText(""); }}>Add the span</button>
           <div className="btn-row">
             <button className="pill mint" disabled={busy || !dirty} onClick={() => void save()}>{busy ? "Saving…" : savedAt && !dirty ? "Saved" : "Save turn"}</button>
             <button className="pill ghost" disabled={busy} onClick={() => setFlagOpen((o) => !o)}>{flagOpen ? "Close" : "Flag…"}</button>
@@ -235,6 +261,7 @@ export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
             <div className="tbody muted small" style={{ marginTop: 6, fontFamily: "var(--mono)", fontSize: "0.7rem" }}>
               {v.emotion_label ? `${v.emotion_label.replace("_", " ")} · ` : ""}confidence {v.confidence ?? "?"} · {v.verified_seconds ?? t.seconds} s{v.issues.length ? ` · ${v.issues.join(", ")}` : ""}{v.rating_check ? ` · rating ${v.rating_check.replace("_", " ")}` : ""}{v.draft_wer != null ? ` · draft ${Math.round(Number(v.draft_wer) * 100)}% off (${v.draft_engine ?? "stt"})` : ""}{(v.alignments as Alignment[] | undefined)?.length ? ` · ${(v.alignments as Alignment[]).length} word links by ${v.aligner ?? "editor"}` : ""}
             </div>
+            {(v.pii_redactions?.length ?? 0) > 0 && <div className="tbody small" style={{ marginTop: 6, color: "var(--coral)" }}>Personal data marked: {v.pii_redactions?.map((p) => `${p.text} (${piiLabel(p.type)})`).join(", ")}</div>}
             {((v.alignments as Alignment[] | undefined)?.length ?? 0) > 0 && (
               <div style={{ marginTop: 8 }}><WordAligner transcript={v.verified_text ?? ""} gloss={v.english_gloss ?? ""} language={lang} value={v.alignments as Alignment[]} onChange={() => undefined} disabled /></div>
             )}

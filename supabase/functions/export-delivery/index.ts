@@ -6,6 +6,7 @@
 // audio file per turn, english_gloss with english_source kept as its alias, alignments typed, consent fingerprints.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { parquetWriteBuffer } from "npm:hyparquet-writer@0.16.10";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -14,7 +15,7 @@ const CORS = {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const BATCH = 24;
 
-interface Turn { turn_id: string; turn_no: number; attempt: number; speaker_id: string; channel: number; seconds: number; audio_path: string; created_at: string; verified_text: string | null; english_gloss: string | null; emotion_label: string | null; confidence: number | null; issues: string[]; verified_seconds: number | null; alignments: { src: { text: string } | null; tgt: { text: string } | null; type: string; confidence: number }[]; aligner: string | null; raw_stt_text: string | null; raw_stt_engine: string | null; raw_stt_confidence: number | null; draft_wer: number | null; peer_rating: Record<string, number> | null }
+interface Turn { turn_id: string; turn_no: number; attempt: number; speaker_id: string; channel: number; seconds: number; audio_path: string; created_at: string; verified_text: string | null; english_gloss: string | null; emotion_label: string | null; confidence: number | null; issues: string[]; verified_seconds: number | null; alignments: { src: { text: string } | null; tgt: { text: string } | null; type: string; confidence: number }[]; aligner: string | null; raw_stt_text: string | null; raw_stt_engine: string | null; raw_stt_confidence: number | null; draft_wer: number | null; peer_rating: Record<string, number> | null; pii_redactions?: { text: string; type: string }[] | null }
 interface Session { session_id: string; mode?: string; locale: string; language: string; scenario: string | null; scenario_title: string; scenario_prompt_hash: string | null; card_version: number; recorded_at: string; completed_at: string; abandoned_reason: string | null; flags: string[]; speaker_a: string; speaker_b: string | null; persona_a: string; persona_b: string; verification: { editor_id: string | null; verified_at: string; editor_score: number; peer_score: number | null; quality_score: number; quality_tier: string; verified_seconds: number; audit_pick: boolean; audit_outcome: string | null; audit_editor_id: string | null; audited_at: string | null; aligned_turns: number | null; confidence: number | null }; turns: Turn[] }
 interface Speaker { speaker_id: string; languages: string[]; primary_language: string | null; country: string | null; city: string | null; age_band: string | null; gender: string | null; device: string | null; consent: { agreement_version: string; agreement_sha256: string; accepted_terms: boolean; biometric_consent: boolean; signed_at: string; signature_method: string; record_sha256: string } | null }
 interface FileRow { turn_id: string; path: string; bytes: number | null; sha256: string | null }
@@ -31,6 +32,11 @@ async function sha256Hex(data: ArrayBuffer | Uint8Array): Promise<string> {
 const ext = (p: string) => p.split(".").pop() ?? "webm";
 const csvCell = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
 const hours = (s: number) => (s / 3600).toFixed(2);
+/** Marked personal data is replaced in every delivered text field; the span list tells the lab what to cut from the audio. */
+function redact(s: string | null, spans: { text: string; type: string }[]): string | null {
+  if (s == null) return null;
+  return spans.reduce((acc, p) => (p.text ? acc.split(p.text).join(`[REDACTED:${p.type}]`) : acc), s);
+}
 
 /** The audio path inside the bundle for a turn. */
 const bundleAudioPath = (bundle: string, s: Session, t: Turn) => `${bundle}/audio/${s.locale}/${s.session_id}/turn-${String(t.turn_no).padStart(2, "0")}-${t.speaker_id}.${ext(t.audio_path)}`;
@@ -49,12 +55,14 @@ function manifestRow(p: Payload, s: Session, fileOf: Map<string, FileRow>) {
   };
   const turns = s.turns.map((t) => {
     const f = fileOf.get(t.turn_id);
+    const spans = (t.pii_redactions ?? []).filter((p) => p && typeof p.text === "string" && p.text.length > 0);
     return {
       turn_id: t.turn_no, speaker_id: t.speaker_id, channel: t.channel, audio_file: f ? f.path.slice(bundle.length + 1) : null, audio_sha256: f?.sha256 ?? null, audio_bytes: f?.bytes ?? null,
       start_ms: 0, end_ms: Math.round(Number(t.verified_seconds ?? t.seconds) * 1000), recorded_at: t.created_at, attempt: t.attempt,
-      raw_stt_text: t.raw_stt_text, raw_stt_engine: t.raw_stt_engine, raw_stt_confidence: t.raw_stt_confidence, raw_stt_wer: t.draft_wer,
-      verified_text: t.verified_text, english_gloss: t.english_gloss, english_source: t.english_gloss, emotion_label: t.emotion_label, editor_confidence: t.confidence, issues: t.issues ?? [],
-      inter_turn_latency_ms: 0, latency_source: s.mode === "live" ? "live_unsegmented" : "async_none", code_switches: [], pii_redactions: [],
+      raw_stt_text: redact(t.raw_stt_text, spans), raw_stt_engine: t.raw_stt_engine, raw_stt_confidence: t.raw_stt_confidence, raw_stt_wer: t.draft_wer,
+      verified_text: redact(t.verified_text, spans), english_gloss: redact(t.english_gloss, spans), english_source: redact(t.english_gloss, spans), emotion_label: t.emotion_label, editor_confidence: t.confidence, issues: t.issues ?? [],
+      inter_turn_latency_ms: 0, latency_source: s.mode === "live" ? "live_unsegmented" : "async_none", code_switches: [],
+      pii_redactions: spans.map((p) => ({ type: p.type, text_span: p.text, replaced_with: `[REDACTED:${p.type}]`, in_audio: true, note: "present in the audio; cut or mask before use" })),
       peer_rating: t.peer_rating,
       alignments: (t.alignments ?? []).map((a) => ({ src_span: a.src?.text ?? "", tgt_span: a.tgt?.text ?? "", type: a.type, confidence: a.confidence, reviewer_id: t.aligner ?? s.verification.editor_id ?? null })),
     };
@@ -85,12 +93,14 @@ function readme(p: Payload, rows: Record<string, unknown>[], manifestSha: string
     "- speakers.jsonl: one row per speaker: pseudonymous speaker id, languages, country, city, age band, self-described gender, consent record fingerprint. No identity data.",
     "- consent_log.jsonl: one row per speaker per Annex A of the Contributor Agreement: agreement version and SHA-256, the two consents, signing timestamp and method, the consent record fingerprint. Present a fingerprint to Accent Studio to confirm a valid record exists.",
     "- index.csv: a denormalised turn-level index for filtering.",
+    "- index.parquet: the same index as index.csv, one row per turn, for pandas, DuckDB or Spark.",
     "- checksums.txt: SHA-256 of every file in the bundle.",
     "- audio/<locale>/<session_id>/turn-NN-<speaker_id>.<ext>: one file per turn, as captured on the contributor's phone (Opus in WebM or MP4, no resampling). 24 kHz stereo WAV masters are the Live Arena format and do not apply to async rallies.", "",
     "## Notes on this layout", "",
     "- Async rallies are voice notes exchanged in turns, so inter_turn_latency_ms is 0 with latency_source async_none. Live scenes (modality live_scene) carry one whole-scene track per speaker, recorded on each phone (audio_layout per_speaker_tracks); turn segmentation and measured inter-turn latency are not yet produced, hence latency_source live_unsegmented.",
     "- audit_status sampled_pending marks sessions drawn for random re-audit whose audit has not run yet; audited_upheld and audited_adjusted name the outcome with the auditor's id and timestamp. An adjusted audit re-scores the session; the tier here is the audited one.",
     "- Sessions closed early because a partner stopped replying are included when the remaining takes were verified; closed_early says so.",
+    "- Personal data a linguist marked (phone, account or ID numbers, real names, addresses, emails) is replaced in every text field by [REDACTED:type] and listed per turn in pii_redactions with in_audio true: the words are still spoken in the audio, so cut or mask those spans before any use that could expose them.",
     "- Every speaker in this bundle signed the Contributor Agreement" + (a ? ` v${a.version} (document ${a.document_id}, SHA-256 ${a.sha256}, ${a.url})` : "") + ". Buyers may never identify a speaker, clone an individual voice, verify identity with it, surveil anyone, or pass the raw data on (clause 5).", "",
     `manifest.jsonl SHA-256: ${manifestSha}`, "",
   ].join("\n");
@@ -162,6 +172,37 @@ Deno.serve(async (req: Request) => {
     const manifestSha = await sha256Hex(new TextEncoder().encode(manifest));
     const texts: Record<string, string> = { "manifest.jsonl": manifest, "alignments.jsonl": alignments, "speakers.jsonl": speakers, "consent_log.jsonl": consent, "index.csv": index, "README.md": readme(p, rows, manifestSha) };
     const listed: { path: string; bytes: number; sha256: string }[] = [];
+    // index.parquet: the same rows as index.csv, typed
+    try {
+      const flat = rows.flatMap((r) => (r.turns as Record<string, unknown>[]).map((t) => ({ r, t })));
+      const str = (v: unknown) => (v == null ? null : String(v));
+      const num = (v: unknown) => (v == null || v === "" ? null : Number(v));
+      const columnData = [
+        { name: "session_id", data: flat.map((x) => str(x.r.session_id)), type: "STRING" },
+        { name: "locale", data: flat.map((x) => str(x.r.locale)), type: "STRING" },
+        { name: "scenario", data: flat.map((x) => str(x.r.scenario)), type: "STRING" },
+        { name: "turn_id", data: flat.map((x) => Number(x.t.turn_id)), type: "INT32" },
+        { name: "speaker_id", data: flat.map((x) => str(x.t.speaker_id)), type: "STRING" },
+        { name: "channel", data: flat.map((x) => Number(x.t.channel)), type: "INT32" },
+        { name: "seconds", data: flat.map((x) => Number(x.t.end_ms) / 1000), type: "DOUBLE" },
+        { name: "quality_tier", data: flat.map((x) => str((x.r.verified_by_qc as { quality_tier: string }).quality_tier)), type: "STRING" },
+        { name: "emotion_label", data: flat.map((x) => str(x.t.emotion_label)), type: "STRING" },
+        { name: "editor_confidence", data: flat.map((x) => num(x.t.editor_confidence)), type: "DOUBLE" },
+        { name: "raw_stt_wer", data: flat.map((x) => num(x.t.raw_stt_wer)), type: "DOUBLE" },
+        { name: "alignments", data: flat.map((x) => (x.t.alignments as unknown[]).length), type: "INT32" },
+        { name: "pii_redactions", data: flat.map((x) => (x.t.pii_redactions as unknown[]).length), type: "INT32" },
+        { name: "verified_text", data: flat.map((x) => str(x.t.verified_text)), type: "STRING" },
+        { name: "english_gloss", data: flat.map((x) => str(x.t.english_gloss)), type: "STRING" },
+        { name: "audio_file", data: flat.map((x) => str(x.t.audio_file)), type: "STRING" },
+      ];
+      const pq = new Uint8Array(parquetWriteBuffer({ columnData, compressed: true }));
+      const { error: pqErr } = await admin.storage.from("deliveries").upload(`${bundle}/index.parquet`, pq, { contentType: "application/vnd.apache.parquet", upsert: true });
+      if (pqErr) throw new Error(pqErr.message);
+      listed.push({ path: `${bundle}/index.parquet`, bytes: pq.byteLength, sha256: await sha256Hex(pq) });
+    } catch (e) {
+      console.error("index.parquet failed", e instanceof Error ? e.message : String(e));
+      texts["README.md"] += `\nindex.parquet could not be written for this bundle (${e instanceof Error ? e.message : String(e)}); use index.csv.\n`;
+    }
     for (const [name, text] of Object.entries(texts)) {
       const bytes = new TextEncoder().encode(text);
       const { error } = await admin.storage.from("deliveries").upload(`${bundle}/${name}`, bytes, { contentType: name.endsWith(".csv") ? "text/csv" : name.endsWith(".md") ? "text/markdown" : "application/x-ndjson", upsert: true });

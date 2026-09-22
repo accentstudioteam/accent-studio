@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { finish, join, rate, type Scene } from "@/lib/arena";
-import { ArenaCall, SupabaseSignal } from "@/lib/rtc";
+import { ArenaCall, DEFAULT_ICE, SupabaseSignal } from "@/lib/rtc";
 import { openArenaMic, type ArenaMic } from "@/lib/arenaAudio";
 import { uploadRecording } from "@/lib/upload";
 import { isDemo } from "@/lib/demo";
@@ -93,7 +93,7 @@ export function Arena({ sessionId, onBack }: Props) {
             if (typeof d.level === "number") setTheirLevel(d.level);
           },
           onPeerHello: () => void load(),
-        });
+        }, s.ice && s.ice.length ? s.ice : DEFAULT_ICE);
         call.addStream(mic.stream);
         call.hello();
         callRef.current = call;

@@ -3,7 +3,7 @@
 // (clause 15: the person who raised a flag cannot decide it), and the contributor's view.
 // Nothing is saved.
 import { demo } from "@/lib/demo";
-import type { Case, CaseEvent, CaseReason, Cases, Decision, EarningPost, MyCase, Queue, SaveTurnInput, Speaker, TurnVerification, VerifyResult, Workbench, WorkTurn } from "@/lib/verify";
+import type { Case, CaseEvent, CaseReason, Cases, Decision, EarningPost, MyCase, PiiSpan, Queue, SaveTurnInput, Speaker, TurnVerification, VerifyResult, Workbench, WorkTurn } from "@/lib/verify";
 import type { PayoutQueue, QueuedPayout } from "@/lib/earn";
 import type { Delivery, ExportStep, Plan, Project, ProjectInput } from "@/lib/projects";
 import type { AuditDone, AuditQueue, AuditResult } from "@/lib/admin";
@@ -258,6 +258,19 @@ export const demoVerify = {
       stt: { engine: "whisper", language: "en", show: true, note: STT_NOTE },
       turns: s.turns.map(({ clip: _clip, ...t }) => t),
     };
+  },
+
+  savePii: async (tid: string, spans: PiiSpan[]): Promise<void> => {
+    seed();
+    for (const s of state.sessions) {
+      const t = s.turns.find((x) => x.turn_id === tid);
+      if (!t) continue;
+      if (s.status !== "in_progress" || s.claimed !== "me") throw new Error("claim the rally first");
+      const base: TurnVerification = t.verification ?? { verified_text: null, english_gloss: null, emotion_label: null, confidence: null, issues: [], verified_seconds: null, rating_check: null, updated_at: now() };
+      t.verification = { ...base, pii_redactions: spans, updated_at: now() };
+      return;
+    }
+    throw new Error("no such turn");
   },
 
   saveTurn: async (i: SaveTurnInput): Promise<void> => {

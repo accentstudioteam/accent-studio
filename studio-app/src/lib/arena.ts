@@ -54,6 +54,7 @@ export interface Twist {
   text: string;
 }
 export interface Scene {
+  ice?: { urls: string | string[]; username?: string; credential?: string }[];
   session_id: string;
   status: "waiting" | "active" | "complete" | "abandoned";
   language: string;

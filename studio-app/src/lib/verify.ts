@@ -61,6 +61,32 @@ export interface TurnVerification {
   alignments?: unknown[];
   aligned_at?: string | null;
   aligner?: string | null;
+  pii_redactions?: PiiSpan[];
+}
+export type PiiType = "phone" | "account_number" | "id_number" | "name" | "address" | "email" | "other";
+export interface PiiSpan {
+  text: string;
+  type: PiiType;
+}
+export const PII_TYPES: [PiiType, string][] = [["phone", "phone number"], ["account_number", "account number"], ["id_number", "ID number"], ["name", "a real name"], ["address", "address"], ["email", "email"], ["other", "other"]];
+/** Likely personal data in a transcript: phone numbers, long digit runs, emails. Suggestions only; the linguist decides. */
+export function suggestPii(text: string): PiiSpan[] {
+  const out: PiiSpan[] = [];
+  const seen = new Set<string>();
+  const add = (t: string, type: PiiType) => {
+    const k = t.trim();
+    if (k && !seen.has(k)) {
+      seen.add(k);
+      out.push({ text: k, type });
+    }
+  };
+  for (const m of text.matchAll(/\+?\d[\d\s-]{8,}\d/g)) {
+    const digits = m[0].replace(/\D/g, "");
+    if (digits.length < 10 || digits.length > 14) continue;
+    add(m[0], digits.length === 10 && !digits.startsWith("0") ? "account_number" : digits.length === 11 && !digits.startsWith("0") ? "id_number" : "phone");
+  }
+  for (const m of text.matchAll(/[^\s@]+@[^\s@]+\.[^\s@]+/g)) add(m[0], "email");
+  return out;
 }
 /** The machine's first pass at a take. Never shown to contributors, never used to grade them. */
 export interface Draft {
@@ -260,6 +286,7 @@ async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
 export const queue = (): Promise<Queue> => (isDemo() ? demoVerify.queue() : rpc<Queue>("vq_queue"));
 export const claim = (sid: string): Promise<void> => (isDemo() ? demoVerify.claim(sid) : rpc<unknown>("vq_claim", { sid }).then(() => undefined));
 export const workbench = (sid: string): Promise<Workbench> => (isDemo() ? demoVerify.workbench(sid) : rpc<Workbench>("vq_session", { sid }));
+export const savePii = (tid: string, spans: PiiSpan[]): Promise<void> => (isDemo() ? demoVerify.savePii(tid, spans) : rpc<unknown>("vq_save_pii", { tid, pii: spans }).then(() => undefined));
 export const saveTurn = (i: SaveTurnInput): Promise<void> =>
   isDemo()
     ? demoVerify.saveTurn(i)
