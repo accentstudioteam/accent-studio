@@ -1621,57 +1621,103 @@ button.chip {
   width: auto;
 }
 
-/* --- the contributor app's bottom bar --- */
-.tabbar {
+/* --- the floating dock: five places, icons only, the active one opens to its name --- */
+.dockwrap {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-  display: flex;
-  justify-content: space-around;
-  padding: 6px max(8px, env(safe-area-inset-left)) max(8px, env(safe-area-inset-bottom));
-  background: color-mix(in srgb, var(--bg0) 88%, transparent);
-  backdrop-filter: blur(12px);
-  border-top: 1px solid var(--line2);
+  padding: 0 12px calc(12px + env(safe-area-inset-bottom));
   z-index: 20;
+  pointer-events: none;
 }
-.tab {
-  position: relative;
+.dock {
+  pointer-events: auto;
+  max-width: 440px;
+  margin: 0 auto;
+  background: rgba(23, 20, 14, 0.9);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px;
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  gap: 2px;
-  padding: 6px 10px;
-  border-radius: 12px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 22px 44px -18px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.dtab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 13px;
+  border-radius: 999px;
   color: var(--mut);
-  min-width: 64px;
+  transition: background 0.2s var(--ease), color 0.2s, padding 0.2s var(--ease);
 }
-.tab.on {
-  color: var(--acc);
+.dtab svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
 }
-.tab-glyph {
-  font-size: 1.05rem;
-  line-height: 1;
-}
-.tab-label {
+.dtab .dlb {
+  display: none;
   font-family: var(--mono);
-  font-size: 0.6rem;
+  font-size: 0.62rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
-.tab-badge {
+.dtab.on {
+  background: var(--accdim);
+  color: var(--acc2);
+  padding: 11px 16px 11px 13px;
+}
+.dtab.on .dlb {
+  display: inline;
+}
+.dtab.soon:not(.on) {
+  color: var(--live);
+}
+.dtab.soon:not(.on) svg {
+  animation: lamp 2.4s ease-in-out infinite;
+}
+.dtab:hover:not(.on) {
+  color: var(--ink);
+}
+.dbadge {
   position: absolute;
-  top: 2px;
-  right: 6px;
+  top: 3px;
+  right: 5px;
   background: var(--gold);
   color: #0d0b08;
-  font-size: 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.58rem;
   font-weight: 700;
   border-radius: 999px;
   padding: 1px 6px;
+  line-height: 1.3;
 }
-.has-tabbar .shell {
-  padding-bottom: 96px;
+.has-dock .shell {
+  padding-bottom: 112px;
+}
+@media (min-width: 900px) {
+  .studio .dockwrap {
+    display: none;
+  }
+  .studio.has-dock .shell {
+    padding-bottom: 44px;
+  }
+}
+@media (max-width: 899px) {
+  .studio.with-dock .snav {
+    display: none;
+  }
 }
 
 /* --- visual pass: focus, hover, rhythm --- */

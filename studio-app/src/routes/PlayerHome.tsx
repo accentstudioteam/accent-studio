@@ -10,7 +10,7 @@ import { lagos, mine as arenaMine, untilLabel, type Mine as ArenaMine } from "@/
 
 const POLL_MS = 20_000;
 
-export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, onJoinScene, onAccount }: { me: Onboarding; onOpenRally: (sessionId: string) => void; onNotices: () => void; onEarnings: () => void; onBooth: () => void; onJoinScene: (sid: string) => void; onAccount: () => void }) {
+export function PlayerHome({ me, mode, onOpenRally, onNotices, onEarnings, onBooth, onPlayTab, onJoinScene, onAccount, onCounts }: { me: Onboarding; onOpenRally: (sessionId: string) => void; onNotices: () => void; onEarnings: () => void; onBooth: () => void; onPlayTab: () => void; onJoinScene: (sid: string) => void; onAccount: () => void; mode: "home" | "play"; onCounts?: (c: { play: number; live: number; soon: boolean }) => void }) {
   const [rallies, setRallies] = useState<RallySummary[]>([]);
   const [notices, setNotices] = useState<MyCase[]>([]);
   const [earn, setEarn] = useState<MyEarnings | null>(null);
@@ -21,13 +21,22 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, on
 
   const load = useCallback(async () => {
     try {
-      setRallies(await mySessions());
+      const rs = await mySessions();
+      setRallies(rs);
       setNotices(await myCases().catch(() => []));
       setEarn(await myEarnings().catch(() => null));
-      setArena(await arenaMine().catch(() => null));
+      const ar = await arenaMine().catch(() => null);
+      setArena(ar);
+      const soonMs = 60 * 60_000;
+      onCounts?.({
+        play: rs.filter((r) => (r.status === "waiting" || r.status === "active") && r.my_turn).length,
+        live: ar?.upcoming.filter((b) => b.can_join).length ?? 0,
+        soon: !!ar?.upcoming.some((b) => b.status === "paired" && new Date(b.starts_at).getTime() - Date.now() < soonMs),
+      });
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Couldn't load your rallies.");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -57,7 +66,7 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, on
     <div className="app">
       <div className="topbar">
         <Logo height={22} />
-        <button type="button" className="chip" aria-label="Account" style={{ fontFamily: "var(--mono)", fontSize: "0.7rem", cursor: "pointer" }} onClick={onAccount}>{me.contributor?.speaker_id ?? "cast"} · account</button>
+        <button type="button" className="chip" aria-label="Your account" title="Your account" style={{ fontFamily: "var(--mono)", fontSize: "0.7rem", cursor: "pointer", whiteSpace: "nowrap" }} onClick={onAccount}>{me.contributor?.speaker_id ?? "cast"}</button>
       </div>
       <div className="shell">
         {isDemo() && (
@@ -91,11 +100,12 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, on
         )}
         <div className="spread" style={{ marginBottom: 18, alignItems: "flex-start" }}>
           <div>
-            <div className="eyebrow" style={{ marginBottom: 6 }}>Playing in {LANG_NAME[language] ?? language}</div>
-            <h1 className="h1">Ping-Pong.</h1>
+            <div className="eyebrow" style={{ marginBottom: 6 }}>{mode === "play" ? "Ping-Pong" : "Playing in"} · {LANG_NAME[language] ?? language}</div>
+            <h1 className="h1">{mode === "play" ? "Your rallies." : "Today."}</h1>
           </div>
         </div>
 
+        {mode === "home" && (
         <div className="sheet" style={{ marginBottom: 18 }}>
           <div className="handle" />
           <div className="shead"><i className="g" />Live Arena</div>
@@ -114,13 +124,14 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, on
             );
           })()}
         </div>
+        )}
 
         <div className="sheet" style={{ marginBottom: 18 }}>
           <div className="handle" />
-          <div className="shead"><i className="g" />How a rally works</div>
+          <div className="shead"><i className="g" />{mode === "play" ? "How a rally works" : "Ping-Pong"}</div>
           <div className="tile">
             <div className="tbody muted">
-              You get a card in your language: a situation and who you are in it. You record one voice note, up to 30 seconds, your way. A stranger gets the other role, listens, rates your take on four things, and records theirs. Six turns and the rally is done. Below 4 out of 5 you say it again. Each reply is due within 24 hours; if a partner goes quiet the rally closes, your takes still count, and your next Play pairs you fresh.
+              {mode === "home" ? `${yourTurn.length ? `${yourTurn.length} waiting on you` : "Nothing waiting on you"}${waiting.length ? ` · ${waiting.length} with a partner` : ""}${done.length ? ` · ${done.length} closed` : ""}. ` : ""}You get a card in your language: a situation and who you are in it. You record one voice note, up to 30 seconds, your way. A stranger gets the other role, listens, rates your take on four things, and records theirs. Six turns and the rally is done. Below 4 out of 5 you say it again. Each reply is due within 24 hours; if a partner goes quiet the rally closes, your takes still count, and your next Play pairs you fresh.
             </div>
           </div>
           <button className="pill mint" disabled={busy} onClick={() => void play()}>{busy ? "Finding a card…" : "Play a rally"}</button>
@@ -135,7 +146,8 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, on
             </div>
           </>
         )}
-        {waiting.length > 0 && (
+        {mode === "home" && (waiting.length > 0 || done.length > 0) && <button className="pill ghost" style={{ marginBottom: 18 }} onClick={onPlayTab}>All your rallies · {rallies.length}</button>}
+        {mode === "play" && waiting.length > 0 && (
           <>
             <span className="slabel">Waiting on a partner · {waiting.length}</span>
             <div className="stack" style={{ marginBottom: 18 }}>
@@ -143,7 +155,7 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, on
             </div>
           </>
         )}
-        {done.length > 0 && (
+        {mode === "play" && done.length > 0 && (
           <>
             <span className="slabel">Closed · {done.length}</span>
             <div className="stack" style={{ marginBottom: 18 }}>
@@ -153,12 +165,14 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, on
         )}
         {rallies.length === 0 && <div className="empty" style={{ marginBottom: 18 }}><b>No rallies yet.</b><span>Tap Play a rally to get your first card. A stranger gets the other role; six turns and it is done.</span></div>}
 
+        {mode === "home" && (
         <div className="tile" style={{ marginBottom: 14 }}>
           <div className="tlbl">Your agreement</div>
           <div className="tbody muted" style={{ fontSize: "0.85rem" }}>
             Signed v{me.consent?.agreement_version} · record {me.consent?.record_sha256.slice(0, 12)}… · Withdraw any time from your account.
           </div>
         </div>
+        )}
       </div>
     </div>
   );

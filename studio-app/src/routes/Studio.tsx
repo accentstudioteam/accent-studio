@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/auth/AuthProvider";
 import { Logo } from "@/components/Logo";
-import { StudioNav, type NavItem } from "@/components/StudioNav";
+import { Dock, StudioNav, type DockTab, type NavItem } from "@/components/StudioNav";
 import { overview, type Overview } from "@/lib/admin";
 import { Home } from "@/routes/Home";
 import { Settings } from "@/routes/Settings";
@@ -65,6 +65,22 @@ export function Studio() {
     { key: "settings", label: "Settings", group: "You" },
   ];
 
+  const dockTabs: DockTab[] = admin
+    ? [
+        { key: "home", label: "Home", icon: "home" },
+        { key: "verify", label: "Queue", icon: "queue", badge: ov?.cutting_room.queue },
+        { key: "contributors", label: "People", icon: "people", badge: people },
+        { key: "payouts", label: "Money", icon: "money", badge: ov?.money.requested_count },
+        { key: "projects", label: "Labs", icon: "labs", badge: ov?.labs.deliveries_ready },
+      ]
+    : [
+        { key: "home", label: "Home", icon: "home" },
+        { key: "verify", label: "Queue", icon: "queue" },
+        { key: "audit", label: "Audit", icon: "audit" },
+        { key: "integrity", label: "Cases", icon: "cases" },
+        { key: "settings", label: "You", icon: "you" },
+      ];
+  const dockActive = dockTabs.some((t) => t.key === view) ? view : view === "audit" || view === "integrity" ? "verify" : view === "applications" || view === "team" ? "contributors" : view === "labs" || view === "cards" ? "projects" : "home";
   let content: ReactNode;
   switch (view) {
     case "settings":
@@ -117,9 +133,10 @@ export function Studio() {
           <button type="button" className="chip" style={{ cursor: "pointer" }} onClick={() => void signOut()}>Sign out</button>
         </div>
       </div>
-      <div className="studio">
+      <div className="studio with-dock has-dock">
         <StudioNav items={items} active={view} onPick={go} />
         <main className="studio-main">{content}</main>
+        <Dock tabs={dockTabs} active={dockActive} onPick={go} />
       </div>
     </div>
   );

@@ -10,20 +10,21 @@ import { Booth } from "@/routes/Booth";
 import { Arena } from "@/routes/Arena";
 import { Account } from "@/routes/Account";
 import { Logo } from "@/components/Logo";
-import { TabBar } from "@/components/StudioNav";
+import { Dock } from "@/components/StudioNav";
 import type { Onboarding } from "@/lib/types";
 import { demoOnboarding, isDemo } from "@/lib/demo";
 
-/** The contributor's app: home with rallies, one rally, or the clause 15 notices. Falls back to Join if they never signed. */
+type Tab = "home" | "play" | "live" | "money" | "you";
+
+/** The contributor's app: five places on a floating dock (Home, Play, Live, Money, You), with a rally, a scene or a notice on top. Falls back to Join if they never signed. */
 export function Player() {
   const { session, signOut } = useAuth();
   const [me, setMe] = useState<Onboarding | null>(null);
+  const [tab, setTab] = useState<Tab>("home");
   const [rally, setRally] = useState<string | null>(null);
-  const [notices, setNotices] = useState(false);
-  const [earnings, setEarnings] = useState(false);
-  const [booth, setBooth] = useState(false);
   const [scene, setScene] = useState<string | null>(null);
-  const [account, setAccount] = useState(false);
+  const [notices, setNotices] = useState(false);
+  const [counts, setCounts] = useState({ play: 0, live: 0, soon: false });
   const reloadMe = () => {
     if (isDemo()) return;
     void supabase.rpc("my_onboarding").then(({ data }) => setMe((data as Onboarding) ?? null));
@@ -68,27 +69,46 @@ export function Player() {
             <div className="tbody">{me.contributor.paused_reason ?? "A member of the team paused new sessions for now."}</div>
           </div>
           <div className="tile" style={{ marginBottom: 14 }}>
-            <div className="tbody">No new rallies or bookings until then. Your verified earnings are not affected and pay on the normal schedule; you can still request a payout from Earnings. Questions: hello@accentstudio.io.</div>
+            <div className="tbody">No new rallies or bookings until then. Your verified earnings are not affected and pay on the normal schedule; you can still request a payout from Money. Questions: hello@accentstudio.io.</div>
           </div>
           <div className="btn-row">
-            <button className="pill ghost" onClick={() => setEarnings(true)}>Earnings</button>
+            <button className="pill ghost" onClick={() => { setTab("money"); }}>Money</button>
             <button className="pill ghost" onClick={() => void signOut()}>Sign out</button>
           </div>
         </div>
       </div>
     );
   }
-  const home = () => { setAccount(false); setNotices(false); setEarnings(false); setBooth(false); setRally(null); reloadMe(); };
-  const tab = account ? "account" : earnings ? "earnings" : booth ? "booth" : "home";
-  const pick = (k: string) => { home(); if (k === "account") setAccount(true); if (k === "earnings") setEarnings(true); if (k === "booth") setBooth(true); };
-  const bar = <TabBar tabs={[{ key: "home", label: "Home", glyph: "◉" }, { key: "booth", label: "Booth", glyph: "◫" }, { key: "earnings", label: "Earnings", glyph: "◈" }, { key: "account", label: "Account", glyph: "◯" }]} active={tab} onPick={pick} />;
-  if (scene) return <Arena sessionId={scene} onBack={() => { setScene(null); setBooth(true); }} />;
+
+  const go = (k: string) => {
+    setRally(null);
+    setNotices(false);
+    setTab(k as Tab);
+    reloadMe();
+  };
+  const home = () => go("home");
+
+  if (scene) return <Arena sessionId={scene} onBack={() => { setScene(null); setTab("live"); }} />;
   if (rally) return <Rally sessionId={rally} onBack={() => setRally(null)} />;
   if (notices) return <CaseNotice onBack={() => setNotices(false)} />;
+
+  const dock = (
+    <Dock
+      tabs={[
+        { key: "home", label: "Home", icon: "home" },
+        { key: "play", label: "Play", icon: "play", badge: counts.play },
+        { key: "live", label: "Live", icon: "live", badge: counts.live, soon: counts.soon },
+        { key: "money", label: "Money", icon: "money" },
+        { key: "you", label: "You", icon: "you" },
+      ]}
+      active={tab}
+      onPick={go}
+    />
+  );
   let screen: JSX.Element;
-  if (account) screen = <Account onBack={home} onChanged={reloadMe} />;
-  else if (earnings) screen = <Earnings onBack={home} />;
-  else if (booth) screen = <Booth language={me.contributor.primary_language ?? "pcm"} onBack={home} onJoin={(sid) => { setBooth(false); setScene(sid); }} />;
-  else screen = <PlayerHome me={me} onOpenRally={setRally} onNotices={() => setNotices(true)} onEarnings={() => setEarnings(true)} onBooth={() => setBooth(true)} onJoinScene={(sid) => setScene(sid)} onAccount={() => setAccount(true)} />;
-  return <div className="has-tabbar">{screen}{bar}</div>;
+  if (tab === "you") screen = <Account onBack={home} onChanged={reloadMe} />;
+  else if (tab === "money") screen = <Earnings onBack={home} />;
+  else if (tab === "live") screen = <Booth language={me.contributor.primary_language ?? "pcm"} onBack={home} onJoin={(sid) => setScene(sid)} />;
+  else screen = <PlayerHome me={me} mode={tab === "play" ? "play" : "home"} onOpenRally={setRally} onNotices={() => setNotices(true)} onEarnings={() => go("money")} onBooth={() => go("live")} onPlayTab={() => go("play")} onJoinScene={(sid) => setScene(sid)} onAccount={() => go("you")} onCounts={setCounts} />;
+  return <div className="has-dock">{screen}{dock}</div>;
 }
