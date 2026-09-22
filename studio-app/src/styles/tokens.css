@@ -1408,3 +1408,268 @@ button.chip {
 .lv.them i {
   background: var(--gold);
 }
+
+/* --- the studio shell: sidebar on wide screens, a strip on phones --- */
+.studio {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  flex: 1;
+  min-height: 0;
+}
+.studio-main {
+  min-width: 0;
+}
+.studio-main .app {
+  min-height: auto;
+}
+.studio-main .app > .topbar {
+  display: none;
+}
+.snav {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 10px var(--pad) 8px;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--line2);
+}
+.snav::-webkit-scrollbar {
+  display: none;
+}
+.snav-grp {
+  display: contents;
+}
+.snav-h {
+  display: none;
+}
+.snav-item {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--ink2);
+  background: var(--card);
+  white-space: nowrap;
+}
+.snav-item.on {
+  background: var(--acc);
+  color: var(--accink);
+  border-color: var(--acc);
+  font-weight: 700;
+}
+.snav-count {
+  font-size: 0.65rem;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--ink);
+}
+.snav-item.on .snav-count {
+  background: rgba(4, 22, 14, 0.25);
+  color: var(--accink);
+}
+.snav-count.gold {
+  background: var(--gold);
+  color: #0d0b08;
+}
+@media (min-width: 900px) {
+  .studio {
+    grid-template-columns: 236px minmax(0, 1fr);
+  }
+  .snav {
+    flex-direction: column;
+    gap: 2px;
+    padding: 18px 14px;
+    border-bottom: none;
+    border-right: 1px solid var(--line2);
+    position: sticky;
+    top: 61px;
+    align-self: start;
+    max-height: calc(100dvh - 61px);
+    overflow-y: auto;
+  }
+  .snav-grp {
+    display: block;
+    margin-bottom: 14px;
+  }
+  .snav-h {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--faint);
+    padding: 6px 12px 4px;
+  }
+  .snav-item {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    border-radius: 10px;
+    border-color: transparent;
+    background: transparent;
+    padding: 9px 12px;
+    font-size: 0.8rem;
+    white-space: normal;
+    text-align: left;
+  }
+  .snav-item:hover {
+    background: var(--card2);
+  }
+  .snav-item.on {
+    background: var(--accdim);
+    color: var(--acc2);
+    border-color: var(--accdim);
+  }
+  .studio-main .shell {
+    margin: 0;
+  }
+}
+
+/* --- dashboard pieces --- */
+.dash {
+  max-width: 1040px;
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+@media (min-width: 720px) {
+  .stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.stat {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.stat .n {
+  font-family: var(--disp);
+  font-weight: 800;
+  font-size: 1.55rem;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.stat .s {
+  color: var(--mut);
+  font-size: 0.78rem;
+  margin-top: 2px;
+}
+.dash-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+@media (min-width: 900px) {
+  .dash-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+.need {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line2);
+  text-align: left;
+  width: 100%;
+  color: var(--ink);
+}
+.need:last-child {
+  border-bottom: none;
+}
+.need .nt {
+  flex: 1;
+  font-size: 0.92rem;
+}
+.need .nt small {
+  display: block;
+  color: var(--mut);
+  font-size: 0.76rem;
+}
+.need .nn {
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  min-width: 34px;
+  text-align: right;
+  color: var(--acc);
+}
+.need .nn.zero {
+  color: var(--faint);
+  font-weight: 400;
+}
+.need .nn.gold {
+  color: var(--gold);
+}
+.need:hover .nt {
+  color: var(--acc2);
+}
+.pill.auto {
+  width: auto;
+}
+
+/* --- the contributor app's bottom bar --- */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 6px max(8px, env(safe-area-inset-left)) max(8px, env(safe-area-inset-bottom));
+  background: color-mix(in srgb, var(--bg0) 88%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line2);
+  z-index: 20;
+}
+.tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  color: var(--mut);
+  min-width: 64px;
+}
+.tab.on {
+  color: var(--acc);
+}
+.tab-glyph {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+.tab-label {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.tab-badge {
+  position: absolute;
+  top: 2px;
+  right: 6px;
+  background: var(--gold);
+  color: #0d0b08;
+  font-size: 0.6rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 1px 6px;
+}
+.has-tabbar .shell {
+  padding-bottom: 96px;
+}

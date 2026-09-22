@@ -10,6 +10,7 @@ import { Booth } from "@/routes/Booth";
 import { Arena } from "@/routes/Arena";
 import { Account } from "@/routes/Account";
 import { Logo } from "@/components/Logo";
+import { TabBar } from "@/components/StudioNav";
 import type { Onboarding } from "@/lib/types";
 import { demoOnboarding, isDemo } from "@/lib/demo";
 
@@ -77,11 +78,17 @@ export function Player() {
       </div>
     );
   }
-  if (account) return <Account onBack={() => { setAccount(false); reloadMe(); }} onChanged={reloadMe} />;
-  if (notices) return <CaseNotice onBack={() => setNotices(false)} />;
-  if (earnings) return <Earnings onBack={() => setEarnings(false)} />;
+  const home = () => { setAccount(false); setNotices(false); setEarnings(false); setBooth(false); setRally(null); reloadMe(); };
+  const tab = account ? "account" : earnings ? "earnings" : booth ? "booth" : "home";
+  const pick = (k: string) => { home(); if (k === "account") setAccount(true); if (k === "earnings") setEarnings(true); if (k === "booth") setBooth(true); };
+  const bar = <TabBar tabs={[{ key: "home", label: "Home", glyph: "◉" }, { key: "booth", label: "Booth", glyph: "◫" }, { key: "earnings", label: "Earnings", glyph: "◈" }, { key: "account", label: "Account", glyph: "◯" }]} active={tab} onPick={pick} />;
   if (scene) return <Arena sessionId={scene} onBack={() => { setScene(null); setBooth(true); }} />;
-  if (booth) return <Booth language={me.contributor.primary_language ?? "pcm"} onBack={() => setBooth(false)} onJoin={(sid) => { setBooth(false); setScene(sid); }} />;
   if (rally) return <Rally sessionId={rally} onBack={() => setRally(null)} />;
-  return <PlayerHome me={me} onOpenRally={setRally} onNotices={() => setNotices(true)} onEarnings={() => setEarnings(true)} onBooth={() => setBooth(true)} onJoinScene={(sid) => setScene(sid)} onAccount={() => setAccount(true)} />;
+  if (notices) return <CaseNotice onBack={() => setNotices(false)} />;
+  let screen: JSX.Element;
+  if (account) screen = <Account onBack={home} onChanged={reloadMe} />;
+  else if (earnings) screen = <Earnings onBack={home} />;
+  else if (booth) screen = <Booth language={me.contributor.primary_language ?? "pcm"} onBack={home} onJoin={(sid) => { setBooth(false); setScene(sid); }} />;
+  else screen = <PlayerHome me={me} onOpenRally={setRally} onNotices={() => setNotices(true)} onEarnings={() => setEarnings(true)} onBooth={() => setBooth(true)} onJoinScene={(sid) => setScene(sid)} onAccount={() => setAccount(true)} />;
+  return <div className="has-tabbar">{screen}{bar}</div>;
 }

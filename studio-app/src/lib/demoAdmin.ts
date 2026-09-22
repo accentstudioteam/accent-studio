@@ -120,11 +120,11 @@ export const demoAdmin = {
     seed();
     const count = (s: ContributorRow["status"]) => state.contributors.filter((c) => c.status === s).length;
     return {
-      contributors: { active: count("active"), paused: count("paused"), closed: count("closed"), active_7d: 4 },
+      contributors: { active: count("active"), paused: count("paused"), closed: count("closed"), active_7d: 4, identity_pending: state.contributors.filter((c) => c.identity_status === "pending").length, data_requests_open: state.contributors.reduce((n, c) => n + c.open_data_requests, 0) },
       pipeline: { applications_new: 17, invitations_open: 3 },
       play: { rallies_7d: 23, scenes_7d: 4, active_now: 2, bookings_upcoming: 5 },
       cutting_room: { queue: 2, verified_total: 41, verified_hours: 1.03, audit_pending: 1, cases_open: 1 },
-      money: { requested_usd: 2.31, cleared_usd: 23.56, held_usd: 0.53, paid_usd: 28.2 },
+      money: { requested_usd: 2.31, requested_count: 1, cleared_usd: 23.56, held_usd: 0.53, paid_usd: 28.2 },
       labs: { projects_open: 1, deliveries_ready: 0, inquiries_new: 2 },
     };
   },

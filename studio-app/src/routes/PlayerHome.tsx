@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { useAuth } from "@/auth/AuthProvider";
 import { Logo } from "@/components/Logo";
 import { LANG_NAME, dueLabel, mySessions, startRally, type RallySummary } from "@/lib/game";
 import type { Onboarding } from "@/lib/types";
@@ -12,7 +11,6 @@ import { lagos, mine as arenaMine, untilLabel, type Mine as ArenaMine } from "@/
 const POLL_MS = 20_000;
 
 export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, onJoinScene, onAccount }: { me: Onboarding; onOpenRally: (sessionId: string) => void; onNotices: () => void; onEarnings: () => void; onBooth: () => void; onJoinScene: (sid: string) => void; onAccount: () => void }) {
-  const { signOut } = useAuth();
   const [rallies, setRallies] = useState<RallySummary[]>([]);
   const [notices, setNotices] = useState<MyCase[]>([]);
   const [earn, setEarn] = useState<MyEarnings | null>(null);
@@ -160,10 +158,6 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, on
           <div className="tbody muted" style={{ fontSize: "0.85rem" }}>
             Signed v{me.consent?.agreement_version} · record {me.consent?.record_sha256.slice(0, 12)}… · Withdraw any time from your account.
           </div>
-        </div>
-        <div className="btn-row">
-          <button className="pill ghost" onClick={onAccount}>Your account</button>
-          <button className="pill ghost" onClick={() => void signOut()}>Sign out</button>
         </div>
       </div>
     </div>

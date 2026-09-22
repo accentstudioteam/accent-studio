@@ -1,4 +1,8 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useAuth } from "@/auth/AuthProvider";
+import { Logo } from "@/components/Logo";
+import { StudioNav, type NavItem } from "@/components/StudioNav";
+import { overview, type Overview } from "@/lib/admin";
 import { Home } from "@/routes/Home";
 import { Settings } from "@/routes/Settings";
 import { Applications } from "@/routes/Applications";
@@ -13,26 +17,110 @@ import { Team } from "@/routes/Team";
 import { Contributors } from "@/routes/Contributors";
 import { Audit } from "@/routes/Audit";
 
-type View = "home" | "settings" | "applications" | "labs" | "cards" | "verify" | "integrity" | "payouts" | "projects" | "team" | "contributors" | "audit";
+type View = "home" | "settings" | "applications" | "labs" | "cards" | "verify" | "audit" | "integrity" | "payouts" | "projects" | "team" | "contributors";
 
-/** The signed-in, onboarded studio. Holds the current in-app view. */
+/** The signed-in studio: one shell, a sidebar (or a strip on phones) with what is waiting, and the current screen inside it. */
 export function Studio() {
+  const { profile, signOut } = useAuth();
   const [view, setView] = useState<View>("home");
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [ov, setOv] = useState<Overview | null>(null);
+  const admin = !!profile?.is_admin;
+  const staff = admin || !!profile?.is_linguist;
 
-  if (view === "settings") return <Settings onBack={() => setView("home")} />;
-  if (view === "applications") return <Applications onBack={() => setView("home")} />;
-  if (view === "labs") return <LabInquiries onBack={() => setView("home")} />;
-  if (view === "cards") return <Cards onBack={() => setView("home")} />;
-  if (view === "integrity") return <Integrity onBack={() => setView("home")} />;
-  if (view === "payouts") return <Payouts onBack={() => setView("home")} />;
-  if (view === "projects") return <Projects onBack={() => setView("home")} />;
-  if (view === "team") return <Team onBack={() => setView("home")} />;
-  if (view === "contributors") return <Contributors onBack={() => setView("home")} />;
-  if (view === "audit") return <Audit onBack={() => setView("home")} onOpen={(sid) => { setSessionId(sid); setView("verify"); }} />;
-  if (view === "verify") {
-    if (sessionId) return <Workbench sessionId={sessionId} onBack={() => setSessionId(null)} onCases={() => setView("integrity")} />;
-    return <Verify onBack={() => setView("home")} onOpen={setSessionId} onCases={() => setView("integrity")} />;
+  const refresh = useCallback(() => {
+    if (!admin) return;
+    overview().then(setOv).catch(() => setOv(null));
+  }, [admin]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh, view]);
+
+  const go = (key: string) => {
+    setSessionId(null);
+    setView(key as View);
+  };
+  const people = (ov?.contributors.identity_pending ?? 0) + (ov?.contributors.data_requests_open ?? 0);
+  const items: NavItem[] = [
+    { key: "home", label: "Home" },
+    ...(staff
+      ? [
+          { key: "verify", label: "Queue", group: "Cutting Room", count: ov?.cutting_room.queue },
+          { key: "audit", label: "Audit", group: "Cutting Room", count: ov?.cutting_room.audit_pending },
+          { key: "integrity", label: "Cases", group: "Cutting Room", count: ov?.cutting_room.cases_open, accent: "gold" as const },
+        ]
+      : []),
+    ...(admin
+      ? [
+          { key: "contributors", label: "Contributors", group: "People", count: people, accent: "gold" as const },
+          { key: "applications", label: "Applications", group: "People", count: ov?.pipeline.applications_new },
+          { key: "team", label: "Team", group: "People" },
+          { key: "payouts", label: "Payouts", group: "Money", count: ov?.money.requested_count, accent: "gold" as const },
+          { key: "projects", label: "Projects", group: "Labs", count: ov?.labs.deliveries_ready },
+          { key: "labs", label: "Lab inquiries", group: "Labs", count: ov?.labs.inquiries_new },
+          { key: "cards", label: "Cards", group: "Labs" },
+        ]
+      : []),
+    { key: "settings", label: "Settings", group: "You" },
+  ];
+
+  let content: ReactNode;
+  switch (view) {
+    case "settings":
+      content = <Settings onBack={() => go("home")} />;
+      break;
+    case "applications":
+      content = <Applications onBack={() => go("home")} />;
+      break;
+    case "labs":
+      content = <LabInquiries onBack={() => go("home")} />;
+      break;
+    case "cards":
+      content = <Cards onBack={() => go("home")} />;
+      break;
+    case "integrity":
+      content = <Integrity onBack={() => go("home")} embedded />;
+      break;
+    case "payouts":
+      content = <Payouts onBack={() => go("home")} embedded />;
+      break;
+    case "projects":
+      content = <Projects onBack={() => go("home")} embedded />;
+      break;
+    case "team":
+      content = <Team onBack={() => go("home")} embedded />;
+      break;
+    case "contributors":
+      content = <Contributors onBack={() => go("home")} embedded />;
+      break;
+    case "audit":
+      content = sessionId
+        ? <Workbench sessionId={sessionId} onBack={() => setSessionId(null)} onCases={() => go("integrity")} embedded />
+        : <Audit onBack={() => go("home")} onOpen={setSessionId} embedded />;
+      break;
+    case "verify":
+      content = sessionId
+        ? <Workbench sessionId={sessionId} onBack={() => setSessionId(null)} onCases={() => go("integrity")} embedded />
+        : <Verify onBack={() => go("home")} onOpen={setSessionId} onCases={() => go("integrity")} embedded />;
+      break;
+    default:
+      content = <Home ov={ov} onGo={go} onRefresh={refresh} />;
   }
-  return <Home onSettings={() => setView("settings")} onApplications={() => setView("applications")} onLabInquiries={() => setView("labs")} onCards={() => setView("cards")} onVerify={() => setView("verify")} onIntegrity={() => setView("integrity")} onPayouts={() => setView("payouts")} onProjects={() => setView("projects")} onTeam={() => setView("team")} onContributors={() => setView("contributors")} onAudit={() => setView("audit")} />;
+
+  return (
+    <div className="app">
+      <div className="topbar">
+        <Logo height={22} />
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <span className="chip" style={{ fontFamily: "var(--mono)", fontSize: "0.7rem" }}>{profile?.editor_id ?? profile?.handle ?? "studio"}</span>
+          <button type="button" className="chip" style={{ cursor: "pointer" }} onClick={() => void signOut()}>Sign out</button>
+        </div>
+      </div>
+      <div className="studio">
+        <StudioNav items={items} active={view} onPick={go} />
+        <main className="studio-main">{content}</main>
+      </div>
+    </div>
+  );
 }

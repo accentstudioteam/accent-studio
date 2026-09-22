@@ -6,11 +6,11 @@ import { demoAdmin } from "@/lib/demoAdmin";
 import { demoVerify } from "@/lib/demoVerify";
 
 export interface Overview {
-  contributors: { active: number; paused: number; closed: number; active_7d: number };
+  contributors: { active: number; paused: number; closed: number; active_7d: number; identity_pending: number; data_requests_open: number };
   pipeline: { applications_new: number; invitations_open: number };
   play: { rallies_7d: number; scenes_7d: number; active_now: number; bookings_upcoming: number };
   cutting_room: { queue: number; verified_total: number; verified_hours: number; audit_pending: number; cases_open: number };
-  money: { requested_usd: number; cleared_usd: number; held_usd: number; paid_usd: number };
+  money: { requested_usd: number; requested_count: number; cleared_usd: number; held_usd: number; paid_usd: number };
   labs: { projects_open: number; deliveries_ready: number; inquiries_new: number };
 }
 
