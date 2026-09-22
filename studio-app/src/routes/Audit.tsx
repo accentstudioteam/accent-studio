@@ -50,7 +50,7 @@ export function Audit({ onBack, onOpen, embedded }: Props) {
       {err && <div className="tile" style={{ borderColor: "var(--coral)", marginBottom: 14 }}><div className="tbody" style={{ color: "var(--coral)" }}>{err}</div></div>}
       {flash && <div className="tile" style={{ borderColor: "var(--acc)", marginBottom: 14 }}><div className="tbody">{flash}</div></div>}
       {!q && !err && <div className="muted">Loading…</div>}
-      {q && q.pending.length === 0 && <div className="muted" style={{ marginBottom: 14 }}>Nothing drawn for audit right now.</div>}
+      {q && q.pending.length === 0 && <div className="empty" style={{ marginBottom: 14 }}><b>Nothing drawn for audit.</b><span>{q.sample_pct}% of verifications are sampled at random; the next one appears here the moment it is verified by someone else.</span></div>}
       <div className="stack">
         {q?.pending.map((a) => <AuditCard key={a.session_id} a={a} onOpen={onOpen} onChanged={load} onDone={setFlash} />)}
       </div>

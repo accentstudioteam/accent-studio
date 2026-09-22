@@ -122,7 +122,7 @@ export function Workbench({ sessionId, onBack, onCases, embedded }: Props) {
   const title = v.status === "verified" ? `Verified · ${TIER_LABEL[v.quality_tier ?? ""] ?? v.quality_tier}.` : v.status === "forfeited" ? "Forfeited under clause 15." : mine ? "Verify this rally." : heldByOther ? "Held by another editor." : "Claim it to start.";
 
   const body = (
-    <div className="shell" style={{ maxWidth: 720 }}>
+    <div className="shell bench">
       {embedded && <button type="button" onClick={onBack} style={{ background: "none", border: "none", color: "var(--mut)", fontFamily: "var(--mono)", fontSize: "0.9rem", padding: 0, marginBottom: 10, cursor: "pointer" }}>‹ queue</button>}
       <div className="eyebrow" style={{ marginBottom: 6 }}>{w.card.title} · {LANG_NAME[w.language] ?? w.language} · {w.mode === "live" ? "live scene" : w.session_status === "abandoned" ? "closed, partner went quiet" : "complete"} · {when(w.completed_at)}</div>
       <h1 className="h1" style={{ marginBottom: 14, fontSize: "clamp(1.4rem,6vw,2rem)" }}>{title}</h1>

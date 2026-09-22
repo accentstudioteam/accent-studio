@@ -50,7 +50,7 @@ export function Payouts({ onBack, embedded }: Props) {
         <div className="tbody muted" style={{ fontSize: "0.85rem" }}>Admins only: linguists never see this screen. Send the money by the rail the contributor chose, then mark it paid with the transaction reference. The lines behind the request move to paid and appear on the contributor's statement. Payouts are due within 14 days of the request.</div>
       </div>
       {err && <div className="tile" style={{ borderColor: "var(--coral)", marginBottom: 14 }}><div className="tbody" style={{ color: "var(--coral)" }}>{err}</div></div>}
-      {q && requested.length === 0 && <div className="muted" style={{ marginBottom: 14 }}>Nothing waiting to be sent.</div>}
+      {q && requested.length === 0 && <div className="empty" style={{ marginBottom: 14 }}><b>Nothing to send.</b><span>A request appears here the moment a contributor asks for a payout; the money behind it is already verified and cleared.</span></div>}
       <div className="stack">
         {requested.map((p) => <PayoutCard key={p.id} p={p} onChanged={load} />)}
       </div>

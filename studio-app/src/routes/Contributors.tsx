@@ -42,7 +42,7 @@ export function Contributors({ onBack, embedded }: Props) {
   const body = open ? (
     <Detail cid={open} onBack={() => { setOpen(null); void load(); }} />
   ) : (
-    <div className="shell" style={{ maxWidth: 720 }}>
+    <div className="shell wide">
       <div className="spread" style={{ marginBottom: 16, alignItems: "flex-start" }}>
         <div>
           <div className="eyebrow" style={{ marginBottom: 6 }}>Founder tools</div>
@@ -66,7 +66,7 @@ export function Contributors({ onBack, embedded }: Props) {
       </div>
       {err && <div className="tile" style={{ borderColor: "var(--coral)", marginBottom: 14 }}><div className="tbody" style={{ color: "var(--coral)" }}>{err}</div></div>}
       {!r && !err && <div className="muted">Loading…</div>}
-      {r && shown.length === 0 && <div className="muted">Nobody matches.</div>}
+      {r && shown.length === 0 && <div className="empty"><b>{r.people.length === 0 ? "No contributors yet." : "Nobody matches."}</b><span>{r.people.length === 0 ? "People appear here once they accept an invitation and sign the agreement." : "Try another filter or a shorter search."}</span></div>}
       <div className="stack">
         {shown.map((p) => <Row key={p.id} p={p} onOpen={() => setOpen(p.id)} />)}
       </div>
@@ -87,13 +87,21 @@ export function Contributors({ onBack, embedded }: Props) {
 
 function Row({ p, onOpen }: { p: ContributorRow; onOpen: () => void }) {
   return (
-    <button type="button" className="tile" onClick={onOpen} style={{ textAlign: "left", cursor: "pointer", width: "100%" }}>
-      <div className="spread" style={{ alignItems: "flex-start" }}>
+    <button type="button" className="tile roster-row" onClick={onOpen} style={{ textAlign: "left", cursor: "pointer", width: "100%" }}>
+      <div className="roster-who">
+        <div className="ttitle" style={{ fontFamily: "var(--mono)", fontSize: "0.95rem" }}>{p.speaker_id}</div>
+        <div className="tbody muted small" style={{ marginTop: 4 }}>{p.full_name ?? "no name"} · {LANG_NAME[p.primary_language ?? ""] ?? p.primary_language ?? "?"} · {[p.city, p.country].filter(Boolean).join(", ")}</div>
+        <div className="tbody muted small">joined {when(p.created_at)}{p.last_active_at ? ` · active ${when(p.last_active_at)}` : ""}</div>
+      </div>
+      <div className="roster-nums">
+        <div className="rn"><b>{p.rallies + p.scenes}</b><span>{p.rallies} rallies · {p.scenes} scenes</span></div>
+        <div className="rn"><b>{hours(p.verified_seconds)}</b><span>verified</span></div>
+        <div className="rn"><b>{p.avg_quality != null ? Number(p.avg_quality).toFixed(2) : "–"}</b><span>quality</span></div>
+        <div className="rn"><b>{money(p.earned_usd)}</b><span>earned · {money(p.paid_usd)} paid{Number(p.held_usd) > 0 ? ` · ${money(p.held_usd)} held` : ""}</span></div>
+      </div>
+      <div className="roster-flags">
         <div>
-          <div className="ttitle" style={{ fontFamily: "var(--mono)", fontSize: "0.95rem" }}>{p.speaker_id}</div>
-          <div className="tbody muted small" style={{ marginTop: 4 }}>{p.full_name ?? "no name"} · {LANG_NAME[p.primary_language ?? ""] ?? p.primary_language ?? "?"} · {[p.city, p.country].filter(Boolean).join(", ")} · joined {when(p.created_at)}{p.last_active_at ? ` · active ${when(p.last_active_at)}` : ""}</div>
-          <div className="tbody muted small" style={{ marginTop: 2 }}>{p.rallies} rallies · {p.scenes} scenes · {hours(p.verified_seconds)} verified · quality {p.avg_quality != null ? Number(p.avg_quality).toFixed(2) : "none yet"} · earned {money(p.earned_usd)} · paid {money(p.paid_usd)}{Number(p.held_usd) > 0 ? ` · held ${money(p.held_usd)}` : ""}</div>
-          <div className="chips" style={{ marginTop: 8 }}>
+          <div className="chips" style={{ marginTop: 0 }}>
             {p.open_cases > 0 && <span className="chip gold">{p.open_cases} open case{p.open_cases === 1 ? "" : "s"}</span>}
             {p.confirmed_cases > 0 && <span className="chip coral">{p.confirmed_cases} confirmed</span>}
             {p.arena_strikes > 0 && <span className="chip">{p.arena_strikes} arena strike{p.arena_strikes === 1 ? "" : "s"}</span>}
@@ -209,7 +217,7 @@ function Detail({ cid, onBack }: { cid: string; onBack: () => void }) {
   };
 
   return (
-    <div className="shell" style={{ maxWidth: 720 }}>
+    <div className="shell wide">
       <button type="button" onClick={onBack} style={{ background: "none", border: "none", color: "var(--mut)", fontFamily: "var(--mono)", fontSize: "0.9rem", padding: 0, marginBottom: 10, cursor: "pointer" }}>‹ contributors</button>
       {err && <div className="tile" style={{ borderColor: "var(--coral)", marginBottom: 14 }}><div className="tbody" style={{ color: "var(--coral)" }}>{err}</div></div>}
       {!d && !err && <div className="muted">Loading…</div>}

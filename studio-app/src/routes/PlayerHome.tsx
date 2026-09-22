@@ -151,7 +151,7 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, on
             </div>
           </>
         )}
-        {rallies.length === 0 && <div className="muted" style={{ marginBottom: 18 }}>No rallies yet. Tap Play a rally to get your first card.</div>}
+        {rallies.length === 0 && <div className="empty" style={{ marginBottom: 18 }}><b>No rallies yet.</b><span>Tap Play a rally to get your first card. A stranger gets the other role; six turns and it is done.</span></div>}
 
         <div className="tile" style={{ marginBottom: 14 }}>
           <div className="tlbl">Your agreement</div>

@@ -59,7 +59,7 @@ export function Verify({ onBack, onOpen, onCases, embedded }: VerifyProps) {
 
       {err && <div className="tile" style={{ borderColor: "var(--coral)", marginBottom: 14 }}><div className="tbody" style={{ color: "var(--coral)" }}>{err}</div></div>}
       {!q && !err && <div className="muted">Loading…</div>}
-      {q && q.sessions.length === 0 && <div className="muted">Nothing waiting. Rallies appear here the moment they finish.</div>}
+      {q && q.sessions.length === 0 && <div className="empty"><b>The queue is clear.</b><span>Rallies land here the moment both players finish, oldest first. Check the audit queue meanwhile.</span></div>}
 
       <div className="stack">
         {q?.sessions.map((s) => <QueueRow key={s.session_id} s={s} onOpen={onOpen} />)}

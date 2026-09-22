@@ -150,6 +150,7 @@ export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
 
       {canEdit ? (
         <>
+          <div className="bench-cols">
           <div className="field" style={{ marginTop: 12 }}>
             <div className="spread" style={{ alignItems: "baseline" }}>
               <label>Transcript · as spoken, in {lang}</label>
@@ -181,6 +182,7 @@ export function WorkTurnCard({ t, w, src, canEdit, onSaved, onFlag }: Props) {
               </div>
             )}
             {d?.status === "done" && !draftGloss && d.gloss_error && <div className="tbody muted small">No gloss draft: {d.gloss_error}</div>}
+          </div>
           </div>
 
           <div className="tlbl" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
