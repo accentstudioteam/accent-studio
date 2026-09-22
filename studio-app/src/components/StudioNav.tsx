@@ -1,3 +1,5 @@
+import { Logo } from "@/components/Logo";
+
 export interface NavItem {
   key: string;
   label: string;
@@ -66,6 +68,28 @@ function Icon({ name }: { name: DockIcon }) {
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d={PATHS[name]} />
     </svg>
+  );
+}
+
+/** The contributor app on a desk: the same five places down the left, with the speaker id and sign out at the foot. */
+export function PlayerSidebar({ tabs, active, onPick, speakerId, onSignOut }: { tabs: DockTab[]; active: string; onPick: (key: string) => void; speakerId: string; onSignOut: () => void }) {
+  return (
+    <aside className="pside">
+      <div className="pside-brand"><Logo height={22} /></div>
+      <nav className="pside-nav" aria-label="Sections">
+        {tabs.map((t) => (
+          <button key={t.key} type="button" className={`pside-item${active === t.key ? " on" : ""}${t.soon ? " soon" : ""}`} aria-current={active === t.key ? "page" : undefined} onClick={() => onPick(t.key)}>
+            <Icon name={t.icon} />
+            <span>{t.label}</span>
+            {t.badge != null && t.badge > 0 && <b aria-label={`${t.badge} waiting`}>{t.badge}</b>}
+          </button>
+        ))}
+      </nav>
+      <div className="pside-foot">
+        <span className="chip" style={{ fontFamily: "var(--mono)", fontSize: "0.7rem" }}>{speakerId}</span>
+        <button type="button" className="chip" style={{ cursor: "pointer" }} onClick={onSignOut}>Sign out</button>
+      </div>
+    </aside>
   );
 }
 

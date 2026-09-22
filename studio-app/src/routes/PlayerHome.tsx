@@ -68,7 +68,8 @@ export function PlayerHome({ me, mode, onOpenRally, onNotices, onEarnings, onBoo
         <Logo height={22} />
         <button type="button" className="chip" aria-label="Your account" title="Your account" style={{ fontFamily: "var(--mono)", fontSize: "0.7rem", cursor: "pointer", whiteSpace: "nowrap" }} onClick={onAccount}>{me.contributor?.speaker_id ?? "cast"}</button>
       </div>
-      <div className="shell">
+      <div className="shell ph">
+        <aside className="ph-rail">
         {isDemo() && (
           <div className="tile" style={{ borderColor: "var(--gold)", marginBottom: 16 }}>
             <div className="tlbl" style={{ color: "var(--gold)" }}>Demo · nothing is saved</div>
@@ -98,6 +99,8 @@ export function PlayerHome({ me, mode, onOpenRally, onNotices, onEarnings, onBoo
             </div>
           </button>
         )}
+        </aside>
+        <div className="ph-main">
         <div className="spread" style={{ marginBottom: 18, alignItems: "flex-start" }}>
           <div>
             <div className="eyebrow" style={{ marginBottom: 6 }}>{mode === "play" ? "Ping-Pong" : "Playing in"} · {LANG_NAME[language] ?? language}</div>
@@ -173,6 +176,7 @@ export function PlayerHome({ me, mode, onOpenRally, onNotices, onEarnings, onBoo
           </div>
         </div>
         )}
+        </div>
       </div>
     </div>
   );

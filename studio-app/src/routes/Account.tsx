@@ -51,7 +51,7 @@ export function Account({ onBack, onChanged }: Props) {
         <button className="brand" onClick={onBack} style={{ background: "none", border: "none" }}><span style={{ color: "var(--mut)", fontFamily: "var(--mono)", fontSize: "0.9rem" }}>‹ home</span></button>
         <Logo height={22} />
       </div>
-      <div className="shell">
+      <div className="shell account">
         <div className="eyebrow" style={{ marginBottom: 6 }}>Your account{a ? ` · ${a.speaker_id}` : ""}</div>
         <h1 className="h1" style={{ marginBottom: 14 }}>{a?.full_name ? `${a.full_name.split(" ")[0]}.` : "You."}</h1>
         {err && <div className="tile" style={{ borderColor: "var(--coral)", marginBottom: 14 }}><div className="tbody" style={{ color: "var(--coral)" }}>{err}</div></div>}

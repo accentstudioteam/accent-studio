@@ -102,6 +102,13 @@ select {
   background: color-mix(in srgb, var(--bg0) 82%, transparent);
   backdrop-filter: blur(12px);
   z-index: 20;
+  gap: 10px;
+}
+/* On the narrowest phones the top bar's chips shrink before the page does. */
+.topbar > .chip {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .brand {
   font-family: var(--disp);
@@ -1924,5 +1931,164 @@ button.tile:hover {
 @media (min-width: 1100px) {
   .dash-cols .dash-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* --- the contributor app on every screen: phone (dock), tablet (wider column, dock), desk (sidebar, split) --- */
+@media (min-width: 720px) {
+  .has-dock .shell {
+    max-width: 640px;
+  }
+}
+.player-desk {
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  min-height: 100dvh;
+}
+.pside {
+  border-right: 1px solid var(--line2);
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+}
+.pside-brand {
+  padding: 4px 10px 14px;
+}
+.pside-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pside-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--ink2);
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  text-align: left;
+  width: 100%;
+}
+.pside-item svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+.pside-item:hover {
+  background: var(--card2);
+  color: var(--ink);
+}
+.pside-item.on {
+  background: var(--accdim);
+  color: var(--acc2);
+  font-weight: 600;
+}
+.pside-item.soon:not(.on) svg {
+  color: var(--live);
+  animation: lamp 2.4s ease-in-out infinite;
+}
+.pside-item b {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  background: var(--gold);
+  color: #0d0b08;
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+.pside-foot {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px;
+}
+.player-main {
+  min-width: 0;
+}
+.player-main .app {
+  min-height: auto;
+}
+.player-main .app > .topbar {
+  display: none;
+}
+.player-main .shell {
+  max-width: 760px;
+  margin: 0;
+  padding: 26px 32px 44px;
+}
+.player-main .slotgrid {
+  grid-template-columns: repeat(8, 1fr);
+}
+.split {
+  display: grid;
+  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+  min-height: 100dvh;
+}
+.split-list {
+  border-right: 1px solid var(--line2);
+  position: sticky;
+  top: 0;
+  max-height: 100dvh;
+  overflow-y: auto;
+}
+.split-list .shell {
+  max-width: none;
+  padding: 22px 18px 40px;
+}
+.split-list .ph-rail {
+  display: none;
+}
+.split-list .h1 {
+  font-size: 1.5rem;
+}
+.split-detail .shell {
+  max-width: 720px;
+}
+@media (min-width: 1100px) {
+  .player-main .shell.ph {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 0 20px;
+    align-items: start;
+    max-width: 1100px;
+  }
+  .player-main .shell.ph .ph-rail {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .player-main .shell.ph .ph-main {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .split-list .shell.ph {
+    display: flex;
+    max-width: none;
+  }
+  .player-main .shell.account {
+    max-width: 1100px;
+  }
+  .player-main .shell.account .stack {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+  .player-main .shell.account .stack > .pill {
+    grid-column: 1 / -1;
+    max-width: 320px;
   }
 }

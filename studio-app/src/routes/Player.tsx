@@ -10,15 +10,18 @@ import { Booth } from "@/routes/Booth";
 import { Arena } from "@/routes/Arena";
 import { Account } from "@/routes/Account";
 import { Logo } from "@/components/Logo";
-import { Dock } from "@/components/StudioNav";
+import { Dock, PlayerSidebar, type DockTab } from "@/components/StudioNav";
+import { useMedia } from "@/lib/useMedia";
 import type { Onboarding } from "@/lib/types";
 import { demoOnboarding, isDemo } from "@/lib/demo";
 
 type Tab = "home" | "play" | "live" | "money" | "you";
 
-/** The contributor's app: five places on a floating dock (Home, Play, Live, Money, You), with a rally, a scene or a notice on top. Falls back to Join if they never signed. */
+/** The contributor's app: five places (Home, Play, Live, Money, You) on a floating dock on phones and a sidebar on a desk,
+ * where Play splits into the rally list and the open rally. A scene or a notice opens on top. Falls back to Join if they never signed. */
 export function Player() {
   const { session, signOut } = useAuth();
+  const desk = useMedia("(min-width: 900px)");
   const [me, setMe] = useState<Onboarding | null>(null);
   const [tab, setTab] = useState<Tab>("home");
   const [rally, setRally] = useState<string | null>(null);
@@ -87,29 +90,47 @@ export function Player() {
     reloadMe();
   };
   const home = () => go("home");
+  // On a desk a rally opens beside the list, so it always lives under Play.
+  const openRally = (id: string) => {
+    setRally(id);
+    if (desk) setTab("play");
+  };
+  const tabs: DockTab[] = [
+    { key: "home", label: "Home", icon: "home" },
+    { key: "play", label: "Play", icon: "play", badge: counts.play },
+    { key: "live", label: "Live", icon: "live", badge: counts.live, soon: counts.soon },
+    { key: "money", label: "Money", icon: "money" },
+    { key: "you", label: "You", icon: "you" },
+  ];
+  const side = <PlayerSidebar tabs={tabs} active={tab} onPick={go} speakerId={me.contributor.speaker_id} onSignOut={() => void signOut()} />;
+  const dock = <Dock tabs={tabs} active={tab} onPick={go} />;
+  const frame = (node: JSX.Element) => (desk ? <div className="player-desk">{side}<main className="player-main">{node}</main></div> : node);
 
-  // Leaf screens (a rally, a scene, a notice) stand alone with their own back link; the dock lives on the five places.
-  if (scene) return <Arena sessionId={scene} onBack={() => { setScene(null); setTab("live"); }} />;
-  if (rally) return <Rally sessionId={rally} onBack={() => setRally(null)} />;
-  if (notices) return <CaseNotice onBack={() => setNotices(false)} />;
+  // Leaf screens stand alone on a phone (their own back link); on a desk they sit in the main column beside the sidebar.
+  if (scene) return frame(<Arena sessionId={scene} onBack={() => { setScene(null); setTab("live"); }} />);
+  if (notices) return frame(<CaseNotice onBack={() => setNotices(false)} />);
+  if (rally && !desk) return <Rally sessionId={rally} onBack={() => setRally(null)} />;
 
-  const dock = (
-    <Dock
-      tabs={[
-        { key: "home", label: "Home", icon: "home" },
-        { key: "play", label: "Play", icon: "play", badge: counts.play },
-        { key: "live", label: "Live", icon: "live", badge: counts.live, soon: counts.soon },
-        { key: "money", label: "Money", icon: "money" },
-        { key: "you", label: "You", icon: "you" },
-      ]}
-      active={tab}
-      onPick={go}
-    />
-  );
+  const homeProps = { me, onOpenRally: openRally, onNotices: () => setNotices(true), onEarnings: () => go("money"), onBooth: () => go("live"), onPlayTab: () => go("play"), onJoinScene: (sid: string) => setScene(sid), onAccount: () => go("you"), onCounts: setCounts };
   let screen: JSX.Element;
   if (tab === "you") screen = <Account onBack={home} onChanged={reloadMe} />;
   else if (tab === "money") screen = <Earnings onBack={home} />;
   else if (tab === "live") screen = <Booth language={me.contributor.primary_language ?? "pcm"} onBack={home} onJoin={(sid) => setScene(sid)} />;
-  else screen = <PlayerHome me={me} mode={tab === "play" ? "play" : "home"} onOpenRally={setRally} onNotices={() => setNotices(true)} onEarnings={() => go("money")} onBooth={() => go("live")} onPlayTab={() => go("play")} onJoinScene={(sid) => setScene(sid)} onAccount={() => go("you")} onCounts={setCounts} />;
+  else if (tab === "play" && desk) {
+    screen = (
+      <div className="split">
+        <div className="split-list"><PlayerHome {...homeProps} mode="play" /></div>
+        <div className="split-detail">
+          {rally ? (
+            <Rally key={rally} sessionId={rally} onBack={() => setRally(null)} />
+          ) : (
+            <div className="shell"><div className="empty" style={{ marginTop: 32 }}><b>Pick a rally.</b><span>Your turn first, then the ones waiting on a partner, then the closed ones. Or start a new one from the list.</span></div></div>
+          )}
+        </div>
+      </div>
+    );
+  } else screen = <PlayerHome {...homeProps} mode={tab === "play" ? "play" : "home"} />;
+
+  if (desk) return <div className="player-desk">{side}<main className="player-main">{screen}</main></div>;
   return <div className="has-dock">{screen}{dock}</div>;
 }
