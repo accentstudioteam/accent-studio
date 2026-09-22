@@ -88,6 +88,7 @@ export function Player() {
   };
   const home = () => go("home");
 
+  // Leaf screens (a rally, a scene, a notice) stand alone with their own back link; the dock lives on the five places.
   if (scene) return <Arena sessionId={scene} onBack={() => { setScene(null); setTab("live"); }} />;
   if (rally) return <Rally sessionId={rally} onBack={() => setRally(null)} />;
   if (notices) return <CaseNotice onBack={() => setNotices(false)} />;

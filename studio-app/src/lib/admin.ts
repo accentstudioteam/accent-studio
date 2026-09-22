@@ -216,6 +216,10 @@ export interface NotifyLog {
   sent_7d: number;
   cron: { name: string; schedule: string; active: boolean }[];
 }
+export interface Pulse {
+  days: { day: string; minutes: number; sessions: number }[];
+  recent: { at: string; who: string | null; what: string; kind: string }[];
+}
 export interface NotifyRun {
   claimed: number;
   sent: number;
@@ -269,6 +273,7 @@ export const auditQueue = (): Promise<AuditQueue> => (isDemo() ? demoVerify.audi
 export const auditRecord = (sid: string, outcome: "upheld" | "adjusted", score: number | null, note: string): Promise<AuditResult> =>
   isDemo() ? demoVerify.auditRecord(sid, outcome, score, note) : rpc<AuditResult>("audit_record", { sid, outcome, score, note });
 
+export const pulse = (): Promise<Pulse> => (isDemo() ? demoAdmin.pulse() : rpc<Pulse>("admin_pulse"));
 export const notifyLog = (): Promise<NotifyLog> => (isDemo() ? demoAdmin.notifyLog() : rpc<NotifyLog>("notify_log", { lim: 100 }));
 export async function notifyNow(): Promise<NotifyRun> {
   if (isDemo()) return demoAdmin.notifyNow();

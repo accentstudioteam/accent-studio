@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/auth/AuthProvider";
-import { NOTIFY_LABEL, notifyLog, notifyNow, type NotifyLog, type NotifyRun, type Overview } from "@/lib/admin";
+import { NOTIFY_LABEL, notifyLog, notifyNow, pulse, type NotifyLog, type NotifyRun, type Overview, type Pulse } from "@/lib/admin";
 import { money } from "@/lib/earn";
 
 interface Props {
@@ -19,12 +19,14 @@ export function Home({ ov, onGo, onRefresh, asAdmin }: Props) {
   const name = profile?.handle ?? session?.user.email?.split("@")[0] ?? (asAdmin ? "founder" : "there");
   const admin = asAdmin || !!profile?.is_admin;
   const [nl, setNl] = useState<NotifyLog | null>(null);
+  const [pu, setPu] = useState<Pulse | null>(null);
   const [run, setRun] = useState<NotifyRun | string | null>(null);
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
     if (!admin) return;
     notifyLog().then(setNl).catch(() => setNl(null));
+    pulse().then(setPu).catch(() => setPu(null));
   }, [admin]);
 
   const sendNow = async () => {
@@ -79,6 +81,14 @@ export function Home({ ov, onGo, onRefresh, asAdmin }: Props) {
   const cronLine = nl ? (nl.cron.length ? nl.cron.map((x) => `${x.name} ${x.schedule}${x.active ? "" : " (off)"}`).join(" · ") : "no schedule found") : "";
   const lastLine = nl && nl.recent.length ? nl.recent.slice(0, 3).map((n) => `${NOTIFY_LABEL[n.kind] ?? n.kind} to ${n.speaker_id ?? "?"}${n.sent_at ? "" : n.error ? ` (failed: ${n.error})` : " (waiting)"}`).join(" · ") : "";
   const runLine = run == null ? "" : typeof run === "string" ? run : `Claimed ${run.claimed}, sent ${run.sent}, failed ${run.failed}.${run.results.some((r) => r.error) ? ` First error: ${run.results.find((r) => r.error)?.error}` : ""}`;
+  const maxMin = pu ? Math.max(1, ...pu.days.map((d) => d.minutes)) : 1;
+  const week = pu ? pu.days.slice(-7).reduce((n, d) => n + d.minutes, 0) : 0;
+  const prior = pu ? pu.days.slice(-14, -7).reduce((n, d) => n + d.minutes, 0) : 0;
+  const feedWhen = (iso: string) => {
+    const t = new Date(iso);
+    const sameDay = t.toDateString() === new Date().toDateString();
+    return sameDay ? t.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) : t.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+  };
 
   return (
     <div className="shell dash">
@@ -101,6 +111,7 @@ export function Home({ ov, onGo, onRefresh, asAdmin }: Props) {
         <div className="muted" style={{ marginBottom: 14 }}>Loading the numbers…</div>
       )}
 
+      <div className="dash-cols">
       <div className="dash-grid">
         <div className="sheet">
           <div className="handle" />
@@ -117,7 +128,7 @@ export function Home({ ov, onGo, onRefresh, asAdmin }: Props) {
         </div>
 
         <div className="stack">
-          <div className="sheet">
+          <div className="sheet rail-mobile">
             <div className="handle" />
             <div className="shead"><i />Reminders and statements</div>
             <div className="tile">
@@ -139,6 +150,38 @@ export function Home({ ov, onGo, onRefresh, asAdmin }: Props) {
             </div>
           </div>
         </div>
+      </div>
+      <aside className="dash-rail">
+        <div className="sheet">
+          <div className="handle" />
+          <div className="shead"><i />Verified minutes · 30 days</div>
+          <div className="tile">
+            {pu ? (
+              <>
+                <div className="spark" aria-label="Verified minutes per day, last 30 days">
+                  {pu.days.map((d, i) => <i key={d.day} className={i === pu.days.length - 1 ? "h" : ""} style={{ height: `${Math.max(3, Math.round((d.minutes / maxMin) * 100))}%` }} title={`${d.day}: ${d.minutes} min · ${d.sessions} sessions`} />)}
+                </div>
+                <div className="tbody muted small" style={{ marginTop: 8 }}>{Math.round(week)} min this week{prior > 0 ? `, ${week >= prior ? "up from" : "down from"} ${Math.round(prior)} the week before` : ""}. {pu.days.slice(-7).reduce((n, d) => n + d.sessions, 0)} sessions finished.</div>
+              </>
+            ) : (
+              <div className="tbody muted small">Loading…</div>
+            )}
+          </div>
+        </div>
+        <div className="sheet">
+          <div className="handle" />
+          <div className="shead"><i />Recent</div>
+          <div className="tile">
+            {pu && pu.recent.length === 0 && <div className="tbody muted small">Nothing yet. The first application, rally or verification shows here.</div>}
+            {pu && pu.recent.length > 0 && (
+              <div className="feed">
+                {pu.recent.map((r, i) => <div key={i}><span>{feedWhen(r.at)}</span><em style={{ fontStyle: "normal" }}><b>{r.who ?? "?"}</b> {r.what}</em></div>)}
+              </div>
+            )}
+            {!pu && <div className="tbody muted small">Loading…</div>}
+          </div>
+        </div>
+      </aside>
       </div>
     </div>
   );

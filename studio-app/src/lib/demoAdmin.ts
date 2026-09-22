@@ -1,6 +1,6 @@
 // The founder's admin screens on an in-memory backend: staff, the contributor roster and the overview.
 // Nothing is saved.
-import type { AdminEvent, ContributorAction, ContributorDetail, ContributorRow, NotifyLog, NotifyRun, Overview, Roster, Staff, StaffInvite, StaffPerson, StaffRole } from "@/lib/admin";
+import type { AdminEvent, ContributorAction, ContributorDetail, ContributorRow, NotifyLog, NotifyRun, Overview, Pulse, Roster, Staff, StaffInvite, StaffPerson, StaffRole } from "@/lib/admin";
 
 const now = () => new Date().toISOString();
 const ago = (min: number) => new Date(Date.now() - min * 60_000).toISOString();
@@ -224,6 +224,26 @@ export const demoAdmin = {
     c.open_data_requests = c.data_requests.filter((r) => r.status === "open").length;
     log(`data_request_${status}`, c, { request_id: rid });
     return { ok: true };
+  },
+
+  pulse: async (): Promise<Pulse> => {
+    seed();
+    const mins = [12, 8, 0, 15, 22, 9, 18, 30, 11, 0, 6, 25, 19, 14, 33, 21, 7, 0, 16, 28, 24, 10, 35, 13, 20, 9, 31, 17, 26, 40];
+    const days = mins.map((m, i) => {
+      const d = new Date(Date.now() - (29 - i) * 86_400_000);
+      return { day: d.toISOString().slice(0, 10), minutes: m, sessions: Math.round(m / 4) };
+    });
+    const recent = [
+      { at: ago(6), who: "edt_00417", what: "verified Okada Price · Gold", kind: "verify" },
+      { at: ago(40), who: "spk_pcm_ng_77104", what: "booked a scene for Wed 19:00", kind: "booking" },
+      { at: ago(130), who: "spk_pcm_ng_48213", what: "finished Market Day with spk_pcm_ng_77104", kind: "rally" },
+      { at: ago(26 * 60), who: "spk_pcm_ng_48213", what: "asked for $2.31 by usdc", kind: "payout" },
+      { at: ago(26 * 60 + 20), who: ME, what: "staff invite · kemi.linguist@gmail.com", kind: "staff" },
+      { at: ago(2 * 24 * 60), who: "Adaeze N.", what: "applied · ig · Enugu", kind: "apply" },
+      { at: ago(3 * 24 * 60), who: "edt_00417", what: "verified Banking Wahala · Gold", kind: "verify" },
+      { at: ago(29 * 24 * 60), who: ME, what: "sent $5.20 to spk_pcm_ng_77104", kind: "payout" },
+    ];
+    return { days, recent };
   },
 
   notifyLog: async (): Promise<NotifyLog> => {

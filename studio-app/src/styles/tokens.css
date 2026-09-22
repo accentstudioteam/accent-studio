@@ -1500,12 +1500,13 @@ button.chip {
   }
   .snav-h {
     display: block;
-    font-family: var(--mono);
-    font-size: 0.62rem;
-    letter-spacing: 0.18em;
+    font-family: var(--sans);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--faint);
-    padding: 6px 12px 4px;
+    padding: 8px 12px 4px;
   }
   .snav-item {
     display: flex;
@@ -1515,9 +1516,18 @@ button.chip {
     border-color: transparent;
     background: transparent;
     padding: 9px 12px;
-    font-size: 0.8rem;
+    font-family: var(--sans);
+    font-size: 0.95rem;
+    letter-spacing: 0;
+    color: var(--ink2);
     white-space: normal;
     text-align: left;
+  }
+  .snav-item.on {
+    font-weight: 600;
+  }
+  .snav-count {
+    font-family: var(--mono);
   }
   .snav-item:hover {
     background: var(--card2);
@@ -1847,5 +1857,72 @@ button.tile:hover {
   }
   .stat .n {
     font-size: 1.9rem;
+  }
+}
+
+
+/* --- the dashboard's right rail on a desk --- */
+.dash-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+@media (min-width: 1100px) {
+  .dash-cols {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+}
+.dash-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.spark {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 56px;
+  margin-top: 6px;
+}
+.spark i {
+  flex: 1;
+  display: block;
+  min-height: 2px;
+  background: var(--accdim);
+  border-radius: 2px 2px 0 0;
+}
+.spark i.h {
+  background: var(--acc);
+}
+.spark i.t {
+  background: var(--gold);
+}
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 0.82rem;
+  color: var(--ink2);
+}
+.feed div {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 8px;
+  align-items: baseline;
+}
+.feed span {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  color: var(--faint);
+  white-space: nowrap;
+}
+.feed b {
+  font-weight: 600;
+  color: var(--ink);
+}
+@media (min-width: 1100px) {
+  .dash-cols .dash-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
