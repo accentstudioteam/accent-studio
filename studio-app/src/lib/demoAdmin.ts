@@ -1,6 +1,6 @@
 // The founder's admin screens on an in-memory backend: staff, the contributor roster and the overview.
 // Nothing is saved.
-import type { AdminEvent, ContributorAction, ContributorDetail, ContributorRow, Overview, Roster, Staff, StaffInvite, StaffPerson, StaffRole } from "@/lib/admin";
+import type { AdminEvent, ContributorAction, ContributorDetail, ContributorRow, NotifyLog, NotifyRun, Overview, Roster, Staff, StaffInvite, StaffPerson, StaffRole } from "@/lib/admin";
 
 const now = () => new Date().toISOString();
 const ago = (min: number) => new Date(Date.now() - min * 60_000).toISOString();
@@ -38,6 +38,7 @@ const row = (i: Partial<ContributorDetail> & Pick<ContributorDetail, "id" | "spe
   open_cases: 0,
   confirmed_cases: 0,
   consent: { agreement_version: "1.2", signed_at: ago(40 * 24 * 60), withdrawn_at: null, record_sha256: "3f1c9a02e7b14d6c8a5f0e9b2c7d4a1f6e3b8c5d2a9f7e4b1c6d3a8f5e2b9c7d" },
+  notifications: [],
   sessions: [],
   payouts: [],
   cases: [],
@@ -72,6 +73,10 @@ function seed() {
         { id: "pay-a0", rail: "usdc", amount_usd: 5.2, status: "paid", requested_at: ago(31 * 24 * 60), paid_at: ago(29 * 24 * 60), reference: "0x9c…41" },
       ],
       bookings: [{ id: "b1", starts_at: ahead(1), status: "paired", language: "pcm" }],
+      notifications: [
+        { id: 31, kind: "statement", created_at: ago(21 * 24 * 60), sent_at: ago(21 * 24 * 60), attempts: 1, error: null },
+        { id: 40, kind: "reply_due", created_at: ago(3 * 24 * 60), sent_at: ago(3 * 24 * 60), attempts: 1, error: null },
+      ],
     }),
     row({ id: "c-77104", speaker_id: "spk_pcm_ng_77104", full_name: "Ngozi A.", email: "ngozi@example.com", rallies: 21, scenes: 3, verified_seconds: 4020, avg_quality: 4.72, earned_usd: 21.4, paid_usd: 15.9, cleared_usd: 5.5, last_active_at: ago(40) }),
     row({ id: "c-30556", speaker_id: "spk_pcm_ng_30556", full_name: "Emeka U.", email: "emeka@example.com", rallies: 9, scenes: 0, abandoned: 3, quiet_count: 3, verified_seconds: 1300, avg_quality: 3.9, earned_usd: 4.62, paid_usd: 0, cleared_usd: 4.62, last_active_at: ago(3 * 24 * 60), arena_strikes: 1 }),
@@ -85,7 +90,7 @@ function seed() {
 }
 
 const strip = (c: ContributorDetail): ContributorRow => {
-  const { sessions: _s, payouts: _p, cases: _c, bookings: _b, events: _e, ...r } = c;
+  const { sessions: _s, payouts: _p, cases: _c, bookings: _b, events: _e, notifications: _n, ...r } = c;
   return r;
 };
 const find = (cid: string): ContributorDetail => {
@@ -191,6 +196,20 @@ export const demoAdmin = {
     }
     log(`contributor_${action}`, c, { speaker_id: c.speaker_id, reason: r, days });
     return strip(c);
+  },
+
+  notifyLog: async (): Promise<NotifyLog> => {
+    seed();
+    const recent = state.contributors.flatMap((c) => c.notifications.map((n) => ({ ...n, speaker_id: c.speaker_id }))).sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+    return { recent, unsent: 0, sent_7d: recent.filter((n) => n.sent_at && Date.now() - new Date(n.sent_at).getTime() < 7 * 86_400_000).length, cron: [{ name: "accent-sweeps", schedule: "*/5 * * * *", active: true }, { name: "accent-notify", schedule: "*/15 * * * *", active: true }] };
+  },
+
+  notifyNow: async (): Promise<NotifyRun> => {
+    seed();
+    const c = state.contributors[0];
+    const n = { id: 90 + state.seq++, kind: "booking_soon", created_at: now(), sent_at: now(), attempts: 1, error: null };
+    c.notifications = [n, ...c.notifications];
+    return { claimed: 1, sent: 1, failed: 0, results: [{ id: n.id, kind: n.kind, ok: true }] };
   },
 
   reset: () => {

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
 import { LANG_NAME } from "@/lib/game";
-import { KIND_LABEL, STATUS_LABEL, contributor, contributorSet, contributors, hours, type ContributorAction, type ContributorDetail, type ContributorRow, type Roster } from "@/lib/admin";
+import { KIND_LABEL, NOTIFY_LABEL, STATUS_LABEL, contributor, contributorSet, contributors, hours, type ContributorAction, type ContributorDetail, type ContributorRow, type Roster } from "@/lib/admin";
 import { TIER_WORD, money } from "@/lib/earn";
 import { REASON_LABEL, when } from "@/lib/verify";
 
@@ -218,6 +218,13 @@ function Detail({ cid, onBack }: { cid: string; onBack: () => void }) {
             </div>
           )}
 
+          {d.notifications.length > 0 && (
+            <div className="sheet" style={{ marginBottom: 18 }}>
+              <div className="handle" />
+              <div className="shead"><i />Emails · {d.notifications.length}</div>
+              {d.notifications.map((n) => <div key={n.id} className="tile"><div className="tbody small">{when(n.created_at)} · {NOTIFY_LABEL[n.kind] ?? n.kind} · {n.sent_at ? "sent" : n.error ? `failed: ${n.error}` : "waiting"}{n.attempts > 1 ? ` · ${n.attempts} attempts` : ""}</div></div>)}
+            </div>
+          )}
           {d.events.length > 0 && (
             <div className="sheet">
               <div className="handle" />

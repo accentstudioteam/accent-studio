@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/auth/AuthProvider";
-import { overview, type Overview } from "@/lib/admin";
+import { NOTIFY_LABEL, notifyLog, notifyNow, overview, type NotifyLog, type NotifyRun, type Overview } from "@/lib/admin";
 import { money } from "@/lib/earn";
 import { Sheet, Tile, Waveform } from "@/components/Sheet";
 import { LOCALE_NAME } from "@/lib/labels";
@@ -11,10 +11,29 @@ const DEMO_BARS = [55, 32, 78, 44, 68, 88, 52, 72, 38, 58, 48, 34, 64, 40];
 export function Home({ onSettings, onApplications, onLabInquiries, onCards, onVerify, onIntegrity, onPayouts, onProjects, onTeam, onContributors, onAudit }: { onSettings: () => void; onApplications?: () => void; onLabInquiries?: () => void; onCards?: () => void; onVerify?: () => void; onIntegrity?: () => void; onPayouts?: () => void; onProjects?: () => void; onTeam?: () => void; onContributors?: () => void; onAudit?: () => void }) {
   const { profile, session } = useAuth();
   const [ov, setOv] = useState<Overview | null>(null);
+  const [nl, setNl] = useState<NotifyLog | null>(null);
+  const [run, setRun] = useState<NotifyRun | string | null>(null);
+  const [sending, setSending] = useState(false);
   useEffect(() => {
     if (!profile?.is_admin) return;
     overview().then(setOv).catch(() => setOv(null));
+    notifyLog().then(setNl).catch(() => setNl(null));
   }, [profile?.is_admin]);
+  const sendNow = async () => {
+    setSending(true);
+    setRun(null);
+    try {
+      const r = await notifyNow();
+      setRun(r);
+      setNl(await notifyLog());
+    } catch (e) {
+      setRun(e instanceof Error ? e.message : "Couldn't send.");
+    }
+    setSending(false);
+  };
+  const cronLine = nl ? (nl.cron.length ? nl.cron.map((c) => `${c.name} ${c.schedule}${c.active ? "" : " (off)"}`).join(" · ") : "no schedule found") : "";
+  const lastLine = nl && nl.recent.length ? nl.recent.slice(0, 3).map((n) => `${NOTIFY_LABEL[n.kind] ?? n.kind} to ${n.speaker_id ?? "?"}${n.sent_at ? "" : n.error ? ` (failed: ${n.error})` : " (waiting)"}`).join(" · ") : "";
+  const runLine = run == null ? "" : typeof run === "string" ? run : `Claimed ${run.claimed}, sent ${run.sent}, failed ${run.failed}.${run.results.some((r) => r.error) ? ` First error: ${run.results.find((r) => r.error)?.error}` : ""}`;
   const name = profile?.handle ?? session?.user.email?.split("@")[0] ?? "player";
   const lang = profile?.locale ? LOCALE_NAME[profile.locale] : null;
 
@@ -102,6 +121,16 @@ export function Home({ onSettings, onApplications, onLabInquiries, onCards, onVe
                 </div>
               </Tile>
               <button className="pill ghost" onClick={onTeam}>Open the team</button>
+              <Tile label="Mail">
+                <div className="ttitle">Reminders and statements</div>
+                <div className="tbody muted" style={{ marginTop: 6 }}>
+                  Reply due in four hours, a scene in an hour, a clause 15 window closing, a payout sent, and the month-end statement. The scheduler runs every fifteen minutes; press to send what is due now.
+                </div>
+                {nl && <div className="tbody muted small" style={{ marginTop: 6, fontFamily: "var(--mono)" }}>{nl.sent_7d} sent this week · {nl.unsent} waiting · {cronLine}</div>}
+                {lastLine && <div className="tbody muted small" style={{ marginTop: 4 }}>Last: {lastLine}</div>}
+                {runLine && <div className="tbody small" style={{ marginTop: 6, color: typeof run === "string" ? "var(--coral)" : "var(--acc)" }}>{runLine}</div>}
+              </Tile>
+              <button className="pill ghost" disabled={sending} onClick={() => void sendNow()}>{sending ? "Sending…" : "Send what is due now"}</button>
               <Tile label="Waitlist">
                 <div className="ttitle">Player applications</div>
                 <div className="tbody muted" style={{ marginTop: 6 }}>

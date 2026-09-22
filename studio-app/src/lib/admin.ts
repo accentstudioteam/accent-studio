@@ -124,7 +124,16 @@ export interface ContributorBooking {
   status: string;
   language: string;
 }
+export interface SentNotification {
+  id: number;
+  kind: string;
+  created_at: string;
+  sent_at: string | null;
+  attempts: number;
+  error: string | null;
+}
 export interface ContributorDetail extends ContributorRow {
+  notifications: SentNotification[];
   sessions: ContributorSession[];
   payouts: ContributorPayout[];
   cases: ContributorCase[];
@@ -176,6 +185,20 @@ export interface AuditQueue {
   verified_total: number;
   audited_total: number;
 }
+export interface NotifyLog {
+  recent: (SentNotification & { speaker_id: string | null })[];
+  unsent: number;
+  sent_7d: number;
+  cron: { name: string; schedule: string; active: boolean }[];
+}
+export interface NotifyRun {
+  claimed: number;
+  sent: number;
+  failed: number;
+  results: { id: number; kind: string; ok: boolean; error?: string }[];
+}
+export const NOTIFY_LABEL: Record<string, string> = { reply_due: "reply due", booking_soon: "scene in an hour", case_window_closing: "clause 15 window closing", payout_paid: "payout sent", statement: "monthly statement" };
+
 export interface AuditResult {
   outcome: "upheld" | "adjusted";
   quality_tier: string;
@@ -216,5 +239,14 @@ export const contributorSet = (cid: string, action: ContributorAction, reason: s
 export const auditQueue = (): Promise<AuditQueue> => (isDemo() ? demoVerify.auditQueue() : rpc<AuditQueue>("audit_queue"));
 export const auditRecord = (sid: string, outcome: "upheld" | "adjusted", score: number | null, note: string): Promise<AuditResult> =>
   isDemo() ? demoVerify.auditRecord(sid, outcome, score, note) : rpc<AuditResult>("audit_record", { sid, outcome, score, note });
+
+export const notifyLog = (): Promise<NotifyLog> => (isDemo() ? demoAdmin.notifyLog() : rpc<NotifyLog>("notify_log", { lim: 100 }));
+export async function notifyNow(): Promise<NotifyRun> {
+  if (isDemo()) return demoAdmin.notifyNow();
+  const { data, error } = await supabase.functions.invoke("notify", { body: { source: "studio", limit: 100 } });
+  if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(String(data.error));
+  return data as NotifyRun;
+}
 
 export const hours = (secs: number | string | null | undefined): string => `${(Number(secs ?? 0) / 3600).toFixed(2)} h`;
