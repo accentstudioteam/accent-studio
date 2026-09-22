@@ -41,9 +41,32 @@ export function Player() {
           <div className="eyebrow" style={{ marginBottom: 6 }}>Clause 15</div>
           <h1 className="h1" style={{ marginBottom: 14 }}>This account is closed.</h1>
           <div className="tile" style={{ marginBottom: 14 }}>
-            <div className="tbody">The decision and its reason were sent to your registered email. Verified earnings from sessions not involved in the decision are still paid on the normal schedule. You can ask for the record of the case, and you can complain to your data protection authority, by writing to privacy@accentstudio.io.</div>
+            <div className="tbody">{me.contributor.closed_reason ? `Reason: ${me.contributor.closed_reason}. ` : "The decision and its reason were sent to your registered email. "}Verified earnings from sessions not involved in the decision are still paid on the normal schedule. You can ask for the record of the case, and you can complain to your data protection authority, by writing to privacy@accentstudio.io.</div>
           </div>
           <button className="pill ghost" onClick={() => void signOut()}>Sign out</button>
+        </div>
+      </div>
+    );
+  }
+  if (me.contributor.paused_until && new Date(me.contributor.paused_until) > new Date()) {
+    const until = new Date(me.contributor.paused_until).toLocaleDateString("en-GB", { day: "numeric", month: "long", timeZone: "Africa/Lagos" });
+    return (
+      <div className="app">
+        <div className="topbar"><Logo height={22} /></div>
+        <div className="shell">
+          <div className="eyebrow" style={{ marginBottom: 6 }}>Paused</div>
+          <h1 className="h1" style={{ marginBottom: 14 }}>Your account is paused until {until}.</h1>
+          <div className="tile" style={{ borderColor: "var(--gold)", marginBottom: 14 }}>
+            <div className="tlbl" style={{ color: "var(--gold)" }}>Why</div>
+            <div className="tbody">{me.contributor.paused_reason ?? "A member of the team paused new sessions for now."}</div>
+          </div>
+          <div className="tile" style={{ marginBottom: 14 }}>
+            <div className="tbody">No new rallies or bookings until then. Your verified earnings are not affected and pay on the normal schedule; you can still request a payout from Earnings. Questions: hello@accentstudio.io.</div>
+          </div>
+          <div className="btn-row">
+            <button className="pill ghost" onClick={() => setEarnings(true)}>Earnings</button>
+            <button className="pill ghost" onClick={() => void signOut()}>Sign out</button>
+          </div>
         </div>
       </div>
     );

@@ -117,6 +117,10 @@ export interface SessionVerification {
   verified_at: string | null;
   editor_id: string | null;
   audit_pick: boolean;
+  verified_by_me?: boolean;
+  audit_outcome?: "upheld" | "adjusted" | null;
+  audit_editor_id?: string | null;
+  audited_at?: string | null;
   aligned_turns?: number | null;
 }
 export interface Workbench {

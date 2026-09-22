@@ -1,12 +1,20 @@
+import { useEffect, useState } from "react";
 import { useAuth } from "@/auth/AuthProvider";
+import { overview, type Overview } from "@/lib/admin";
+import { money } from "@/lib/earn";
 import { Sheet, Tile, Waveform } from "@/components/Sheet";
 import { LOCALE_NAME } from "@/lib/labels";
 import { Logo } from "../components/Logo";
 
 const DEMO_BARS = [55, 32, 78, 44, 68, 88, 52, 72, 38, 58, 48, 34, 64, 40];
 
-export function Home({ onSettings, onApplications, onLabInquiries, onCards, onVerify, onIntegrity, onPayouts, onProjects }: { onSettings: () => void; onApplications?: () => void; onLabInquiries?: () => void; onCards?: () => void; onVerify?: () => void; onIntegrity?: () => void; onPayouts?: () => void; onProjects?: () => void }) {
+export function Home({ onSettings, onApplications, onLabInquiries, onCards, onVerify, onIntegrity, onPayouts, onProjects, onTeam, onContributors, onAudit }: { onSettings: () => void; onApplications?: () => void; onLabInquiries?: () => void; onCards?: () => void; onVerify?: () => void; onIntegrity?: () => void; onPayouts?: () => void; onProjects?: () => void; onTeam?: () => void; onContributors?: () => void; onAudit?: () => void }) {
   const { profile, session } = useAuth();
+  const [ov, setOv] = useState<Overview | null>(null);
+  useEffect(() => {
+    if (!profile?.is_admin) return;
+    overview().then(setOv).catch(() => setOv(null));
+  }, [profile?.is_admin]);
   const name = profile?.handle ?? session?.user.email?.split("@")[0] ?? "player";
   const lang = profile?.locale ? LOCALE_NAME[profile.locale] : null;
 
@@ -61,10 +69,39 @@ export function Home({ onSettings, onApplications, onLabInquiries, onCards, onVe
                 </div>
               </Tile>
               <button className="pill ghost" onClick={onIntegrity}>Open the cases</button>
+              <Tile label="Audit">
+                <div className="ttitle">A second ear on sampled rallies</div>
+                <div className="tbody muted" style={{ marginTop: 6 }}>
+                  A share of verified rallies is drawn at random. Another editor listens, upholds or adjusts the score; unpaid lines are re-priced.
+                </div>
+              </Tile>
+              <button className="pill ghost" onClick={onAudit}>Open the audit queue{ov ? ` · ${ov.cutting_room.audit_pending}` : ""}</button>
             </Sheet>
           )}
           {profile?.is_admin && (
             <Sheet title="Founder tools">
+              {ov && (
+                <div className="row2">
+                  <Tile label="Contributors active"><div className="ttitle">{ov.contributors.active}</div><div className="tbody muted small">{ov.contributors.paused} paused · {ov.contributors.closed} closed · {ov.contributors.active_7d} played this week</div></Tile>
+                  <Tile label="This week"><div className="ttitle">{ov.play.rallies_7d + ov.play.scenes_7d}</div><div className="tbody muted small">{ov.play.rallies_7d} rallies · {ov.play.scenes_7d} scenes · {ov.play.bookings_upcoming} booked</div></Tile>
+                  <Tile label="Cutting Room"><div className="ttitle">{ov.cutting_room.queue} waiting</div><div className="tbody muted small">{ov.cutting_room.verified_hours} h verified · {ov.cutting_room.audit_pending} to audit · {ov.cutting_room.cases_open} cases</div></Tile>
+                  <Tile label="Money"><div className="ttitle">{money(ov.money.requested_usd)} to send</div><div className="tbody muted small">{money(ov.money.cleared_usd)} ready · {money(ov.money.held_usd)} held · {money(ov.money.paid_usd)} paid</div></Tile>
+                </div>
+              )}
+              <Tile label="People">
+                <div className="ttitle">Contributors</div>
+                <div className="tbody muted" style={{ marginTop: 6 }}>
+                  Everyone who signed: their hours, quality, money and cases. Pause or close an account with a reason they see.
+                </div>
+              </Tile>
+              <button className="pill mint" onClick={onContributors}>Open contributors</button>
+              <Tile label="People">
+                <div className="ttitle">Team</div>
+                <div className="tbody muted" style={{ marginTop: 6 }}>
+                  Linguists and admins, invites by email, every role change logged.
+                </div>
+              </Tile>
+              <button className="pill ghost" onClick={onTeam}>Open the team</button>
               <Tile label="Waitlist">
                 <div className="ttitle">Player applications</div>
                 <div className="tbody muted" style={{ marginTop: 6 }}>

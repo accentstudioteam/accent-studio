@@ -6,6 +6,7 @@ import { demo } from "@/lib/demo";
 import type { Case, CaseEvent, CaseReason, Cases, Decision, EarningPost, MyCase, Queue, SaveTurnInput, Speaker, TurnVerification, VerifyResult, Workbench, WorkTurn } from "@/lib/verify";
 import type { PayoutQueue, QueuedPayout } from "@/lib/earn";
 import type { Delivery, ExportStep, Plan, Project, ProjectInput } from "@/lib/projects";
+import type { AuditDone, AuditQueue, AuditResult } from "@/lib/admin";
 
 /** What an English-trained Whisper typically makes of these clips: the draft the editor corrects. */
 const DRAFTS: Record<string, string> = {
@@ -102,6 +103,10 @@ interface DemoSession {
   editor_score: number | null;
   notes: string | null;
   hold: boolean;
+  verified_by: "me" | "other" | null;
+  verified_at: string | null;
+  audit_pick: boolean;
+  audit: AuditDone | null;
 }
 interface DemoCase extends Case {
   contributor: string; // speaker id
@@ -141,7 +146,7 @@ function seed() {
       turn("demo-s1", 5, "a", A1, "scene_mkt_05", 4, rating("b", 4, 5, 5, 4), 140),
       turn("demo-s1", 6, "b", B1, "scene_mkt_06", 4, rating("a", 5, 5, 5, 5), 130),
     ],
-    status: "pending", claimed: null, claimed_at: null, result: null, earnings: [], editor_score: null, notes: null, hold: false,
+    status: "pending", claimed: null, claimed_at: null, result: null, earnings: [], editor_score: null, notes: null, hold: false, verified_by: null, verified_at: null, audit_pick: false, audit: null,
   };
   const bank: DemoSession = {
     id: "demo-s2", title: "Banking Wahala", situation: "Money don comot for your account wey you no spend. Na POS transaction wey you no know. You call the bank customer care.",
@@ -154,16 +159,32 @@ function seed() {
       turn("demo-s2", 4, "b", B2, "scene_bank_04", 7, rating("a", 5, 5, 4, 5), 48 * 60),
       turn("demo-s2", 5, "a", A1, "scene_bank_05", 4, null, 48 * 60), // the partner went quiet before rating it
     ],
-    status: "pending", claimed: null, claimed_at: null, result: null, earnings: [], editor_score: null, notes: null, hold: false,
+    status: "pending", claimed: null, claimed_at: null, result: null, earnings: [], editor_score: null, notes: null, hold: false, verified_by: null, verified_at: null, audit_pick: false, audit: null,
   };
   const telco: DemoSession = {
     id: "demo-s3", title: "Telco Trouble", situation: "Your data bundle don finish overnight, and you no even use am. You call customer care.",
     persona_a: "Subscriber wey confuse and vex small. E wan know where the data go.", persona_b: "Customer care person wey dey try explain the plan and offer something.",
     domain: "telco_support", session_status: "complete", flags: [], abandoned_reason: null, completed_at: ago(25), speakers: { a: B1, b: B2 },
     turns: [1, 2, 3, 4, 5, 6].map((n) => turn("demo-s3", n, n % 2 ? "a" : "b", n % 2 ? B1 : B2, `scene_bank_0${((n - 1) % 5) + 1}`, 5, rating(n % 2 ? "b" : "a", 4, 5, 4, 5), 40 - n * 2)),
-    status: "in_progress", claimed: "other", claimed_at: ago(6), result: null, earnings: [], editor_score: null, notes: null, hold: false,
+    status: "in_progress", claimed: "other", claimed_at: ago(6), result: null, earnings: [], editor_score: null, notes: null, hold: false, verified_by: null, verified_at: null, audit_pick: false, audit: null,
   };
-  state.sessions = [bank, market, telco];
+  // verified three days ago by Ada and drawn for the random audit: the one you can audit
+  const okadaTurns = [1, 2, 3, 4, 5, 6].map((n) => turn("demo-s0", n, n % 2 ? "a" : "b", n % 2 ? A1 : B2, `scene_mkt_0${n}`, [6, 5, 5, 6, 4, 4][n - 1], rating(n % 2 ? "b" : "a", 5, 4, 5, 4), 3 * 24 * 60 + 60 - n * 3));
+  for (const t of okadaTurns) t.verification = { verified_text: NOTES[t.clip].text, english_gloss: NOTES[t.clip].en, emotion_label: "playful", confidence: 0.92, issues: [], verified_seconds: t.seconds, rating_check: "fair", updated_at: ago(3 * 24 * 60), draft_wer: 0.31, draft_engine: "whisper-large-v3", alignments: [], aligned_at: null, aligner: null };
+  const okadaEarnings: EarningPost[] = (["a", "b"] as Speaker[]).map((sp) => {
+    const sec = okadaTurns.filter((t) => t.speaker === sp).reduce((n, t) => n + t.seconds, 0);
+    return { speaker: sp, speaker_id: sp === "a" ? A1 : B2, seconds: sec, peer_score: 4.5, quality_score: 4.5, tier: "gold", multiplier: 1.0, base_rate_usd: 16, amount_usd: Math.round((sec / 3600) * 16 * 10000) / 10000, status: "cleared" };
+  });
+  const okada: DemoSession = {
+    id: "demo-s0", title: "Okada Price", situation: "Okada man wan carry you go Yaba. The price wey e call too high. You wan price am down before you climb.",
+    persona_a: "Passenger wey dey hurry but no wan pay too much.", persona_b: "Okada rider wey know say fuel don cost. E fit gree small.",
+    domain: "transport_negotiation", session_status: "complete", flags: [], abandoned_reason: null, completed_at: ago(3 * 24 * 60 + 40), speakers: { a: A1, b: B2 },
+    turns: okadaTurns,
+    status: "verified", claimed: "other", claimed_at: ago(3 * 24 * 60 + 20), editor_score: 4.5, notes: "clean and playful; both stay in character", hold: false,
+    result: { peer_score: 4.5, quality_score: 4.5, quality_tier: "gold", multiplier: 1.0, verified_seconds: 30, hold: false, draft_wer: 0.31, aligned_turns: 0, earnings: okadaEarnings },
+    earnings: okadaEarnings, verified_by: "other", verified_at: ago(3 * 24 * 60), audit_pick: true, audit: null,
+  };
+  state.sessions = [bank, market, telco, okada];
 }
 
 const latest = (s: DemoSession) => s.turns.filter((t) => t.latest);
@@ -228,7 +249,8 @@ export const demoVerify = {
         status: s.status, claimed_by: s.claimed ? "x" : null, claimed_by_me: s.claimed === "me", claimed_at: s.claimed_at,
         editor_score: s.editor_score, peer_score: s.result?.peer_score ?? null, quality_score: s.result?.quality_score ?? null, quality_tier: s.result?.quality_tier ?? null,
         multiplier: s.status === "forfeited" ? 0 : s.result?.multiplier ?? null, verified_seconds: s.result?.verified_seconds ?? null, notes: s.notes, hold: s.hold,
-        verified_at: s.result ? now() : null, editor_id: s.result ? ME : null, audit_pick: false,
+        verified_at: s.verified_at ?? (s.result ? now() : null), editor_id: s.result ? (s.verified_by === "other" ? OTHER : ME) : null, audit_pick: s.audit_pick,
+        verified_by_me: s.verified_by === "me", audit_outcome: s.audit?.outcome ?? null, audit_editor_id: s.audit?.auditor_id ?? null, audited_at: s.audit?.audited_at ?? null,
       },
       cases: state.cases.filter((c) => c.sessions.some((x) => x.session_id === s.id)).map((c) => ({ id: c.id, who: c.contributor === s.speakers.a ? "a" : "b", reason: c.reason, status: c.status, decision: c.decision })),
       earnings: s.earnings,
@@ -283,6 +305,8 @@ export const demoVerify = {
     s.editor_score = editorScore;
     s.notes = notes.trim() || null;
     s.status = "verified";
+    s.verified_by = "me";
+    s.verified_at = now();
     s.hold = hold;
     return s.result;
   },
@@ -516,6 +540,52 @@ export const demoVerify = {
       turns,
     };
     return JSON.stringify(row, null, 2);
+  },
+
+  /** The audit queue: verified rallies drawn for a second look. You cannot audit what you verified. */
+  auditQueue: async (): Promise<AuditQueue> => {
+    seed();
+    const picks = state.sessions.filter((s) => s.status === "verified" && s.audit_pick && !s.audit);
+    const done = state.sessions.filter((s) => s.audit).map((s) => s.audit as AuditDone).sort((a, b) => (a.audited_at < b.audited_at ? 1 : -1));
+    return {
+      sample_pct: 30, my_editor: ME, verified_total: 41 + state.sessions.filter((s) => s.status === "verified").length, audited_total: 6 + done.length,
+      pending: picks.map((s) => ({
+        session_id: s.id, title: s.title, language: "pcm", mode: "async", verified_at: s.verified_at ?? now(), editor_id: s.verified_by === "other" ? OTHER : ME,
+        editor_score: s.editor_score ?? 0, peer_score: s.result?.peer_score ?? null, quality_score: s.result?.quality_score ?? 0, quality_tier: s.result?.quality_tier ?? "gold",
+        verified_seconds: s.result?.verified_seconds ?? 0, turns: latest(s).length, mine: s.verified_by === "me", hold: s.hold,
+        paid: s.earnings.some((e) => e.status === "paid" || e.status === "requested"),
+      })),
+      done,
+    };
+  },
+
+  auditRecord: async (sid: string, outcome: "upheld" | "adjusted", score: number | null, note: string): Promise<AuditResult> => {
+    const s = find(sid);
+    if (s.status !== "verified") throw new Error("not a verified rally");
+    if (s.verified_by === "me") throw new Error("you verified this rally; a different editor audits it");
+    if (s.audit) throw new Error("already audited");
+    const fromTier = s.result?.quality_tier ?? null;
+    const fromScore = s.editor_score;
+    let tier = fromTier;
+    let repriced = 0;
+    if (outcome === "adjusted") {
+      if (score == null || score < 1 || score > 5) throw new Error("an adjusted audit needs a score from 1 to 5");
+      const peer = s.result?.peer_score ?? null;
+      const q = peer == null ? score : Math.round(((peer + score) / 2) * 100) / 100;
+      const t = TIERS.find((x) => q >= x.min) ?? TIERS[TIERS.length - 1];
+      tier = t.tier;
+      s.earnings = s.earnings.map((e) => {
+        if (e.status !== "cleared" && e.status !== "held") return e;
+        const eq = e.peer_score == null ? score : Math.round(((e.peer_score + score) / 2) * 100) / 100;
+        const et = TIERS.find((x) => eq >= x.min) ?? TIERS[TIERS.length - 1];
+        repriced += 1;
+        return { ...e, quality_score: eq, tier: et.tier, multiplier: et.x, amount_usd: Math.round((e.seconds / 3600) * e.base_rate_usd * et.x * 10000) / 10000 };
+      });
+      if (s.result) s.result = { ...s.result, quality_score: q, quality_tier: t.tier, multiplier: t.x, earnings: s.earnings };
+      s.editor_score = score;
+    }
+    s.audit = { session_id: s.id, title: s.title, language: "pcm", audited_at: now(), auditor_id: ME, editor_id: s.verified_by === "other" ? OTHER : ME, outcome, original_tier: fromTier, quality_tier: tier, original_editor_score: fromScore, audit_score: score, note: note.trim() || null };
+    return { outcome, quality_tier: tier ?? "gold", lines_repriced: repriced, lines_untouched: s.earnings.length - repriced };
   },
 
   reset: () => {

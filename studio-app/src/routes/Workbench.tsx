@@ -126,6 +126,8 @@ export function Workbench({ sessionId, onBack, onCases, embedded }: Props) {
       {embedded && <button type="button" onClick={onBack} style={{ background: "none", border: "none", color: "var(--mut)", fontFamily: "var(--mono)", fontSize: "0.9rem", padding: 0, marginBottom: 10, cursor: "pointer" }}>‹ queue</button>}
       <div className="eyebrow" style={{ marginBottom: 6 }}>{w.card.title} · {LANG_NAME[w.language] ?? w.language} · {w.mode === "live" ? "live scene" : w.session_status === "abandoned" ? "closed, partner went quiet" : "complete"} · {when(w.completed_at)}</div>
       <h1 className="h1" style={{ marginBottom: 14, fontSize: "clamp(1.4rem,6vw,2rem)" }}>{title}</h1>
+      {v.status === "verified" && v.audit_outcome && <div className="tile" style={{ borderColor: v.audit_outcome === "adjusted" ? "var(--gold)" : "var(--acc)", marginBottom: 14 }}><div className="tbody small">Audited {when(v.audited_at ?? "")} by {v.audit_editor_id ?? "?"}: {v.audit_outcome === "upheld" ? "the verification was upheld." : "the score was adjusted and unpaid lines re-priced."}</div></div>}
+      {v.status === "verified" && !v.audit_outcome && v.audit_pick && <div className="tile dash" style={{ marginBottom: 14 }}><div className="tbody muted small">Drawn for the random audit: a second editor will listen before delivery.</div></div>}
 
       <div className="sheet" style={{ marginBottom: 18 }}>
         <div className="handle" />

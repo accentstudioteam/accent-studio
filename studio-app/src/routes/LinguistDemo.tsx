@@ -6,9 +6,13 @@ import { Integrity } from "@/routes/Integrity";
 import { CaseNotice } from "@/routes/CaseNotice";
 import { Payouts } from "@/routes/Payouts";
 import { Projects } from "@/routes/Projects";
+import { Audit } from "@/routes/Audit";
+import { Contributors } from "@/routes/Contributors";
+import { Team } from "@/routes/Team";
 import { demoVerify } from "@/lib/demoVerify";
+import { demoAdmin } from "@/lib/demoAdmin";
 
-type Tab = "queue" | "cases" | "payouts" | "projects" | "contributor";
+type Tab = "queue" | "audit" | "cases" | "payouts" | "projects" | "contributors" | "team" | "contributor";
 
 /** The Cutting Room demo: the queue and workbench, the clause 15 cases, and the contributor's side of a case. Nothing is saved. */
 export function LinguistDemo() {
@@ -18,6 +22,7 @@ export function LinguistDemo() {
 
   const reset = () => {
     demoVerify.reset();
+    demoAdmin.reset();
     setSid(null);
     setTab("queue");
     setEpoch((n) => n + 1);
@@ -38,13 +43,37 @@ export function LinguistDemo() {
           </div>
         </div>
         <div className="chips" style={{ marginBottom: 6 }}>
-          {([["queue", "Queue"], ["cases", "Cases"], ["payouts", "Payouts (founder only)"], ["projects", "Projects (founder only)"], ["contributor", "The contributor's view"]] as [Tab, string][]).map(([k, label]) => (
+          {([["queue", "Queue"], ["audit", "Audit"], ["cases", "Cases"], ["payouts", "Payouts (founder only)"], ["projects", "Projects (founder only)"], ["contributors", "Contributors (founder only)"], ["team", "Team (founder only)"], ["contributor", "The contributor's view"]] as [Tab, string][]).map(([k, label]) => (
             <button key={k} type="button" className={`chip${tab === k ? " on" : ""}`} onClick={() => { setTab(k); if (k !== "queue") setSid(null); }}>{label}</button>
           ))}
         </div>
       </div>
       {tab === "queue" && (sid ? <Workbench sessionId={sid} onBack={() => setSid(null)} onCases={() => setTab("cases")} embedded /> : <Verify onBack={() => undefined} onOpen={setSid} onCases={() => setTab("cases")} embedded />)}
+      {tab === "audit" && (
+        <>
+          <div className="shell" style={{ maxWidth: 720, paddingTop: 0, paddingBottom: 0 }}>
+            <div className="tbody muted small" style={{ marginBottom: 8 }}>Okada Price was verified by Ada three days ago and drawn for the random audit. Listen from the bench, then uphold it or adjust the score; the unpaid lines are re-priced.</div>
+          </div>
+          <Audit onBack={() => setTab("queue")} onOpen={(id) => { setSid(id); setTab("queue"); }} embedded />
+        </>
+      )}
       {tab === "cases" && <Integrity onBack={() => setTab("queue")} embedded />}
+      {tab === "contributors" && (
+        <>
+          <div className="shell" style={{ maxWidth: 720, paddingTop: 0, paddingBottom: 0 }}>
+            <div className="tbody muted small" style={{ marginBottom: 8 }}>Founder view. Every signed contributor with their numbers; open one to pause or close the account with a reason they see.</div>
+          </div>
+          <Contributors onBack={() => setTab("queue")} embedded />
+        </>
+      )}
+      {tab === "team" && (
+        <>
+          <div className="shell" style={{ maxWidth: 720, paddingTop: 0, paddingBottom: 0 }}>
+            <div className="tbody muted small" style={{ marginBottom: 8 }}>Founder view. Invite a linguist or an admin by email; roles switch on and off here and every change is logged.</div>
+          </div>
+          <Team onBack={() => setTab("queue")} embedded />
+        </>
+      )}
       {tab === "payouts" && (
         <>
           <div className="shell" style={{ maxWidth: 720, paddingTop: 0, paddingBottom: 0 }}>

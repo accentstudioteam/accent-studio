@@ -9,8 +9,11 @@ import { Workbench } from "@/routes/Workbench";
 import { Integrity } from "@/routes/Integrity";
 import { Payouts } from "@/routes/Payouts";
 import { Projects } from "@/routes/Projects";
+import { Team } from "@/routes/Team";
+import { Contributors } from "@/routes/Contributors";
+import { Audit } from "@/routes/Audit";
 
-type View = "home" | "settings" | "applications" | "labs" | "cards" | "verify" | "integrity" | "payouts" | "projects";
+type View = "home" | "settings" | "applications" | "labs" | "cards" | "verify" | "integrity" | "payouts" | "projects" | "team" | "contributors" | "audit";
 
 /** The signed-in, onboarded studio. Holds the current in-app view. */
 export function Studio() {
@@ -24,9 +27,12 @@ export function Studio() {
   if (view === "integrity") return <Integrity onBack={() => setView("home")} />;
   if (view === "payouts") return <Payouts onBack={() => setView("home")} />;
   if (view === "projects") return <Projects onBack={() => setView("home")} />;
+  if (view === "team") return <Team onBack={() => setView("home")} />;
+  if (view === "contributors") return <Contributors onBack={() => setView("home")} />;
+  if (view === "audit") return <Audit onBack={() => setView("home")} onOpen={(sid) => { setSessionId(sid); setView("verify"); }} />;
   if (view === "verify") {
     if (sessionId) return <Workbench sessionId={sessionId} onBack={() => setSessionId(null)} onCases={() => setView("integrity")} />;
     return <Verify onBack={() => setView("home")} onOpen={setSessionId} onCases={() => setView("integrity")} />;
   }
-  return <Home onSettings={() => setView("settings")} onApplications={() => setView("applications")} onLabInquiries={() => setView("labs")} onCards={() => setView("cards")} onVerify={() => setView("verify")} onIntegrity={() => setView("integrity")} onPayouts={() => setView("payouts")} onProjects={() => setView("projects")} />;
+  return <Home onSettings={() => setView("settings")} onApplications={() => setView("applications")} onLabInquiries={() => setView("labs")} onCards={() => setView("cards")} onVerify={() => setView("verify")} onIntegrity={() => setView("integrity")} onPayouts={() => setView("payouts")} onProjects={() => setView("projects")} onTeam={() => setView("team")} onContributors={() => setView("contributors")} onAudit={() => setView("audit")} />;
 }
