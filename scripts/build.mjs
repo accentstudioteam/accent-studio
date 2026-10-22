@@ -26,6 +26,7 @@ const staticFiles = [
   "privacy.html",
   "terms.html",
   "cookies.html",
+  "british-voices-bank.html",
   "favicon.ico",
   "favicon.svg",
   "apple-touch-icon.png",
