@@ -283,6 +283,15 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
 .foot-legal a{color:var(--faint)}.foot-legal a:hover{color:var(--ink)}
 .foot-note{margin-top:16px;font-size:.8rem;color:var(--faint);max-width:72ch;line-height:1.7}
 
+/* ---------- cookie banner ---------- */
+.cc{position:fixed;bottom:18px;left:50%;transform:translate(-50%,20px);width:min(560px,calc(100vw - 32px));background:var(--card2);border:1px solid var(--line);border-radius:18px;padding:16px 20px;z-index:110;display:none;gap:14px;align-items:center;box-shadow:0 30px 60px -20px rgba(0,0,0,.8);opacity:0;transition:opacity .4s,transform .5s var(--ease)}
+.cc.show{display:flex;opacity:1;transform:translate(-50%,0)}
+.cc p{font-size:.8rem;color:var(--ink2);flex:1}
+.cc p a{color:var(--acc);text-decoration:underline}
+.cc button{border-radius:100px;padding:9px 16px;font-size:.8rem;font-weight:600;border:none;min-height:38px}
+.cc .ok{background:var(--acc);color:var(--accink)}
+.cc .min{background:none;border:1px solid var(--line);color:var(--ink2)}
+
 /* ---------- responsive ---------- */
 @media(max-width:900px){
   .steps{grid-template-columns:1fr 1fr}
@@ -312,6 +321,9 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
 @media(max-width:480px){
   .brand-name{display:none}
   .brand-x{display:none}
+  .cc{flex-direction:column;align-items:stretch;text-align:center}
+  .cc .btns{display:flex;gap:10px}
+  .cc button{flex:1}
   .lang-grid{grid-template-columns:1fr}
   .nav .btn{padding:8px 14px;font-size:.82rem}
   .cta .btn{padding:12px 20px;font-size:.9rem;width:100%;justify-content:center}
@@ -822,6 +834,15 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
 </div>
 </footer>
 
+<!-- cookie banner -->
+<div class="cc" id="cc" role="dialog" aria-label="Cookie notice">
+  <p>We use minimal cookies: one preference plus optional, privacy preserving analytics. No cross site trackers. <a href="/cookies">Cookie policy</a></p>
+  <div class="btns">
+    <button class="min" id="ccMin">Essential only</button>
+    <button class="ok" id="ccOk">Accept all</button>
+  </div>
+</div>
+
 <script>
 (function(){
 'use strict';
@@ -929,6 +950,13 @@ function closeMenu(){menu.classList.remove('open');menu.setAttribute('aria-hidde
 burger.addEventListener('click',function(){menu.classList.add('open');menu.setAttribute('aria-hidden','false');burger.setAttribute('aria-expanded','true');document.body.style.overflow='hidden';});
 menuX.addEventListener('click',closeMenu);
 menu.querySelectorAll('a').forEach(function(a){a.addEventListener('click',closeMenu);});
+
+/* ---------- cookie banner ---------- */
+var cc=document.getElementById('cc');
+try{if(!localStorage.getItem('as-consent')){setTimeout(function(){cc.classList.add('show');},1400);}}catch(e){}
+function setConsent(v){try{localStorage.setItem('as-consent',v);}catch(e){}cc.classList.remove('show');}
+document.getElementById('ccOk').addEventListener('click',function(){setConsent('all');});
+document.getElementById('ccMin').addEventListener('click',function(){setConsent('essential');});
 
 /* ---------- registration form → Supabase ---------- */
 var SB_URL='https://uazcoxinsnkjjogfovlg.supabase.co',SB_KEY='sb_publishable_cV8x-VgtGRj26so-iS9kgQ_MjvbYZzJ';
