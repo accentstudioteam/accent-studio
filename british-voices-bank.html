@@ -17,7 +17,7 @@
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta name="theme-color" content="#f4eee1">
+<meta name="theme-color" content="#0d0b08">
 <meta name="keywords" content="british voices bank, open voice dataset, african languages ai, under-represented languages, commonwealth languages dataset, uk ai inclusion, open voice archive, consensual voice data">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,192 +33,280 @@
 </script>
 <style>
 /* ============================================================
-   THE BRITISH VOICES BANK · CREAM EDITION (Amber)
-   A national initiative, not a startup landing page.
+   THE BRITISH VOICES BANK · MIDNIGHT STUDIO EDITION (amber)
+   Same booth. Same grain. Amber accent.
    ============================================================ */
 :root{
-  --bg:#f4eee1; --bg2:#ece5d5; --white:#ffffff;
-  --card:#ffffff; --card2:#faf7f0;
-  --line:#d4cdbf; --line2:#e2dbd0;
-  --ink:#0d0b08; --ink2:#3d3829; --mut:#7a7264; --faint:#a39b8c;
-  --acc:#f0a84b; --acc2:#d9922e; --accink:#1d1204; --acclight:#fdf4e4;
-  --spruce:#0d4a3d;
+  --bg0:#0d0b08; --bg1:#121009; --card:#17140e; --card2:#1d1913;
+  --line:#2b2418; --line2:#221d13;
+  --ink:#f4eee1; --ink2:#c9bfad; --mut:#96897a; --faint:#6b6152;
+  --acc:#f0a84b; --acc2:#ffc66e; --accink:#1d1204; --accdim:#2c2110;
+  --live:#45e0a0;
+  --gold:#e0a24e; --goldb:#f0b866; --coral:#e08a5c; --green:#3ec392;
   --disp:"Bricolage Grotesque",system-ui,sans-serif;
   --sans:"Hanken Grotesk",system-ui,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,monospace;
-  --maxw:1100px; --pad:clamp(24px,5.5vw,44px);
+  --maxw:1240px; --pad:clamp(28px,5.5vw,44px);
   --ease:cubic-bezier(.16,1,.3,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body{background:var(--bg0);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 ::selection{background:var(--acc);color:var(--accink)}
 a{color:inherit;text-decoration:none}
-img,svg{max-width:100%;height:auto}
+img,svg,canvas{max-width:100%;height:auto}
 button{font-family:inherit;cursor:pointer}
+
+/* grain */
+body::after{content:"";position:fixed;inset:-50%;z-index:9999;pointer-events:none;opacity:.045;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain 9s steps(6) infinite}
+@keyframes grain{0%,100%{transform:translate(0,0)}20%{transform:translate(-2%,2%)}40%{transform:translate(2%,-1%)}60%{transform:translate(-1%,-2%)}80%{transform:translate(1%,2%)}}
+
 .wrap{max-width:var(--maxw);margin:0 auto;padding-left:var(--pad);padding-right:var(--pad)}
+.mono{font-family:var(--mono)}
 .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
 
 /* reveal */
-.rv{opacity:0;transform:translateY(28px);transition:opacity .8s var(--ease),transform .9s var(--ease)}
+.rv{opacity:0;transform:translateY(34px);transition:opacity .8s var(--ease),transform .9s var(--ease)}
 .rv.in{opacity:1;transform:none}
+.stag>*{opacity:0;transform:translateY(30px);transition:opacity .7s var(--ease),transform .8s var(--ease)}
+.stag.in>*{opacity:1;transform:none}
+.stag.in>*:nth-child(1){transition-delay:.04s}.stag.in>*:nth-child(2){transition-delay:.14s}
+.stag.in>*:nth-child(3){transition-delay:.24s}.stag.in>*:nth-child(4){transition-delay:.34s}
+.stag.in>*:nth-child(5){transition-delay:.44s}.stag.in>*:nth-child(6){transition-delay:.54s}
 
 /* ---------- nav ---------- */
-.nav{position:sticky;top:0;z-index:80;background:rgba(244,238,225,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line2)}
-.nav-in{display:flex;align-items:center;gap:18px;height:64px}
-.brand{display:flex;align-items:center;gap:10px;flex-shrink:0;text-decoration:none}
-.brand img{height:22px;width:auto;display:block}
+.nav{position:sticky;top:0;z-index:80;background:color-mix(in srgb,var(--bg0) 78%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line2)}
+.nav-in{display:flex;align-items:center;gap:22px;height:68px}
+.brand{font-family:var(--disp);font-weight:800;font-size:1.16rem;letter-spacing:-.02em;display:flex;align-items:center;gap:9px;white-space:nowrap;flex-shrink:0}
+.brand img{height:26px;width:auto;display:block}
 .brand-sep{color:var(--faint);font-size:.88rem;font-weight:400}
-.brand-sub{font-family:var(--disp);font-weight:700;font-size:.88rem;letter-spacing:-.01em;color:var(--ink)}
+.brand-sub{font-family:var(--disp);font-weight:700;font-size:.88rem;letter-spacing:-.01em;color:var(--acc2)}
+.aud{display:flex;background:var(--card);border:1px solid var(--line);border-radius:100px;padding:3px;font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase}
+.aud a{padding:7px 15px;border-radius:100px;color:var(--mut)}
+.aud a.on{background:var(--acc);color:var(--accink);font-weight:600}
 .sp{flex:1}
-.links{display:flex;gap:24px;font-size:.92rem;color:var(--ink2)}
+.links{display:flex;gap:26px;font-size:.94rem;color:var(--ink2);margin-left:8px}
 .links a{position:relative;padding:4px 0}
 .links a::after{content:"";position:absolute;left:0;bottom:0;height:1.5px;width:0;background:var(--acc);transition:width .3s var(--ease)}
 .links a:hover{color:var(--ink)}.links a:hover::after{width:100%}
-.btn{display:inline-flex;align-items:center;gap:8px;border-radius:100px;font-weight:700;font-size:.95rem;padding:12px 24px;border:1px solid transparent;transition:transform .3s var(--ease),box-shadow .3s,background .2s;min-height:44px;text-decoration:none}
+.btn{display:inline-flex;align-items:center;gap:10px;border-radius:100px;font-weight:700;font-size:.98rem;padding:14px 26px;border:1px solid transparent;transition:transform .3s var(--ease),box-shadow .3s,background .2s,color .2s;min-height:44px}
 .btn .ar{transition:transform .3s var(--ease);display:inline-block}
-.btn:hover .ar{transform:translateX(4px)}
-.btn-a{background:var(--acc);color:var(--accink);box-shadow:0 8px 28px -10px rgba(240,168,75,.45)}
+.btn:hover .ar{transform:translateX(5px)}
+.btn-a{background:var(--acc);color:var(--accink);box-shadow:0 10px 34px -12px color-mix(in srgb,var(--acc) 65%,transparent)}
 .btn-a:hover{transform:translateY(-2px)}
 .btn-g{border-color:var(--line);color:var(--ink);background:transparent}
 .btn-g:hover{border-color:var(--acc);color:var(--acc2)}
-.nav .btn{padding:9px 18px;font-size:.86rem}
-.burger{display:none;width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:1.15rem;align-items:center;justify-content:center}
+.nav .btn{padding:10px 20px;font-size:.9rem}
+.burger{display:none;width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:1.15rem;align-items:center;justify-content:center}
 
 /* mobile menu */
-.menu{position:fixed;inset:0;z-index:120;background:var(--bg);display:flex;flex-direction:column;padding:24px var(--pad) 40px;opacity:0;pointer-events:none;transition:opacity .35s var(--ease)}
+.menu{position:fixed;inset:0;z-index:120;background:var(--bg0);display:flex;flex-direction:column;padding:26px var(--pad) 40px;opacity:0;pointer-events:none;transition:opacity .35s var(--ease)}
 .menu.open{opacity:1;pointer-events:auto}
 .menu-top{display:flex;align-items:center;justify-content:space-between}
-.menu-x{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:1.1rem}
+.menu-x{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:1.1rem}
 .menu-links{margin:auto 0;display:flex;flex-direction:column;gap:4px}
-.menu-links a{font-family:var(--disp);font-weight:800;font-size:clamp(1.8rem,8vw,2.6rem);letter-spacing:-.03em;padding:10px 0;border-bottom:1px solid var(--line2);display:flex;justify-content:space-between;align-items:center;transform:translateY(20px);opacity:0;transition:opacity .5s var(--ease),transform .6s var(--ease)}
+.menu-links a{font-family:var(--disp);font-weight:800;font-size:clamp(2rem,9vw,2.9rem);letter-spacing:-.03em;padding:10px 0;border-bottom:1px solid var(--line2);display:flex;justify-content:space-between;align-items:center;transform:translateY(24px);opacity:0;transition:opacity .5s var(--ease),transform .6s var(--ease)}
 .menu.open .menu-links a{opacity:1;transform:none}
-.menu.open .menu-links a:nth-child(1){transition-delay:.06s}
-.menu.open .menu-links a:nth-child(2){transition-delay:.12s}
-.menu.open .menu-links a:nth-child(3){transition-delay:.18s}
-.menu.open .menu-links a:nth-child(4){transition-delay:.24s}
-.menu.open .menu-links a:nth-child(5){transition-delay:.30s}
-.menu.open .menu-links a:nth-child(6){transition-delay:.36s}
-.menu-links a span{font-family:var(--mono);font-size:.66rem;color:var(--faint);letter-spacing:.12em}
-.menu-foot{margin-top:auto;padding-top:24px}
-
-/* ---------- eyebrow + headings ---------- */
-.eyebrow{font-family:var(--mono);font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;color:var(--acc2);margin-bottom:14px;display:flex;align-items:center;gap:10px}
-h1{font-family:var(--disp);font-weight:800;font-size:clamp(2.6rem,6.6vw,5.2rem);line-height:.98;letter-spacing:-.04em;margin-bottom:24px;text-wrap:balance;color:var(--ink)}
-h2{font-family:var(--disp);font-weight:800;font-size:clamp(1.6rem,3.6vw,2.6rem);line-height:1.08;letter-spacing:-.03em;margin-bottom:18px;text-wrap:balance}
-h3{font-family:var(--disp);font-weight:700;font-size:1.15rem;letter-spacing:-.01em;line-height:1.2;margin-bottom:8px}
-.sub{font-size:clamp(1.05rem,1.4vw,1.22rem);color:var(--ink2);max-width:56ch;margin-bottom:28px;line-height:1.65}
-
-/* ---------- sections ---------- */
-.sec{padding:clamp(56px,8vh,100px) 0}
-.sec-alt{background:var(--white)}
-.sec-amber{background:var(--acclight)}
+.menu.open .menu-links a:nth-child(1){transition-delay:.08s}.menu.open .menu-links a:nth-child(2){transition-delay:.15s}
+.menu.open .menu-links a:nth-child(3){transition-delay:.22s}.menu.open .menu-links a:nth-child(4){transition-delay:.29s}
+.menu.open .menu-links a:nth-child(5){transition-delay:.36s}
+.menu-links a span{font-family:var(--mono);font-size:.7rem;color:var(--faint);letter-spacing:.14em}
+.menu-foot{margin-top:auto;padding-top:20px;display:flex;flex-direction:column;gap:14px}
 
 /* ---------- hero ---------- */
-.hero{position:relative;overflow:clip;padding-top:clamp(64px,10vh,120px);padding-bottom:clamp(72px,11vh,130px);border-bottom:1px solid var(--line2)}
-.hero-wave{position:absolute;right:0;top:50%;transform:translateY(-50%);width:min(50%,500px);height:300px;opacity:.18;pointer-events:none}
-.hero-wave line{stroke:var(--acc);stroke-linecap:round}
-.hero .cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.hero{position:relative;overflow:clip;border-bottom:1px solid var(--line2)}
+.hero-glow{position:absolute;width:640px;height:640px;border-radius:50%;filter:blur(120px);opacity:.12;background:var(--acc);top:-260px;right:-160px;pointer-events:none}
+.hero-grid{position:relative;display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(30px,5vw,72px);align-items:center;padding-top:clamp(56px,9vh,110px);padding-bottom:clamp(70px,10vh,120px)}
+.hero-grid>*{min-width:0}
+.kick{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:26px}
+.onair{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink);border:1px solid var(--line);border-radius:100px;padding:8px 15px;background:var(--card)}
+.onair i{width:7px;height:7px;border-radius:50%;background:var(--acc);box-shadow:0 0 10px var(--acc);animation:lamp 1.8s ease-in-out infinite}
+@keyframes lamp{0%,100%{opacity:1}50%{opacity:.45}}
+.kick .tag{font-family:var(--mono);font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--mut)}
+h1{font-family:var(--disp);font-weight:800;font-size:clamp(2.9rem,7.4vw,6.4rem);line-height:.98;letter-spacing:-.04em;margin-bottom:26px;text-wrap:balance}
+h1 .it{font-style:italic;color:var(--acc);font-weight:700}
+.sub{font-size:clamp(1.05rem,1.5vw,1.3rem);color:var(--ink2);max-width:46ch;margin-bottom:34px}
+.cta{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:36px}
+.proof{display:flex;gap:10px 26px;flex-wrap:wrap;font-size:.86rem;color:var(--mut)}
+.proof b{color:var(--ink);font-weight:600}
+.proof span{display:inline-flex;align-items:center;gap:8px}
+.proof span::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--acc)}
 
-/* ---------- stat strip ---------- */
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:40px}
-.stat{background:var(--card);border:1px solid var(--line2);border-radius:18px;padding:24px 22px;text-align:center}
-.stat-num{font-family:var(--disp);font-weight:800;font-size:clamp(2rem,4vw,3rem);letter-spacing:-.03em;color:var(--acc);line-height:1.1;margin-bottom:6px}
-.stat-label{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);line-height:1.6}
+/* hero exhibit */
+.hero-exhibit{position:relative;display:flex;justify-content:center;align-items:center}
+.voice-viz{width:100%;max-width:380px;aspect-ratio:1;position:relative}
+.voice-ring{position:absolute;inset:0;border-radius:50%;border:1px solid var(--line);opacity:.4}
+.voice-ring:nth-child(2){inset:15%;border-color:color-mix(in srgb,var(--acc) 30%,var(--line))}
+.voice-ring:nth-child(3){inset:30%;border-color:color-mix(in srgb,var(--acc) 50%,var(--line))}
+.voice-ring:nth-child(4){inset:42%;background:color-mix(in srgb,var(--acc) 8%,transparent);border-color:var(--acc)}
+.voice-center{position:absolute;inset:42%;border-radius:50%;display:grid;place-items:center;text-align:center}
+.voice-num{font-family:var(--disp);font-weight:800;font-size:clamp(2.6rem,5vw,3.8rem);color:var(--acc);line-height:1;letter-spacing:-.03em}
+.voice-lbl{font-family:var(--mono);font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--mut);margin-top:4px}
+.chip{position:absolute;font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;background:var(--card2);border:1px solid var(--line);color:var(--ink2);border-radius:100px;padding:8px 14px;box-shadow:0 14px 34px -14px rgba(0,0,0,.7);animation:float 5.5s ease-in-out infinite;z-index:3;white-space:nowrap}
+.chip b{color:var(--acc);font-weight:600}
+.chip.c1{top:8%;left:-2%;animation-delay:.2s}
+.chip.c2{bottom:18%;right:-4%;animation-delay:1.4s}
+.chip.c3{top:42%;right:-8%;animation-delay:2.6s}
+.chip.c4{bottom:38%;left:-6%;animation-delay:3.8s}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 
-/* ---------- steps ---------- */
-.steps{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:32px}
-.step{background:var(--card);border:1px solid var(--line2);border-radius:18px;padding:28px 24px;position:relative}
-.step-num{font-family:var(--mono);font-size:.64rem;letter-spacing:.2em;text-transform:uppercase;color:var(--acc2);margin-bottom:12px;font-weight:600}
-.step p{color:var(--ink2);font-size:.95rem;line-height:1.65}
+/* eq strip */
+.eq{display:flex;align-items:flex-end;gap:3px;height:56px;position:absolute;left:0;right:0;bottom:0;padding:0 var(--pad);opacity:.5;pointer-events:none;mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.eq i{flex:1;background:var(--acc);border-radius:2px 2px 0 0;height:16%;animation:eq 1.5s ease-in-out infinite;transform-origin:bottom}
+@keyframes eq{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
 
-/* ---------- milestone timeline ---------- */
-.milestones{margin-top:36px}
-.ms{display:grid;grid-template-columns:140px 1fr;gap:0;position:relative}
-.ms+.ms{margin-top:0}
-.ms-date{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--acc2);font-weight:600;padding:20px 20px 20px 0;text-align:right;border-right:2px solid var(--line)}
-.ms-body{padding:16px 0 16px 28px;border-left:2px solid var(--line);margin-left:-2px}
-.ms:first-child .ms-date::before,.ms:first-child .ms-body::before{content:"";display:block}
-.ms-dot{position:absolute;left:139px;top:22px;width:10px;height:10px;border-radius:50%;background:var(--acc);border:2px solid var(--bg);z-index:1}
-.ms:first-child .ms-dot{background:var(--acc);box-shadow:0 0 0 4px var(--acclight)}
-.ms-body p{color:var(--ink2);font-size:.95rem;line-height:1.6;max-width:60ch}
+/* ---------- ticker ---------- */
+.ticker{border-block:1px solid var(--line2);background:var(--bg1);overflow:hidden;padding:15px 0}
+.ticker-in{display:flex;gap:0;white-space:nowrap;animation:tick 36s linear infinite;width:max-content}
+.ticker:hover .ticker-in{animation-play-state:paused}
+@keyframes tick{to{transform:translateX(-50%)}}
+.ticker span{font-family:var(--mono);font-size:.74rem;letter-spacing:.24em;text-transform:uppercase;color:var(--mut);padding:0 26px;display:inline-flex;align-items:center;gap:26px}
+.ticker span::after{content:"◆";color:var(--acc);font-size:.6rem}
+.ticker .hot{color:var(--ink)}
 
-/* ---------- cards grid ---------- */
-.cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px}
-.card{background:var(--card);border:1px solid var(--line2);border-radius:18px;padding:28px 24px}
-.card p{color:var(--ink2);font-size:.95rem;line-height:1.6}
+/* ---------- sections ---------- */
+.sec{position:relative;padding:clamp(60px,9vh,116px) 0}
+.sec.tint{background:var(--bg1);border-block:1px solid var(--line2)}
+.ghost{position:absolute;top:clamp(10px,4vh,40px);right:var(--pad);font-family:var(--disp);font-weight:800;font-size:clamp(5rem,16vw,12rem);line-height:1;color:transparent;-webkit-text-stroke:1px var(--line);pointer-events:none;user-select:none}
+.eyebrow{font-family:var(--mono);font-size:.68rem;letter-spacing:.26em;text-transform:uppercase;color:var(--acc);margin-bottom:18px;display:flex;align-items:center;gap:12px}
+.eyebrow::before{content:"";width:26px;height:1px;background:var(--acc)}
+h2{font-family:var(--disp);font-weight:800;font-size:clamp(1.9rem,4.2vw,3.3rem);letter-spacing:-.035em;line-height:1.04;margin-bottom:18px;text-wrap:balance}
+h2 .it{font-style:italic;color:var(--acc);font-weight:700}
+.lead{font-size:clamp(1rem,1.3vw,1.18rem);color:var(--ink2);max-width:60ch}
+.shead-block{max-width:70ch;margin-bottom:clamp(34px,6vh,64px)}
 
-/* ---------- principles ---------- */
-.principles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:28px}
-.principle{background:var(--card);border:1px solid var(--line2);border-radius:18px;padding:28px 24px}
-.principle p{color:var(--ink2);font-size:.95rem;line-height:1.6}
+/* ---------- stats ---------- */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,24px);margin-top:clamp(30px,5vh,50px)}
+.stat-card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:clamp(24px,3vw,38px);text-align:center;position:relative;overflow:clip;transition:transform .5s var(--ease),border-color .3s}
+.stat-card:hover{transform:translateY(-6px);border-color:color-mix(in srgb,var(--acc) 40%,var(--line))}
+.stat-card .n{font-family:var(--disp);font-weight:800;font-size:clamp(2.6rem,5vw,4rem);color:var(--acc);letter-spacing:-.03em;line-height:1;margin-bottom:10px}
+.stat-card .l{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);line-height:1.6}
 
-/* ---------- partner logos placeholder ---------- */
-.logo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px;margin-top:28px}
-.logo-slot{height:80px;background:var(--card);border:1px dashed var(--line);border-radius:14px;display:grid;place-items:center;color:var(--faint);font-family:var(--mono);font-size:.64rem;letter-spacing:.1em;text-transform:uppercase}
+/* ---------- step cards ---------- */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(14px,2vw,24px)}
+.step{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:clamp(24px,3vw,38px);position:relative;overflow:clip;transition:transform .5s var(--ease),border-color .3s}
+.step:hover{transform:translateY(-6px);border-color:color-mix(in srgb,var(--acc) 40%,var(--line))}
+.step .num{font-family:var(--disp);font-weight:800;font-size:3.4rem;line-height:1;color:transparent;-webkit-text-stroke:1px var(--faint);margin-bottom:18px}
+.step h3{font-family:var(--disp);font-weight:800;font-size:1.3rem;letter-spacing:-.02em;margin-bottom:10px}
+.step p{color:var(--ink2);font-size:.94rem;margin-bottom:16px}
+.step .tg{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--acc);border-top:1px dashed var(--line);padding-top:12px;display:block}
 
-/* ---------- CTA cards ---------- */
-.cta-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px}
-.cta-card{background:var(--card);border:1px solid var(--line2);border-radius:18px;padding:28px 24px;display:flex;flex-direction:column}
-.cta-card p{color:var(--ink2);font-size:.92rem;line-height:1.6;flex:1;margin-bottom:16px}
-.cta-card .btn{align-self:flex-start;font-size:.88rem;padding:10px 20px}
+/* ---------- language grid ---------- */
+.lang-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:clamp(28px,4vh,44px)}
+.lang{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 16px;transition:transform .4s var(--ease),border-color .3s,box-shadow .4s}
+.lang:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--acc) 40%,var(--line));box-shadow:0 20px 50px -20px rgba(0,0,0,.6)}
+.lang .name{font-family:var(--disp);font-weight:700;font-size:1.02rem;margin-bottom:6px;letter-spacing:-.01em}
+.lang .meta{font-family:var(--mono);font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin-bottom:10px}
+.lang .bar{height:5px;background:rgba(255,255,255,.08);border-radius:100px;overflow:hidden}
+.lang .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:100px;transition:width 1.4s var(--ease) .4s}
+.lang.in .bar i{width:var(--pct)}
+.growth{margin-top:clamp(28px,4vh,44px);background:var(--card);border:1px solid var(--line);border-radius:24px;padding:clamp(24px,3vw,38px);display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;text-align:center}
+.growth .mile{display:flex;flex-direction:column;gap:6px}
+.growth .mile .v{font-family:var(--disp);font-weight:800;font-size:clamp(1.6rem,3vw,2.4rem);color:var(--acc);letter-spacing:-.02em}
+.growth .mile .yr{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);font-weight:600}
+.growth .mile .d{font-size:.86rem;color:var(--mut)}
+
+/* ---------- audience cards ---------- */
+.aud-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2vw,24px)}
+.aud-card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:clamp(24px,3.4vw,38px);transition:transform .5s var(--ease),border-color .3s,box-shadow .4s;display:flex;flex-direction:column;gap:10px}
+.aud-card:hover{transform:translateY(-6px);border-color:color-mix(in srgb,var(--acc) 45%,var(--line));box-shadow:0 40px 80px -40px rgba(0,0,0,.8)}
+.aud-card .ic{font-size:1.6rem;margin-bottom:4px}
+.aud-card h3{font-family:var(--disp);font-weight:800;font-size:1.3rem;letter-spacing:-.02em}
+.aud-card p{color:var(--ink2);font-size:.94rem}
+.aud-card .tg{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin-top:auto;padding-top:14px;border-top:1px dashed var(--line)}
+
+/* ---------- trust ---------- */
+.trust{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,24px)}
+.tr{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:clamp(24px,3vw,38px);transition:transform .5s var(--ease),border-color .3s}
+.tr:hover{transform:translateY(-6px);border-color:color-mix(in srgb,var(--acc) 40%,var(--line))}
+.tr .ic{font-size:1.4rem;margin-bottom:14px;display:block}
+.tr h3{font-family:var(--disp);font-weight:700;font-size:1.15rem;margin-bottom:8px;letter-spacing:-.01em}
+.tr p{font-size:.9rem;color:var(--mut)}
+
+/* ---------- roadmap ---------- */
+.road{position:relative;margin-top:clamp(28px,4vh,44px)}
+.road::before{content:"";position:absolute;left:23px;top:0;bottom:0;width:2px;background:var(--line)}
+.rd{display:flex;gap:24px;padding:20px 0;position:relative}
+.rd-dot{width:12px;height:12px;border-radius:50%;background:var(--line);border:2px solid var(--bg0);flex:none;margin-top:5px;z-index:1;transition:background .5s,box-shadow .5s;position:relative;left:18px}
+.rd.now .rd-dot{background:var(--acc);box-shadow:0 0 0 5px color-mix(in srgb,var(--acc) 25%,transparent),0 0 18px var(--acc)}
+.rd.done .rd-dot{background:var(--acc)}
+.rd-body{flex:1;padding-left:6px}
+.rd-date{font-family:var(--mono);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--acc);font-weight:600;margin-bottom:4px}
+.rd h4{font-family:var(--disp);font-weight:700;font-size:1.15rem;letter-spacing:-.01em;margin-bottom:4px}
+.rd p{color:var(--mut);font-size:.92rem}
+
+/* ---------- CTA section ---------- */
+.join{position:relative;overflow:clip}
+.join .wrap{position:relative;z-index:2}
+.join-glow{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);width:720px;height:480px;background:var(--acc);opacity:.07;filter:blur(120px);border-radius:50%}
+.join h2{font-size:clamp(2.4rem,6vw,4.6rem);text-align:center}
+.join .lead{text-align:center;margin:0 auto 40px}
+.join-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2vw,24px);margin-top:clamp(28px,4vh,44px)}
+.join-card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:clamp(24px,3.4vw,38px);display:flex;flex-direction:column;gap:12px;transition:transform .5s var(--ease),border-color .3s}
+.join-card:hover{transform:translateY(-6px);border-color:color-mix(in srgb,var(--acc) 40%,var(--line))}
+.join-card h3{font-family:var(--disp);font-weight:700;font-size:1.2rem;letter-spacing:-.01em}
+.join-card p{color:var(--ink2);font-size:.94rem;flex:1}
+.join-card .btn{align-self:flex-start;font-size:.9rem;padding:11px 22px}
 
 /* ---------- form ---------- */
-.form-wrap{background:var(--card);border:1px solid var(--line2);border-radius:22px;padding:clamp(28px,4vw,44px);margin-top:40px;max-width:600px}
-.form-wrap h3{margin-bottom:16px}
+.form-wrap{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:clamp(28px,4vw,44px);max-width:560px;margin:clamp(34px,6vh,64px) auto 0}
+.form-wrap h3{font-family:var(--disp);font-weight:700;font-size:1.3rem;margin-bottom:6px;letter-spacing:-.01em}
+.form-wrap .note{color:var(--mut);font-size:.9rem;margin-bottom:20px}
 .field{margin-bottom:16px}
-.field label{display:block;font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin-bottom:6px;font-weight:500}
-.field input,.field select{width:100%;padding:12px 16px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:.95rem;outline:none;transition:border-color .2s}
+.field label{display:block;font-family:var(--mono);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);margin-bottom:6px;font-weight:500}
+.field input,.field select{width:100%;padding:13px 16px;border:1px solid var(--line);border-radius:14px;background:var(--bg0);color:var(--ink);font-family:var(--sans);font-size:.95rem;outline:none;transition:border-color .2s}
 .field input:focus,.field select:focus{border-color:var(--acc)}
-.field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a7264' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+.field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2396897a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
 .hp{position:absolute;left:-9999px}
-.form-msg{font-size:.9rem;margin-top:12px;min-height:1.4em}
-.form-wrap .btn{margin-top:4px}
+.form-msg{font-size:.88rem;margin-top:14px;min-height:1.4em;font-family:var(--mono)}
 
-/* ---------- sub-sections (contribute, licence) ---------- */
-.sub-hero{padding:clamp(48px,7vh,80px) 0;border-bottom:1px solid var(--line2)}
-.sub-hero h2{font-size:clamp(1.8rem,4vw,3rem)}
-.sub-body{padding:clamp(40px,6vh,64px) 0}
-.sub-body h3{margin-top:32px;margin-bottom:8px;color:var(--ink)}
-.sub-body h3:first-child{margin-top:0}
-.sub-body p{color:var(--ink2);max-width:64ch;margin-bottom:14px}
-.sub-body p:last-child{margin-bottom:0}
+/* ---------- faq / accordion ---------- */
+.faq{max-width:760px;margin-top:clamp(28px,4vh,44px)}
+.faq details{border-bottom:1px solid var(--line);padding:4px 0}
+.faq summary{font-family:var(--disp);font-weight:700;font-size:clamp(1.05rem,1.6vw,1.3rem);letter-spacing:-.015em;padding:22px 40px 22px 0;cursor:pointer;list-style:none;position:relative;transition:color .2s}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";position:absolute;right:4px;top:50%;transform:translateY(-50%);font-family:var(--mono);color:var(--acc);font-size:1.3rem;transition:transform .3s var(--ease)}
+.faq details[open] summary::after{transform:translateY(-50%) rotate(45deg)}
+.faq details[open] summary{color:var(--acc2)}
+.faq .a{padding:0 0 24px;color:var(--ink2);font-size:.97rem;max-width:60ch}
 
 /* ---------- footer ---------- */
-.foot{border-top:1px solid var(--line);padding:clamp(40px,6vh,64px) 0 clamp(32px,4vh,48px);color:var(--mut);font-size:.88rem}
-.foot-top{display:flex;align-items:flex-start;justify-content:space-between;gap:40px;margin-bottom:32px}
-.foot-brand{display:flex;align-items:center;gap:10px}
-.foot-brand img{height:20px}
-.foot-links{display:flex;gap:28px;flex-wrap:wrap}
-.foot-links a{color:var(--mut)}
-.foot-links a:hover{color:var(--ink)}
+.foot{border-top:1px solid var(--line2);padding:clamp(40px,6vh,64px) 0 clamp(32px,4vh,48px);color:var(--mut);font-size:.88rem}
+.foot-grid{display:grid;grid-template-columns:1.2fr repeat(3,auto);gap:clamp(30px,5vw,60px);margin-bottom:32px}
+.foot .brand img{height:30px}
+.foot-col{display:flex;flex-direction:column;gap:9px}
+.foot-col .fh{font-family:var(--mono);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);margin-bottom:4px;font-weight:600}
+.foot-col a{color:var(--mut)}.foot-col a:hover{color:var(--ink)}
 .foot-legal{display:flex;gap:24px;flex-wrap:wrap;margin-top:20px;padding-top:20px;border-top:1px solid var(--line2);font-size:.82rem}
-.foot-legal a{color:var(--faint)}
-.foot-legal a:hover{color:var(--ink)}
+.foot-legal a{color:var(--faint)}.foot-legal a:hover{color:var(--ink)}
 .foot-note{margin-top:16px;font-size:.8rem;color:var(--faint);max-width:72ch;line-height:1.7}
 
 /* ---------- responsive ---------- */
 @media(max-width:900px){
-  .principles{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr}
+  .lang-grid{grid-template-columns:repeat(3,1fr)}
+  .trust{grid-template-columns:1fr}
+  .growth{grid-template-columns:1fr;text-align:left}
+  .foot-grid{grid-template-columns:1fr 1fr}
 }
 @media(max-width:760px){
   .links{display:none}
   .burger{display:flex}
-  .brand img{height:19px}
-  .brand-sub{font-size:.78rem}
-  .stats{grid-template-columns:1fr}
+  .hero-grid{grid-template-columns:1fr}
+  .hero-exhibit{margin-top:30px}
+  .stat-row{grid-template-columns:1fr}
   .steps{grid-template-columns:1fr}
-  .cards{grid-template-columns:1fr}
-  .cta-cards{grid-template-columns:1fr}
-  .ms{grid-template-columns:1fr}
-  .ms-date{text-align:left;border-right:none;padding:12px 0 0 20px;border-left:2px solid var(--line)}
-  .ms-body{padding:4px 0 20px 20px}
-  .ms-dot{left:-1px;top:14px}
-  .foot-top{flex-direction:column;gap:20px}
-  .hero-wave{display:none}
+  .lang-grid{grid-template-columns:1fr 1fr}
+  .aud-grid{grid-template-columns:1fr}
+  .join-grid{grid-template-columns:1fr}
+  .foot-grid{grid-template-columns:1fr;gap:28px}
+  .brand img{height:22px}
 }
 @media(max-width:420px){
   .brand-sep,.brand-sub{display:none}
+  .lang-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -230,16 +318,16 @@ h3{font-family:var(--disp);font-weight:700;font-size:1.15rem;letter-spacing:-.01
 <nav class="nav" role="navigation" aria-label="Main">
 <div class="wrap nav-in">
   <a class="brand" href="/">
-    <img src="/brand/svg/lockup/accent-studio-lockup-light.svg" alt="Accent Studio" height="22">
+    <img src="/brand/svg/lockup/accent-studio-lockup-cream.svg" alt="Accent Studio" height="26">
     <span class="brand-sep">×</span>
     <span class="brand-sub">The British Voices Bank</span>
   </a>
   <span class="sp"></span>
   <div class="links">
-    <a href="#mission">Mission</a>
+    <a href="#gap">The gap</a>
     <a href="#how">How it works</a>
+    <a href="#archive">The archive</a>
     <a href="#roadmap">Roadmap</a>
-    <a href="#contribute">Contribute</a>
   </div>
   <a class="btn btn-a" href="#register">Register interest <span class="ar">→</span></a>
   <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false">☰</button>
@@ -251,16 +339,15 @@ h3{font-family:var(--disp);font-weight:700;font-size:1.15rem;letter-spacing:-.01
 <div class="wrap">
   <div class="menu-top">
     <a class="brand" href="/">
-      <img src="/brand/svg/lockup/accent-studio-lockup-light.svg" alt="Accent Studio" height="20">
+      <img src="/brand/svg/lockup/accent-studio-lockup-cream.svg" alt="Accent Studio" height="22">
     </a>
     <button class="menu-x" id="menuX" aria-label="Close menu">✕</button>
   </div>
   <div class="menu-links">
-    <a href="#mission">Mission <span>01</span></a>
+    <a href="#gap">The gap <span>01</span></a>
     <a href="#how">How it works <span>02</span></a>
-    <a href="#roadmap">Roadmap <span>03</span></a>
-    <a href="#contribute">Contribute <span>04</span></a>
-    <a href="#licence">Licence <span>05</span></a>
+    <a href="#archive">The archive <span>03</span></a>
+    <a href="#roadmap">Roadmap <span>04</span></a>
     <a href="#register">Register interest <span>→</span></a>
   </div>
   <div class="menu-foot">
@@ -270,260 +357,330 @@ h3{font-family:var(--disp);font-weight:700;font-size:1.15rem;letter-spacing:-.01
 </div>
 
 <!-- ========== HERO ========== -->
-<header class="hero wrap" id="main">
-  <!-- decorative voiceprint -->
-  <svg class="hero-wave" viewBox="0 0 200 400" fill="none" aria-hidden="true">
-    <line x1="40" y1="80" x2="40" y2="320" stroke-width="2.5" opacity=".15"/>
-    <line x1="56" y1="50" x2="56" y2="350" stroke-width="2" opacity=".22"/>
-    <line x1="72" y1="100" x2="72" y2="300" stroke-width="3" opacity=".12"/>
-    <line x1="88" y1="30" x2="88" y2="370" stroke-width="2.5" opacity=".28"/>
-    <line x1="104" y1="70" x2="104" y2="330" stroke-width="2" opacity=".18"/>
-    <line x1="120" y1="20" x2="120" y2="380" stroke-width="3.5" opacity=".32"/>
-    <line x1="136" y1="60" x2="136" y2="340" stroke-width="2" opacity=".22"/>
-    <line x1="152" y1="90" x2="152" y2="310" stroke-width="2.5" opacity=".16"/>
-    <line x1="168" y1="40" x2="168" y2="360" stroke-width="2" opacity=".25"/>
-    <line x1="184" y1="110" x2="184" y2="290" stroke-width="1.5" opacity=".12"/>
-  </svg>
-
-  <div class="eyebrow">The British Voices Bank</div>
-  <h1>The British<br>Voices Bank</h1>
-  <p class="sub">Open voice data for the languages the world forgot.</p>
-  <p class="sub" style="max-width:60ch">A UK-national archive of consensually sourced, linguistically verified voice data for under-represented languages. Free to researchers, educators, public bodies, and small developers. Built and maintained in Britain by Accent AI Studio.</p>
-  <div class="cta">
-    <a class="btn btn-a" href="#register">Register interest <span class="ar">→</span></a>
-    <a class="btn btn-g" href="#how">See how it works <span class="ar">→</span></a>
+<header class="hero" id="main">
+<div class="hero-glow"></div>
+<div class="wrap hero-grid">
+  <div>
+    <div class="kick">
+      <div class="onair"><i></i> The British Voices Bank</div>
+      <span class="tag">Open voice data</span>
+    </div>
+    <h1>Open data for<br>the <span class="it">languages</span><br>the world forgot.</h1>
+    <p class="sub">A UK-national archive of consensually sourced, linguistically verified voice data. Free for research, education, and public-interest AI.</p>
+    <div class="cta">
+      <a class="btn btn-a" href="#register">Register interest <span class="ar">→</span></a>
+      <a class="btn btn-g" href="#how">How it works <span class="ar">→</span></a>
+    </div>
+    <div class="proof">
+      <span><b>CC BY 4.0</b></span>
+      <span><b>Consent-first</b></span>
+      <span><b>Linguist verified</b></span>
+    </div>
   </div>
+  <div class="hero-exhibit" aria-hidden="true">
+    <div class="voice-viz">
+      <div class="voice-ring"></div>
+      <div class="voice-ring"></div>
+      <div class="voice-ring"></div>
+      <div class="voice-ring"></div>
+      <div class="voice-center">
+        <div class="voice-num" id="heroCount">7,000</div>
+        <div class="voice-lbl">Languages worldwide</div>
+      </div>
+      <div class="chip c1"><b>Yoruba</b> · verified</div>
+      <div class="chip c2"><b>Pidgin</b> · archiving</div>
+      <div class="chip c3"><b>Swahili</b> · queued</div>
+      <div class="chip c4"><b>Igbo</b> · verified</div>
+    </div>
+  </div>
+</div>
+<!-- equalizer strip -->
+<div class="eq" aria-hidden="true" id="eq"></div>
 </header>
 
-<!-- ========== THE PROBLEM ========== -->
-<section class="sec sec-alt" id="mission">
-<div class="wrap rv">
-  <div class="eyebrow">The gap</div>
-  <h2>The world has more than 7,000 languages. AI speaks fewer than 100 of them.</h2>
-  <p class="sub" style="max-width:64ch">Over 2,000 languages are spoken across the African continent. More than 1.3 billion people speak them. Fewer than 20 are meaningfully represented in the voice datasets that train modern AI.</p>
-  <p class="sub" style="max-width:64ch">The same gap exists across the Commonwealth, across the Global South, and across heritage communities everywhere. When a language cannot be heard by the machines that increasingly mediate our daily lives, it slips a little further out of the modern world.</p>
-  <p class="sub" style="max-width:64ch;color:var(--ink)"><strong>This is not just a technology problem. It is a cultural, educational, economic, and civic problem. It is also solvable.</strong></p>
+<!-- ========== TICKER ========== -->
+<div class="ticker" aria-hidden="true">
+<div class="ticker-in">
+  <span class="hot">Nigerian Pidgin</span><span>Yoruba</span><span>Igbo</span><span class="hot">Hausa</span>
+  <span>Swahili</span><span>Amharic</span><span class="hot">Zulu</span><span>Xhosa</span>
+  <span>Twi</span><span>Wolof</span><span class="hot">Bengali</span><span>Punjabi</span>
+  <span>Tamil</span><span>Caribbean Creoles</span>
+  <span class="hot">Nigerian Pidgin</span><span>Yoruba</span><span>Igbo</span><span class="hot">Hausa</span>
+  <span>Swahili</span><span>Amharic</span><span class="hot">Zulu</span><span>Xhosa</span>
+  <span>Twi</span><span>Wolof</span><span class="hot">Bengali</span><span>Punjabi</span>
+  <span>Tamil</span><span>Caribbean Creoles</span>
+</div>
+</div>
 
-  <div class="stats">
-    <div class="stat">
-      <div class="stat-num">2,000+</div>
-      <div class="stat-label">Languages spoken across Africa</div>
+<!-- ========== 01 · THE GAP ========== -->
+<section class="sec tint" id="gap">
+<div class="ghost" aria-hidden="true">01</div>
+<div class="wrap">
+  <div class="shead-block rv">
+    <div class="eyebrow">01 · The gap</div>
+    <h2>AI speaks fewer than 100<br>of the world's <span class="it">7,000 languages.</span></h2>
+    <p class="lead">When a language can't be heard by the machines that mediate daily life, it slips further from the modern world. This is solvable.</p>
+  </div>
+  <div class="stat-row stag">
+    <div class="stat-card">
+      <div class="n" data-count="2000" data-suffix="+">0</div>
+      <div class="l">Languages spoken<br>across Africa</div>
     </div>
-    <div class="stat">
-      <div class="stat-num">&lt; 20</div>
-      <div class="stat-label">African languages meaningfully represented in modern voice AI</div>
+    <div class="stat-card">
+      <div class="n" data-count="20" data-prefix="<">&lt; 0</div>
+      <div class="l">Represented in<br>modern voice AI</div>
     </div>
-    <div class="stat">
-      <div class="stat-num">1 in 10</div>
-      <div class="stat-label">Share of the world's languages reflected in open voice datasets</div>
+    <div class="stat-card">
+      <div class="n" data-raw="1 in 10">0</div>
+      <div class="l">World's languages in<br>open voice datasets</div>
     </div>
   </div>
 </div>
 </section>
 
-<!-- ========== HOW THE BANK WORKS ========== -->
+<!-- ========== 02 · HOW IT WORKS ========== -->
 <section class="sec" id="how">
-<div class="wrap rv">
-  <div class="eyebrow">How it works</div>
-  <h2>A national asset, built from a company's commitment.</h2>
-  <p class="sub" style="max-width:64ch">The British Voices Bank is funded by Accent AI Studio Ltd through a long-term commitment to deposit at least 20% of its annual commercial production volume into the Bank, at no cost to users. Every hour of commercial voice work we produce for AI labs generates a deposit of verified, consented voice data for the public archive.</p>
-
-  <div class="steps">
+<div class="ghost" aria-hidden="true">02</div>
+<div class="wrap">
+  <div class="shead-block rv">
+    <div class="eyebrow">02 · How it works</div>
+    <h2>A national asset, built from a <span class="it">company's commitment.</span></h2>
+    <p class="lead">Every hour of commercial voice work we produce generates a deposit of verified, consented voice data for the public archive.</p>
+  </div>
+  <div class="steps stag">
     <div class="step">
-      <div class="step-num">01 · Consent-first</div>
-      <h3>Consent-first contribution.</h3>
-      <p>Every voice contributor consents explicitly to how their data will be used, where it will go, and how long it will be retained. We never scrape, never collect without consent, and never anonymise identity against a contributor's wishes.</p>
+      <div class="num">01</div>
+      <h3>Consent-first</h3>
+      <p>Contributors consent explicitly to how their data will be used. No scraping. No collection without consent.</p>
+      <span class="tg">Informed · specific · revocable</span>
     </div>
     <div class="step">
-      <div class="step-num">02 · Verified</div>
-      <h3>Linguistically verified.</h3>
-      <p>Every batch is reviewed by trained linguists before archival. Transcriptions, annotations, dialect tags, and metadata are checked for accuracy. The quality standard for Bank data is the same as our commercial product.</p>
+      <div class="num">02</div>
+      <h3>Linguist verified</h3>
+      <p>Trained linguists review every batch. Transcriptions, dialect tags, and metadata are checked before archival.</p>
+      <span class="tg">Same standard as commercial</span>
     </div>
     <div class="step">
-      <div class="step-num">03 · Deposited</div>
-      <h3>Deposited into the Bank.</h3>
-      <p>A minimum of 20% of our annual commercial production volume is deposited into the British Voices Bank each year. Deposits are made in batches, with full documentation, by linguistic family and dialect.</p>
+      <div class="num">03</div>
+      <h3>Deposited</h3>
+      <p>A minimum of 20% of our annual commercial production is deposited into the Bank, by language family and dialect.</p>
+      <span class="tg">20% commitment · public pledge</span>
     </div>
     <div class="step">
-      <div class="step-num">04 · Open</div>
-      <h3>Openly licensed, freely usable.</h3>
-      <p>Bank data is released under an open licence (CC BY 4.0 target), with attribution to contributors and the Bank. Available via API, bulk download, and curated collections, at no cost to approved users.</p>
+      <div class="num">04</div>
+      <h3>Openly licensed</h3>
+      <p>Released under CC BY 4.0. Available via API, bulk download, and curated collections. Free to approved users.</p>
+      <span class="tg">API · bulk · curated sets</span>
     </div>
   </div>
 </div>
 </section>
 
-<!-- ========== WHAT IS IN THE BANK ========== -->
-<section class="sec sec-alt" id="contents">
-<div class="wrap rv">
-  <div class="eyebrow">The archive</div>
-  <h2>What's inside, and what's coming.</h2>
+<!-- ========== 03 · THE ARCHIVE ========== -->
+<section class="sec tint" id="archive">
+<div class="ghost" aria-hidden="true">03</div>
+<div class="wrap">
+  <div class="shead-block rv">
+    <div class="eyebrow">03 · The archive</div>
+    <h2>What's inside, and <span class="it">what's coming.</span></h2>
+    <p class="lead">Launch languages, each with multiple dialects, genders, ages, and regional accents.</p>
+  </div>
 
-  <div class="cards" style="grid-template-columns:1fr">
-    <div class="card" style="border-left:3px solid var(--acc)">
-      <div class="step-num">Q2 2027 · Launch</div>
-      <p style="color:var(--ink)"><strong>At initial public release in Q2 2027</strong>, the Bank will contain approximately 1,000 hours of verified voice data across 10 African languages, including Nigerian Pidgin, Yoruba, Igbo, Hausa, Swahili, Amharic, Zulu, Xhosa, Twi, and Wolof. Each language will include multiple dialects, multiple genders, a range of ages, and a variety of regional accents.</p>
+  <div class="lang-grid stag" id="langGrid">
+    <div class="lang" style="--pct:92%"><div class="name">Nigerian Pidgin</div><div class="meta">Launch</div><div class="bar"><i></i></div></div>
+    <div class="lang" style="--pct:88%"><div class="name">Yoruba</div><div class="meta">Launch</div><div class="bar"><i></i></div></div>
+    <div class="lang" style="--pct:80%"><div class="name">Igbo</div><div class="meta">Launch</div><div class="bar"><i></i></div></div>
+    <div class="lang" style="--pct:76%"><div class="name">Hausa</div><div class="meta">Launch</div><div class="bar"><i></i></div></div>
+    <div class="lang" style="--pct:72%"><div class="name">Swahili</div><div class="meta">Launch</div><div class="bar"><i></i></div></div>
+    <div class="lang" style="--pct:68%"><div class="name">Amharic</div><div class="meta">Launch</div><div class="bar"><i></i></div></div>
+    <div class="lang" style="--pct:64%"><div class="name">Zulu</div><div class="meta">Launch</div><div class="bar"><i></i></div></div>
+    <div class="lang" style="--pct:58%"><div class="name">Xhosa</div><div class="meta">Launch</div><div class="bar"><i></i></div></div>
+    <div class="lang" style="--pct:52%"><div class="name">Twi</div><div class="meta">Launch</div><div class="bar"><i></i></div></div>
+    <div class="lang" style="--pct:46%"><div class="name">Wolof</div><div class="meta">Launch</div><div class="bar"><i></i></div></div>
+  </div>
+
+  <div class="growth rv">
+    <div class="mile">
+      <div class="yr">Q2 2027</div>
+      <div class="v">1,000 hrs</div>
+      <div class="d">10 African languages</div>
     </div>
-    <div class="card">
-      <div class="step-num">End of 2027 · Expansion</div>
-      <p>By end 2027, we are targeting 10,000 hours across 25 African languages, with first deposits of Commonwealth languages (Caribbean creoles, Punjabi, Bengali, Tamil) beginning Q4 2027.</p>
+    <div class="mile">
+      <div class="yr">End 2027</div>
+      <div class="v">10,000 hrs</div>
+      <div class="d">25 languages + Commonwealth</div>
     </div>
-    <div class="card">
-      <div class="step-num">2030 · Vision</div>
-      <p>By 2030, we are targeting 100,000+ hours across 100+ under-represented languages worldwide, making the British Voices Bank the world's largest consensually sourced, linguistically verified open voice archive.</p>
+    <div class="mile">
+      <div class="yr">2030</div>
+      <div class="v">100,000+ hrs</div>
+      <div class="d">100+ languages worldwide</div>
     </div>
   </div>
 </div>
 </section>
 
-<!-- ========== WHO IT IS FOR ========== -->
+<!-- ========== 04 · WHO IT'S FOR ========== -->
 <section class="sec" id="audience">
-<div class="wrap rv">
-  <div class="eyebrow">Who it's for</div>
-  <h2>Free, under an open licence, for the people and projects that need it most.</h2>
-
-  <div class="cards">
-    <div class="card">
-      <h3>UK Government and public bodies.</h3>
-      <p>Available to all UK Government departments, public bodies, and local authorities for public-interest AI applications, educational tooling, and digital-service accessibility.</p>
+<div class="ghost" aria-hidden="true">04</div>
+<div class="wrap">
+  <div class="shead-block rv">
+    <div class="eyebrow">04 · Who it's for</div>
+    <h2>Free, for the people and projects that <span class="it">need it most.</span></h2>
+  </div>
+  <div class="aud-grid stag">
+    <div class="aud-card">
+      <div class="ic">🏛</div>
+      <h3>UK Government & public bodies</h3>
+      <p>Public-interest AI, educational tooling, digital-service accessibility.</p>
+      <span class="tg">No fees · full access</span>
     </div>
-    <div class="card">
-      <h3>Academic researchers.</h3>
-      <p>Open to UK and international universities for linguistics, AI, phonology, dialectology, and model-fairness research. Attribution requested, use freely.</p>
+    <div class="aud-card">
+      <div class="ic">🔬</div>
+      <h3>Academic researchers</h3>
+      <p>Linguistics, AI, phonology, dialectology, model-fairness research.</p>
+      <span class="tg">Attribution requested · use freely</span>
     </div>
-    <div class="card">
-      <h3>Educators and schools.</h3>
-      <p>Available for use in language-learning tools, heritage language teaching, Saturday schools, and overseas educational partnerships. No fees.</p>
+    <div class="aud-card">
+      <div class="ic">📚</div>
+      <h3>Educators & schools</h3>
+      <p>Language-learning tools, heritage language teaching, Saturday schools.</p>
+      <span class="tg">No fees · educational partnerships</span>
     </div>
-    <div class="card">
-      <h3>Independent and small AI developers.</h3>
-      <p>Free use for AI developers building inclusive products, with reasonable scale thresholds. Larger-scale commercial use is handled separately by Accent AI Studio under its commercial licence.</p>
+    <div class="aud-card">
+      <div class="ic">⚡</div>
+      <h3>Independent AI developers</h3>
+      <p>Inclusive products with reasonable scale thresholds. Larger commercial use handled separately.</p>
+      <span class="tg">Free tier · commercial licence available</span>
     </div>
   </div>
 </div>
 </section>
 
-<!-- ========== TRUST AND GOVERNANCE ========== -->
-<section class="sec sec-alt" id="trust">
-<div class="wrap rv">
-  <div class="eyebrow">Trust</div>
-  <h2>Built on consent, verified by linguists, held in trust.</h2>
-
-  <div class="principles">
-    <div class="principle">
-      <h3>Consent-first.</h3>
-      <p>No voice data enters the Bank without the contributor's explicit, informed consent for public release. Contributors can withdraw their consent at any time, and we honour withdrawal within 30 days of request. We publish a plain-English consent policy and are governed by UK and international data protection law.</p>
+<!-- ========== 05 · TRUST ========== -->
+<section class="sec tint" id="trust">
+<div class="ghost" aria-hidden="true">05</div>
+<div class="wrap">
+  <div class="shead-block rv">
+    <div class="eyebrow">05 · Trust</div>
+    <h2>Built on consent. Verified by linguists. <span class="it">Held in trust.</span></h2>
+  </div>
+  <div class="trust stag">
+    <div class="tr">
+      <span class="ic">🔒</span>
+      <h3>Consent-first</h3>
+      <p>No voice data enters the Bank without explicit, informed consent. Withdraw any time. We honour it within 30 days.</p>
     </div>
-    <div class="principle">
-      <h3>Linguistically verified.</h3>
-      <p>We work with trained linguists for every language in the Bank. Every recording is verified for accuracy of transcription, annotation, and language tagging before archival. We publish verification standards and audit reports annually.</p>
+    <div class="tr">
+      <span class="ic">✓</span>
+      <h3>Linguistically verified</h3>
+      <p>Trained linguists verify every recording for transcription accuracy, annotation, and language tagging before archival.</p>
     </div>
-    <div class="principle">
-      <h3>Open by default, protected where needed.</h3>
-      <p>All Bank data is released under an open licence. In specific cases (sensitive content, contributor requests, cultural sensitivity), access may be gated to approved researchers with ethics committee review. Access policies are published and reviewed with partners.</p>
+    <div class="tr">
+      <span class="ic">🌐</span>
+      <h3>Open by default</h3>
+      <p>All Bank data released under an open licence. Sensitive content gated to approved researchers with ethics review.</p>
     </div>
   </div>
-
-  <p class="sub" style="margin-top:28px;font-size:.95rem;max-width:64ch">We are preparing a formal governance board of UK and international linguists, data ethicists, Commonwealth cultural representatives, and public-interest technologists, to be convened before the Bank's public release.</p>
 </div>
 </section>
 
-<!-- ========== ROADMAP ========== -->
+<!-- ========== 06 · ROADMAP ========== -->
 <section class="sec" id="roadmap">
-<div class="wrap rv">
-  <div class="eyebrow">Roadmap</div>
-  <h2>Where we are, where we are going.</h2>
-
-  <div class="milestones">
-    <div class="ms">
-      <div class="ms-date">Q4 2026</div>
-      <div class="ms-dot"></div>
-      <div class="ms-body"><p><strong>Now.</strong> Initiative publicly announced. Partnership conversations begin with UK institutions. Interest registration opens.</p></div>
+<div class="ghost" aria-hidden="true">06</div>
+<div class="wrap">
+  <div class="shead-block rv">
+    <div class="eyebrow">06 · Roadmap</div>
+    <h2>Where we are, where we're <span class="it">going.</span></h2>
+  </div>
+  <div class="road rv">
+    <div class="rd now">
+      <div class="rd-dot"></div>
+      <div class="rd-body">
+        <div class="rd-date">Q4 2026 · Now</div>
+        <h4>Initiative announced</h4>
+        <p>Partnership conversations begin. Interest registration opens.</p>
+      </div>
     </div>
-    <div class="ms">
-      <div class="ms-date">Q1 2027</div>
-      <div class="ms-dot"></div>
-      <div class="ms-body"><p>Governance board convened. First pilot deposits of Nigerian Pidgin and Yoruba, approximately 100 hours.</p></div>
+    <div class="rd">
+      <div class="rd-dot"></div>
+      <div class="rd-body">
+        <div class="rd-date">Q1 2027</div>
+        <h4>Governance board convened</h4>
+        <p>First pilot deposits: Nigerian Pidgin and Yoruba, ~100 hours.</p>
+      </div>
     </div>
-    <div class="ms">
-      <div class="ms-date">Q2 2027</div>
-      <div class="ms-dot"></div>
-      <div class="ms-body"><p><strong>Public launch.</strong> First 10 African languages, approximately 1,000 hours. API and bulk download opened.</p></div>
+    <div class="rd">
+      <div class="rd-dot"></div>
+      <div class="rd-body">
+        <div class="rd-date">Q2 2027</div>
+        <h4>Public launch</h4>
+        <p>10 African languages, ~1,000 hours. API and bulk download opened.</p>
+      </div>
     </div>
-    <div class="ms">
-      <div class="ms-date">Q3 2027</div>
-      <div class="ms-dot"></div>
-      <div class="ms-body"><p>Expansion to 15 African languages. First academic partnerships signed. Content curation tools launched.</p></div>
+    <div class="rd">
+      <div class="rd-dot"></div>
+      <div class="rd-body">
+        <div class="rd-date">Q4 2027</div>
+        <h4>10,000 hours</h4>
+        <p>25 African languages. First Commonwealth language deposits.</p>
+      </div>
     </div>
-    <div class="ms">
-      <div class="ms-date">Q4 2027</div>
-      <div class="ms-dot"></div>
-      <div class="ms-body"><p>10,000 hours across 25 African languages. First Commonwealth language deposits.</p></div>
+    <div class="rd">
+      <div class="rd-dot"></div>
+      <div class="rd-body">
+        <div class="rd-date">2028+</div>
+        <h4>Commonwealth expansion</h4>
+        <p>Caribbean, South Asian, Pacific languages. Educational partnerships at scale.</p>
+      </div>
     </div>
-    <div class="ms">
-      <div class="ms-date">2028</div>
-      <div class="ms-dot"></div>
-      <div class="ms-body"><p>Expansion to Commonwealth languages (Caribbean, South Asian, Pacific). Educational partnerships at scale.</p></div>
-    </div>
-    <div class="ms">
-      <div class="ms-date">2029+</div>
-      <div class="ms-dot"></div>
-      <div class="ms-body"><p>Global under-represented languages. Governance board expansion. Target: 100,000 hours across 100+ languages by 2030.</p></div>
+    <div class="rd">
+      <div class="rd-dot"></div>
+      <div class="rd-body">
+        <div class="rd-date">2030</div>
+        <h4>100,000+ hours · 100+ languages</h4>
+        <p>The world's largest consensually sourced, open voice archive.</p>
+      </div>
     </div>
   </div>
 </div>
 </section>
 
-<!-- ========== SUPPORTERS ========== -->
-<section class="sec sec-alt" id="partners">
-<div class="wrap rv">
-  <div class="eyebrow">Partners</div>
-  <h2>Backed by Britain's innovation ecosystem.</h2>
-  <p class="sub" style="max-width:64ch">We are in conversation with UK Government, academic institutions, and ecosystem partners who share our mission. Confirmed partners will be listed here as agreements are finalised.</p>
-
-  <div class="logo-grid">
-    <div class="logo-slot"></div>
-    <div class="logo-slot"></div>
-    <div class="logo-slot"></div>
-    <div class="logo-slot"></div>
-    <div class="logo-slot"></div>
-    <div class="logo-slot"></div>
+<!-- ========== GET INVOLVED ========== -->
+<section class="sec tint join" id="register">
+<div class="join-glow"></div>
+<div class="ghost" aria-hidden="true">07</div>
+<div class="wrap">
+  <div class="shead-block rv">
+    <div class="eyebrow">07 · Get involved</div>
+    <h2>Be part of the Bank from <span class="it">day one.</span></h2>
   </div>
-</div>
-</section>
 
-<!-- ========== CTA / REGISTRATION ========== -->
-<section class="sec sec-amber" id="register">
-<div class="wrap rv">
-  <div class="eyebrow" style="color:var(--acc2)">Get involved</div>
-  <h2>Be part of the Bank from day one.</h2>
-
-  <div class="cta-cards">
-    <div class="cta-card">
+  <div class="join-grid stag">
+    <div class="join-card">
       <h3>Register interest</h3>
-      <p>Get notified when the Bank launches in Q2 2027. We will share updates on deposits, API access, and partnership opportunities.</p>
+      <p>Get notified when the Bank launches. Updates on deposits, API access, and partnership opportunities.</p>
       <a class="btn btn-a" href="#register-form">Register below <span class="ar">↓</span></a>
     </div>
-    <div class="cta-card">
+    <div class="join-card">
       <h3>Partner with us</h3>
-      <p>Universities, government bodies, foundations, and ecosystem partners: get in touch about formal partnerships, dataset access priorities, and governance board participation.</p>
+      <p>Universities, government bodies, foundations: formal partnerships, dataset access, governance board seats.</p>
       <a class="btn btn-g" href="mailto:hello@accentstudio.io?subject=British%20Voices%20Bank%20%E2%80%94%20Partnership%20inquiry">Get in touch <span class="ar">→</span></a>
     </div>
-    <div class="cta-card">
+    <div class="join-card">
       <h3>Contribute your voice</h3>
-      <p>Native speakers of under-represented languages: get paid to contribute, help build the Bank, keep your language speakable to the future.</p>
-      <a class="btn btn-g" href="#contribute">Learn more <span class="ar">↓</span></a>
+      <p>Native speakers of under-represented languages: get paid, help build the Bank, keep your language alive.</p>
+      <a class="btn btn-g" href="/apply">Start contributing <span class="ar">→</span></a>
     </div>
-    <div class="cta-card">
-      <h3>Press and media</h3>
-      <p>Journalists, researchers, and policy writers covering AI inclusion, language preservation, and UK AI policy.</p>
+    <div class="join-card">
+      <h3>Press & media</h3>
+      <p>Covering AI inclusion, language preservation, or UK AI policy? We're here.</p>
       <a class="btn btn-g" href="mailto:hello@accentstudio.io?subject=British%20Voices%20Bank%20%E2%80%94%20Press%20inquiry">Press contact <span class="ar">→</span></a>
     </div>
   </div>
 
-  <div class="form-wrap" id="register-form">
+  <div class="form-wrap rv" id="register-form">
     <h3>Register your interest</h3>
-    <p style="color:var(--ink2);font-size:.92rem;margin-bottom:20px">We will notify you when the Bank launches and share updates on deposits, API access, and partnership opportunities.</p>
+    <p class="note">We'll notify you when the Bank launches and share updates on deposits and API access.</p>
     <form id="bvbForm" autocomplete="on">
       <div class="field">
         <label for="rf-name">Your name</label>
@@ -556,62 +713,46 @@ h3{font-family:var(--disp);font-weight:700;font-size:1.15rem;letter-spacing:-.01
 </div>
 </section>
 
-<!-- ========== CONTRIBUTE ========== -->
+<!-- ========== CONTRIBUTE + LICENCE (accordion) ========== -->
 <section class="sec" id="contribute">
 <div class="wrap">
-  <div class="sub-hero rv">
-    <div class="eyebrow">Contribute</div>
-    <h2>Lend your voice, keep your language alive.</h2>
-    <p class="sub">Get paid to help build the British Voices Bank. Every voice makes the Bank bigger. Every language gets a chance.</p>
+  <div class="shead-block rv">
+    <div class="eyebrow">Contribute & licence</div>
+    <h2>Everything you need to <span class="it">know.</span></h2>
   </div>
-  <div class="sub-body rv">
-    <h3>What it means to contribute.</h3>
-    <p>You record short pieces of speech, conversation, and language improv, guided by prompts, in your native language. Every recording is reviewed by a linguist. Every contribution gets you paid. Every voice gets credited.</p>
-
-    <h3>What you earn.</h3>
-    <p>We pay competitively for every verified minute of voice contributed. Payment rates vary by language and demand, but transparency is a core principle: our rates are published publicly on our contributor dashboard.</p>
-
-    <h3>What happens to your voice.</h3>
-    <p>Your voice data is used in two ways: in Accent Studio's commercial dataset for AI labs, and in the British Voices Bank for public use. You consent to both uses explicitly before you begin. You can withdraw at any time.</p>
-
-    <h3>Who can contribute.</h3>
-    <p>Native speakers of any under-represented language. Starting with African languages. Expanding to Commonwealth and global under-represented languages over 2027 and beyond.</p>
-
-    <h3>How to get started.</h3>
-    <p>Sign up at the Accent Studio contributor platform. Complete your profile and language verification. Begin contributing from your phone or computer, at your own pace.</p>
-
-    <div style="margin-top:28px">
-      <a class="btn btn-a" href="/apply">Start contributing at accentstudio.io <span class="ar">→</span></a>
-    </div>
-  </div>
-</div>
-</section>
-
-<!-- ========== LICENCE ========== -->
-<section class="sec sec-alt" id="licence">
-<div class="wrap">
-  <div class="sub-hero rv">
-    <div class="eyebrow">Licence and governance</div>
-    <h2>Open by default. Governed in the public interest.</h2>
-  </div>
-  <div class="sub-body rv">
-    <h3>The licence (target).</h3>
-    <p>British Voices Bank data will be released under Creative Commons Attribution 4.0 International (CC BY 4.0), subject to final confirmation at launch. This means you can use Bank data freely for research, education, and non-commercial AI development, provided you credit the Bank and its contributors.</p>
-
-    <h3>Attribution.</h3>
-    <p>When using Bank data, cite the British Voices Bank (britishvoicesbank.org), include a reference to the specific dataset version, and credit individual contributors where they have requested named attribution.</p>
-
-    <h3>Commercial use.</h3>
-    <p>For large-scale commercial use of Bank data, please contact Accent AI Studio's commercial team at <a href="mailto:hello@accentstudio.io" style="color:var(--acc2);text-decoration:underline">hello@accentstudio.io</a>. Commercial data licences are negotiated separately and support the Bank's sustainability.</p>
-
-    <h3>Governance.</h3>
-    <p>The British Voices Bank is maintained by Accent AI Studio Ltd. Operational decisions on the Bank's content, licensing, and release are reviewed by an external governance board (in formation), composed of UK and international linguists, data ethicists, Commonwealth cultural representatives, and public-interest technologists.</p>
-
-    <h3>Consent framework.</h3>
-    <p>Full consent policy will be published at launch. Core principles: contributors give informed, specific, revocable consent before any voice data enters the Bank. Consent can be withdrawn at any time by contacting contributor support. We honour withdrawal within 30 days.</p>
-
-    <h3>Compliance.</h3>
-    <p>The Bank is operated in compliance with UK GDPR, the Data Protection Act 2018, and relevant international data protection frameworks. Full compliance statement will be published at launch.</p>
+  <div class="faq rv">
+    <details>
+      <summary>What it means to contribute</summary>
+      <div class="a">You record short pieces of speech, conversation, and language improv, guided by prompts, in your native language. Every recording is reviewed by a linguist. Every contribution gets you paid. Every voice gets credited.</div>
+    </details>
+    <details>
+      <summary>What you earn</summary>
+      <div class="a">We pay competitively for every verified minute of voice contributed. Rates vary by language and demand. Transparency is a core principle: rates are published on our contributor dashboard.</div>
+    </details>
+    <details>
+      <summary>What happens to your voice</summary>
+      <div class="a">Your voice data is used in two ways: in Accent Studio's commercial dataset for AI labs, and in the British Voices Bank for public use. You consent to both uses explicitly. You can withdraw at any time.</div>
+    </details>
+    <details>
+      <summary>Who can contribute</summary>
+      <div class="a">Native speakers of any under-represented language. Starting with African languages, expanding to Commonwealth and global languages over 2027 and beyond.</div>
+    </details>
+    <details>
+      <summary>The licence (CC BY 4.0 target)</summary>
+      <div class="a">Bank data will be released under Creative Commons Attribution 4.0 International. Use it freely for research, education, and non-commercial AI development with credit to the Bank and its contributors. Large-scale commercial use is handled separately under a commercial licence.</div>
+    </details>
+    <details>
+      <summary>Attribution</summary>
+      <div class="a">Cite the British Voices Bank, include the dataset version, and credit individual contributors where they have requested named attribution.</div>
+    </details>
+    <details>
+      <summary>Governance</summary>
+      <div class="a">Maintained by Accent AI Studio Ltd. An external governance board (in formation) of linguists, data ethicists, Commonwealth cultural representatives, and public-interest technologists will review operational decisions before launch.</div>
+    </details>
+    <details>
+      <summary>Compliance</summary>
+      <div class="a">Operated in compliance with UK GDPR, the Data Protection Act 2018, and relevant international frameworks. Full compliance statement will be published at launch.</div>
+    </details>
   </div>
 </div>
 </section>
@@ -619,50 +760,152 @@ h3{font-family:var(--disp);font-weight:700;font-size:1.15rem;letter-spacing:-.01
 <!-- ========== FOOTER ========== -->
 <footer class="foot">
 <div class="wrap">
-  <div class="foot-top">
-    <div class="foot-brand">
-      <img src="/brand/svg/lockup/accent-studio-lockup-light.svg" alt="Accent Studio" height="20">
-      <span style="color:var(--faint);font-size:.86rem">×</span>
-      <span style="font-family:var(--disp);font-weight:700;font-size:.86rem;color:var(--ink)">The British Voices Bank</span>
+  <div class="foot-grid">
+    <div>
+      <a class="brand" href="/">
+        <img src="/brand/svg/lockup/accent-studio-lockup-cream.svg" alt="Accent Studio" height="30">
+      </a>
+      <p style="margin-top:14px;color:var(--faint);font-size:.88rem;max-width:32ch;line-height:1.6">The voice data foundry. Built for the people machine learning needs to hear, paid out to the people who play.</p>
     </div>
-    <div class="foot-links">
-      <a href="#mission">Mission</a>
+    <div class="foot-col">
+      <div class="fh">Voices Bank</div>
+      <a href="#gap">The gap</a>
       <a href="#how">How it works</a>
+      <a href="#archive">The archive</a>
       <a href="#roadmap">Roadmap</a>
-      <a href="#contribute">Contribute</a>
-      <a href="#licence">Licence</a>
       <a href="#register">Register interest</a>
-      <a href="mailto:hello@accentstudio.io">Contact</a>
+    </div>
+    <div class="foot-col">
+      <div class="fh">Studio</div>
+      <a href="/">Players</a>
+      <a href="/labs">Labs</a>
+      <a href="/apply">Apply</a>
+      <a href="/brand-kit">Brand kit</a>
+    </div>
+    <div class="foot-col">
+      <div class="fh">Legal</div>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="/cookies">Cookies</a>
     </div>
   </div>
   <div class="foot-legal">
-    <a href="/privacy">Privacy</a>
-    <a href="/terms">Terms</a>
-    <a href="/cookies">Cookies</a>
+    <span>© 2026 Accent Studio, Inc.</span>
+    <span style="color:var(--line)">·</span>
     <a href="/">accentstudio.io</a>
   </div>
-  <p class="foot-note">The British Voices Bank is a UK-based open voice-data initiative, built and maintained by Accent AI Studio Ltd. Accent AI Studio Ltd, England.</p>
 </div>
 </footer>
 
 <script>
 (function(){
 'use strict';
+var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* reveal on scroll */
+/* ---------- reveal on scroll ---------- */
 var obs=new IntersectionObserver(function(entries){
   entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');obs.unobserve(e.target);}});
 },{threshold:.12});
-document.querySelectorAll('.rv').forEach(function(el){obs.observe(el);});
+document.querySelectorAll('.rv,.stag').forEach(function(el){obs.observe(el);});
 
-/* mobile menu */
+/* ---------- animated counter stats ---------- */
+var counted=false;
+var cobs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(!e.isIntersecting||counted)return;
+    counted=true;
+    document.querySelectorAll('[data-count]').forEach(function(el){
+      var target=parseInt(el.dataset.count,10);
+      var prefix=el.dataset.prefix||'';
+      var suffix=el.dataset.suffix||'';
+      if(reduced){el.textContent=prefix+target.toLocaleString()+suffix;return;}
+      var start=0,dur=1600,t0=null;
+      function tick(ts){
+        if(!t0)t0=ts;
+        var p=Math.min((ts-t0)/dur,1);
+        p=1-Math.pow(1-p,3);
+        var v=Math.round(start+(target-start)*p);
+        el.textContent=prefix+v.toLocaleString()+suffix;
+        if(p<1)requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    });
+    document.querySelectorAll('[data-raw]').forEach(function(el){
+      if(reduced){el.textContent=el.dataset.raw;return;}
+      var txt=el.dataset.raw;
+      el.textContent='';
+      var i=0;
+      var tid=setInterval(function(){
+        i++;el.textContent=txt.slice(0,i);
+        if(i>=txt.length)clearInterval(tid);
+      },120);
+    });
+    cobs.disconnect();
+  });
+},{threshold:.3});
+document.querySelectorAll('.stat-row').forEach(function(el){cobs.observe(el);});
+
+/* ---------- language bars animate on scroll ---------- */
+var lobs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(!e.isIntersecting)return;
+    e.target.querySelectorAll('.lang').forEach(function(l,i){
+      setTimeout(function(){l.classList.add('in');},i*80);
+    });
+    lobs.unobserve(e.target);
+  });
+},{threshold:.2});
+var lg=document.getElementById('langGrid');
+if(lg)lobs.observe(lg);
+
+/* ---------- hero ring pulse ---------- */
+if(!reduced){
+  var rings=document.querySelectorAll('.voice-ring');
+  rings.forEach(function(r,i){
+    r.style.animation='ringPulse '+(3+i*.4)+'s ease-in-out infinite '+(i*.5)+'s';
+  });
+  var style=document.createElement('style');
+  style.textContent='@keyframes ringPulse{0%,100%{transform:scale(1);opacity:.4}50%{transform:scale(1.03);opacity:.65}}';
+  document.head.appendChild(style);
+}
+
+/* ---------- equalizer ---------- */
+var eqEl=document.getElementById('eq');
+if(eqEl){
+  for(var i=0;i<80;i++){
+    var bar=document.createElement('i');
+    bar.style.animationDelay=(Math.random()*2).toFixed(2)+'s';
+    bar.style.animationDuration=(1+Math.random()*1.2).toFixed(2)+'s';
+    eqEl.appendChild(bar);
+  }
+}
+
+/* ---------- hero count typewriter ---------- */
+if(!reduced){
+  var hc=document.getElementById('heroCount');
+  if(hc){
+    var nums=['7,000','2,000+','< 100','1 in 10'];
+    var ni=0;
+    setInterval(function(){
+      ni=(ni+1)%nums.length;
+      hc.style.opacity='0';hc.style.transform='translateY(8px)';
+      setTimeout(function(){
+        hc.textContent=nums[ni];
+        hc.style.opacity='1';hc.style.transform='none';
+      },300);
+    },3000);
+    hc.style.transition='opacity .3s var(--ease),transform .3s var(--ease)';
+  }
+}
+
+/* ---------- mobile menu ---------- */
 var burger=document.getElementById('burger'),menu=document.getElementById('menu'),menuX=document.getElementById('menuX');
 function closeMenu(){menu.classList.remove('open');menu.setAttribute('aria-hidden','true');burger.setAttribute('aria-expanded','false');document.body.style.overflow='';}
 burger.addEventListener('click',function(){menu.classList.add('open');menu.setAttribute('aria-hidden','false');burger.setAttribute('aria-expanded','true');document.body.style.overflow='hidden';});
 menuX.addEventListener('click',closeMenu);
 menu.querySelectorAll('a').forEach(function(a){a.addEventListener('click',closeMenu);});
 
-/* registration form → Supabase bvb_registrations */
+/* ---------- registration form → Supabase ---------- */
 var SB_URL='https://uazcoxinsnkjjogfovlg.supabase.co',SB_KEY='sb_publishable_cV8x-VgtGRj26so-iS9kgQ_MjvbYZzJ';
 var form=document.getElementById('bvbForm'),msg=document.getElementById('bvbMsg'),sbtn=form.querySelector('button[type=submit]');
 
@@ -672,15 +915,10 @@ form.addEventListener('submit',function(e){
   var email=form.elements.namedItem('email').value.trim();
   var org=form.elements.namedItem('org').value.trim();
   var aud=form.elements.namedItem('audience_type').value;
-
-  /* honeypot */
-  if(form._gotcha.value){msg.style.color='var(--acc2)';msg.textContent='Thank you. We will be in touch.';form.reset();return;}
-
-  if(name.length<2){msg.style.color='#c0392b';msg.textContent='Please enter your name.';return;}
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){msg.style.color='#c0392b';msg.textContent='Please enter a valid email address.';return;}
-
+  if(form._gotcha.value){msg.style.color='var(--acc)';msg.textContent='Thank you. We will be in touch.';form.reset();return;}
+  if(name.length<2){msg.style.color='var(--coral)';msg.textContent='Please enter your name.';return;}
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){msg.style.color='var(--coral)';msg.textContent='Please enter a valid email address.';return;}
   sbtn.disabled=true;msg.style.color='var(--mut)';msg.textContent='Submitting…';
-
   fetch(SB_URL+'/rest/v1/bvb_registrations',{
     method:'POST',
     headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
@@ -688,11 +926,11 @@ form.addEventListener('submit',function(e){
   })
   .then(function(r){
     if(!r.ok)throw new Error('Could not submit right now. Please try again shortly.');
-    msg.style.color='var(--acc2)';
+    msg.style.color='var(--acc)';
     msg.textContent='Thank you, '+name.split(/\s+/)[0]+'. We will notify you when the Bank launches.';
     form.reset();
   })
-  .catch(function(err){msg.style.color='#c0392b';msg.textContent=err.message||'Something went wrong. Please try again.';})
+  .catch(function(err){msg.style.color='var(--coral)';msg.textContent=err.message||'Something went wrong. Please try again.';})
   .then(function(){sbtn.disabled=false;});
 });
 
