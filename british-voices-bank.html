@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The British Voices Bank — Open voice data for under-represented languages</title>
+<meta name="description" content="A UK-national, open-licensed, consensually sourced voice-data archive for under-represented languages. Free for researchers, educators, public bodies, and small developers. Built by Accent AI Studio.">
+<meta property="og:title" content="The British Voices Bank — Open voice data for under-represented languages">
+<meta property="og:description" content="A UK-national archive of consensually sourced, linguistically verified voice data for under-represented languages. Free to researchers, educators, public bodies, and small developers.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://accentstudio.io/british-voices-bank">
+<meta property="og:image" content="https://accentstudio.io/brand/png/social/accent-studio-og-1200x630.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://accentstudio.io/british-voices-bank">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#f4eee1">
+<meta name="keywords" content="british voices bank, open voice dataset, african languages ai, under-represented languages, commonwealth languages dataset, uk ai inclusion, open voice archive, consensual voice data">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@graph":[
+    {"@type":"Organization","name":"Accent AI Studio Ltd","url":"https://accentstudio.io","sameAs":[]},
+    {"@type":"Dataset","name":"The British Voices Bank","description":"A UK-national, open-licensed, consensually sourced, linguistically verified voice-data archive for under-represented languages.","url":"https://accentstudio.io/british-voices-bank","license":"https://creativecommons.org/licenses/by/4.0/","creator":{"@type":"Organization","name":"Accent AI Studio Ltd"},"datePublished":"2026-10-22","temporalCoverage":"2026/..","spatialCoverage":"Global","inLanguage":["pcm","yo","ig","ha","sw","am","zu","xh","tw","wo"],"keywords":"voice data, under-represented languages, african languages, open dataset, linguistically verified"}
+  ]
+}
+</script>
+<style>
+/* ============================================================
+   THE BRITISH VOICES BANK · CREAM EDITION (Amber)
+   A national initiative, not a startup landing page.
+   ============================================================ */
+:root{
+  --bg:#f4eee1; --bg2:#ece5d5; --white:#ffffff;
+  --card:#ffffff; --card2:#faf7f0;
+  --line:#d4cdbf; --line2:#e2dbd0;
+  --ink:#0d0b08; --ink2:#3d3829; --mut:#7a7264; --faint:#a39b8c;
+  --acc:#f0a84b; --acc2:#d9922e; --accink:#1d1204; --acclight:#fdf4e4;
+  --spruce:#0d4a3d;
+  --disp:"Bricolage Grotesque",system-ui,sans-serif;
+  --sans:"Hanken Grotesk",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --maxw:1100px; --pad:clamp(24px,5.5vw,44px);
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:var(--acc);color:var(--accink)}
+a{color:inherit;text-decoration:none}
+img,svg{max-width:100%;height:auto}
+button{font-family:inherit;cursor:pointer}
+.wrap{max-width:var(--maxw);margin:0 auto;padding-left:var(--pad);padding-right:var(--pad)}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(28px);transition:opacity .8s var(--ease),transform .9s var(--ease)}
+.rv.in{opacity:1;transform:none}
+
+/* ---------- nav ---------- */
+.nav{position:sticky;top:0;z-index:80;background:rgba(244,238,225,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line2)}
+.nav-in{display:flex;align-items:center;gap:18px;height:64px}
+.brand{display:flex;align-items:center;gap:10px;flex-shrink:0;text-decoration:none}
+.brand img{height:22px;width:auto;display:block}
+.brand-sep{color:var(--faint);font-size:.88rem;font-weight:400}
+.brand-sub{font-family:var(--disp);font-weight:700;font-size:.88rem;letter-spacing:-.01em;color:var(--ink)}
+.sp{flex:1}
+.links{display:flex;gap:24px;font-size:.92rem;color:var(--ink2)}
+.links a{position:relative;padding:4px 0}
+.links a::after{content:"";position:absolute;left:0;bottom:0;height:1.5px;width:0;background:var(--acc);transition:width .3s var(--ease)}
+.links a:hover{color:var(--ink)}.links a:hover::after{width:100%}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:100px;font-weight:700;font-size:.95rem;padding:12px 24px;border:1px solid transparent;transition:transform .3s var(--ease),box-shadow .3s,background .2s;min-height:44px;text-decoration:none}
+.btn .ar{transition:transform .3s var(--ease);display:inline-block}
+.btn:hover .ar{transform:translateX(4px)}
+.btn-a{background:var(--acc);color:var(--accink);box-shadow:0 8px 28px -10px rgba(240,168,75,.45)}
+.btn-a:hover{transform:translateY(-2px)}
+.btn-g{border-color:var(--line);color:var(--ink);background:transparent}
+.btn-g:hover{border-color:var(--acc);color:var(--acc2)}
+.nav .btn{padding:9px 18px;font-size:.86rem}
+.burger{display:none;width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:1.15rem;align-items:center;justify-content:center}
+
+/* mobile menu */
+.menu{position:fixed;inset:0;z-index:120;background:var(--bg);display:flex;flex-direction:column;padding:24px var(--pad) 40px;opacity:0;pointer-events:none;transition:opacity .35s var(--ease)}
+.menu.open{opacity:1;pointer-events:auto}
+.menu-top{display:flex;align-items:center;justify-content:space-between}
+.menu-x{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:1.1rem}
+.menu-links{margin:auto 0;display:flex;flex-direction:column;gap:4px}
+.menu-links a{font-family:var(--disp);font-weight:800;font-size:clamp(1.8rem,8vw,2.6rem);letter-spacing:-.03em;padding:10px 0;border-bottom:1px solid var(--line2);display:flex;justify-content:space-between;align-items:center;transform:translateY(20px);opacity:0;transition:opacity .5s var(--ease),transform .6s var(--ease)}
+.menu.open .menu-links a{opacity:1;transform:none}
+.menu.open .menu-links a:nth-child(1){transition-delay:.06s}
+.menu.open .menu-links a:nth-child(2){transition-delay:.12s}
+.menu.open .menu-links a:nth-child(3){transition-delay:.18s}
+.menu.open .menu-links a:nth-child(4){transition-delay:.24s}
+.menu.open .menu-links a:nth-child(5){transition-delay:.30s}
+.menu.open .menu-links a:nth-child(6){transition-delay:.36s}
+.menu-links a span{font-family:var(--mono);font-size:.66rem;color:var(--faint);letter-spacing:.12em}
+.menu-foot{margin-top:auto;padding-top:24px}
+
+/* ---------- eyebrow + headings ---------- */
+.eyebrow{font-family:var(--mono);font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;color:var(--acc2);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+h1{font-family:var(--disp);font-weight:800;font-size:clamp(2.6rem,6.6vw,5.2rem);line-height:.98;letter-spacing:-.04em;margin-bottom:24px;text-wrap:balance;color:var(--ink)}
+h2{font-family:var(--disp);font-weight:800;font-size:clamp(1.6rem,3.6vw,2.6rem);line-height:1.08;letter-spacing:-.03em;margin-bottom:18px;text-wrap:balance}
+h3{font-family:var(--disp);font-weight:700;font-size:1.15rem;letter-spacing:-.01em;line-height:1.2;margin-bottom:8px}
+.sub{font-size:clamp(1.05rem,1.4vw,1.22rem);color:var(--ink2);max-width:56ch;margin-bottom:28px;line-height:1.65}
+
+/* ---------- sections ---------- */
+.sec{padding:clamp(56px,8vh,100px) 0}
+.sec-alt{background:var(--white)}
+.sec-amber{background:var(--acclight)}
+
+/* ---------- hero ---------- */
+.hero{position:relative;overflow:clip;padding-top:clamp(64px,10vh,120px);padding-bottom:clamp(72px,11vh,130px);border-bottom:1px solid var(--line2)}
+.hero-wave{position:absolute;right:0;top:50%;transform:translateY(-50%);width:min(50%,500px);height:300px;opacity:.18;pointer-events:none}
+.hero-wave line{stroke:var(--acc);stroke-linecap:round}
+.hero .cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+
+/* ---------- stat strip ---------- */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:40px}
+.stat{background:var(--card);border:1px solid var(--line2);border-radius:18px;padding:24px 22px;text-align:center}
+.stat-num{font-family:var(--disp);font-weight:800;font-size:clamp(2rem,4vw,3rem);letter-spacing:-.03em;color:var(--acc);line-height:1.1;margin-bottom:6px}
+.stat-label{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);line-height:1.6}
+
+/* ---------- steps ---------- */
+.steps{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:32px}
+.step{background:var(--card);border:1px solid var(--line2);border-radius:18px;padding:28px 24px;position:relative}
+.step-num{font-family:var(--mono);font-size:.64rem;letter-spacing:.2em;text-transform:uppercase;color:var(--acc2);margin-bottom:12px;font-weight:600}
+.step p{color:var(--ink2);font-size:.95rem;line-height:1.65}
+
+/* ---------- milestone timeline ---------- */
+.milestones{margin-top:36px}
+.ms{display:grid;grid-template-columns:140px 1fr;gap:0;position:relative}
+.ms+.ms{margin-top:0}
+.ms-date{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--acc2);font-weight:600;padding:20px 20px 20px 0;text-align:right;border-right:2px solid var(--line)}
+.ms-body{padding:16px 0 16px 28px;border-left:2px solid var(--line);margin-left:-2px}
+.ms:first-child .ms-date::before,.ms:first-child .ms-body::before{content:"";display:block}
+.ms-dot{position:absolute;left:139px;top:22px;width:10px;height:10px;border-radius:50%;background:var(--acc);border:2px solid var(--bg);z-index:1}
+.ms:first-child .ms-dot{background:var(--acc);box-shadow:0 0 0 4px var(--acclight)}
+.ms-body p{color:var(--ink2);font-size:.95rem;line-height:1.6;max-width:60ch}
+
+/* ---------- cards grid ---------- */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px}
+.card{background:var(--card);border:1px solid var(--line2);border-radius:18px;padding:28px 24px}
+.card p{color:var(--ink2);font-size:.95rem;line-height:1.6}
+
+/* ---------- principles ---------- */
+.principles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:28px}
+.principle{background:var(--card);border:1px solid var(--line2);border-radius:18px;padding:28px 24px}
+.principle p{color:var(--ink2);font-size:.95rem;line-height:1.6}
+
+/* ---------- partner logos placeholder ---------- */
+.logo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px;margin-top:28px}
+.logo-slot{height:80px;background:var(--card);border:1px dashed var(--line);border-radius:14px;display:grid;place-items:center;color:var(--faint);font-family:var(--mono);font-size:.64rem;letter-spacing:.1em;text-transform:uppercase}
+
+/* ---------- CTA cards ---------- */
+.cta-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px}
+.cta-card{background:var(--card);border:1px solid var(--line2);border-radius:18px;padding:28px 24px;display:flex;flex-direction:column}
+.cta-card p{color:var(--ink2);font-size:.92rem;line-height:1.6;flex:1;margin-bottom:16px}
+.cta-card .btn{align-self:flex-start;font-size:.88rem;padding:10px 20px}
+
+/* ---------- form ---------- */
+.form-wrap{background:var(--card);border:1px solid var(--line2);border-radius:22px;padding:clamp(28px,4vw,44px);margin-top:40px;max-width:600px}
+.form-wrap h3{margin-bottom:16px}
+.field{margin-bottom:16px}
+.field label{display:block;font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin-bottom:6px;font-weight:500}
+.field input,.field select{width:100%;padding:12px 16px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:.95rem;outline:none;transition:border-color .2s}
+.field input:focus,.field select:focus{border-color:var(--acc)}
+.field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a7264' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+.hp{position:absolute;left:-9999px}
+.form-msg{font-size:.9rem;margin-top:12px;min-height:1.4em}
+.form-wrap .btn{margin-top:4px}
+
+/* ---------- sub-sections (contribute, licence) ---------- */
+.sub-hero{padding:clamp(48px,7vh,80px) 0;border-bottom:1px solid var(--line2)}
+.sub-hero h2{font-size:clamp(1.8rem,4vw,3rem)}
+.sub-body{padding:clamp(40px,6vh,64px) 0}
+.sub-body h3{margin-top:32px;margin-bottom:8px;color:var(--ink)}
+.sub-body h3:first-child{margin-top:0}
+.sub-body p{color:var(--ink2);max-width:64ch;margin-bottom:14px}
+.sub-body p:last-child{margin-bottom:0}
+
+/* ---------- footer ---------- */
+.foot{border-top:1px solid var(--line);padding:clamp(40px,6vh,64px) 0 clamp(32px,4vh,48px);color:var(--mut);font-size:.88rem}
+.foot-top{display:flex;align-items:flex-start;justify-content:space-between;gap:40px;margin-bottom:32px}
+.foot-brand{display:flex;align-items:center;gap:10px}
+.foot-brand img{height:20px}
+.foot-links{display:flex;gap:28px;flex-wrap:wrap}
+.foot-links a{color:var(--mut)}
+.foot-links a:hover{color:var(--ink)}
+.foot-legal{display:flex;gap:24px;flex-wrap:wrap;margin-top:20px;padding-top:20px;border-top:1px solid var(--line2);font-size:.82rem}
+.foot-legal a{color:var(--faint)}
+.foot-legal a:hover{color:var(--ink)}
+.foot-note{margin-top:16px;font-size:.8rem;color:var(--faint);max-width:72ch;line-height:1.7}
+
+/* ---------- responsive ---------- */
+@media(max-width:900px){
+  .principles{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+  .links{display:none}
+  .burger{display:flex}
+  .brand img{height:19px}
+  .brand-sub{font-size:.78rem}
+  .stats{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr}
+  .cards{grid-template-columns:1fr}
+  .cta-cards{grid-template-columns:1fr}
+  .ms{grid-template-columns:1fr}
+  .ms-date{text-align:left;border-right:none;padding:12px 0 0 20px;border-left:2px solid var(--line)}
+  .ms-body{padding:4px 0 20px 20px}
+  .ms-dot{left:-1px;top:14px}
+  .foot-top{flex-direction:column;gap:20px}
+  .hero-wave{display:none}
+}
+@media(max-width:420px){
+  .brand-sep,.brand-sub{display:none}
+}
+</style>
+</head>
+<body>
+
+<a class="sr" href="#main">Skip to content</a>
+
+<!-- ========== NAV ========== -->
+<nav class="nav" role="navigation" aria-label="Main">
+<div class="wrap nav-in">
+  <a class="brand" href="/">
+    <img src="/brand/svg/lockup/accent-studio-lockup-light.svg" alt="Accent Studio" height="22">
+    <span class="brand-sep">×</span>
+    <span class="brand-sub">The British Voices Bank</span>
+  </a>
+  <span class="sp"></span>
+  <div class="links">
+    <a href="#mission">Mission</a>
+    <a href="#how">How it works</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#contribute">Contribute</a>
+  </div>
+  <a class="btn btn-a" href="#register">Register interest <span class="ar">→</span></a>
+  <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false">☰</button>
+</div>
+</nav>
+
+<!-- mobile menu -->
+<div class="menu" id="menu" role="dialog" aria-hidden="true">
+<div class="wrap">
+  <div class="menu-top">
+    <a class="brand" href="/">
+      <img src="/brand/svg/lockup/accent-studio-lockup-light.svg" alt="Accent Studio" height="20">
+    </a>
+    <button class="menu-x" id="menuX" aria-label="Close menu">✕</button>
+  </div>
+  <div class="menu-links">
+    <a href="#mission">Mission <span>01</span></a>
+    <a href="#how">How it works <span>02</span></a>
+    <a href="#roadmap">Roadmap <span>03</span></a>
+    <a href="#contribute">Contribute <span>04</span></a>
+    <a href="#licence">Licence <span>05</span></a>
+    <a href="#register">Register interest <span>→</span></a>
+  </div>
+  <div class="menu-foot">
+    <a class="btn btn-a" href="#register" style="width:100%;justify-content:center">Register interest <span class="ar">→</span></a>
+  </div>
+</div>
+</div>
+
+<!-- ========== HERO ========== -->
+<header class="hero wrap" id="main">
+  <!-- decorative voiceprint -->
+  <svg class="hero-wave" viewBox="0 0 200 400" fill="none" aria-hidden="true">
+    <line x1="40" y1="80" x2="40" y2="320" stroke-width="2.5" opacity=".15"/>
+    <line x1="56" y1="50" x2="56" y2="350" stroke-width="2" opacity=".22"/>
+    <line x1="72" y1="100" x2="72" y2="300" stroke-width="3" opacity=".12"/>
+    <line x1="88" y1="30" x2="88" y2="370" stroke-width="2.5" opacity=".28"/>
+    <line x1="104" y1="70" x2="104" y2="330" stroke-width="2" opacity=".18"/>
+    <line x1="120" y1="20" x2="120" y2="380" stroke-width="3.5" opacity=".32"/>
+    <line x1="136" y1="60" x2="136" y2="340" stroke-width="2" opacity=".22"/>
+    <line x1="152" y1="90" x2="152" y2="310" stroke-width="2.5" opacity=".16"/>
+    <line x1="168" y1="40" x2="168" y2="360" stroke-width="2" opacity=".25"/>
+    <line x1="184" y1="110" x2="184" y2="290" stroke-width="1.5" opacity=".12"/>
+  </svg>
+
+  <div class="eyebrow">The British Voices Bank</div>
+  <h1>The British<br>Voices Bank</h1>
+  <p class="sub">Open voice data for the languages the world forgot.</p>
+  <p class="sub" style="max-width:60ch">A UK-national archive of consensually sourced, linguistically verified voice data for under-represented languages. Free to researchers, educators, public bodies, and small developers. Built and maintained in Britain by Accent AI Studio.</p>
+  <div class="cta">
+    <a class="btn btn-a" href="#register">Register interest <span class="ar">→</span></a>
+    <a class="btn btn-g" href="#how">See how it works <span class="ar">→</span></a>
+  </div>
+</header>
+
+<!-- ========== THE PROBLEM ========== -->
+<section class="sec sec-alt" id="mission">
+<div class="wrap rv">
+  <div class="eyebrow">The gap</div>
+  <h2>The world has more than 7,000 languages. AI speaks fewer than 100 of them.</h2>
+  <p class="sub" style="max-width:64ch">Over 2,000 languages are spoken across the African continent. More than 1.3 billion people speak them. Fewer than 20 are meaningfully represented in the voice datasets that train modern AI.</p>
+  <p class="sub" style="max-width:64ch">The same gap exists across the Commonwealth, across the Global South, and across heritage communities everywhere. When a language cannot be heard by the machines that increasingly mediate our daily lives, it slips a little further out of the modern world.</p>
+  <p class="sub" style="max-width:64ch;color:var(--ink)"><strong>This is not just a technology problem. It is a cultural, educational, economic, and civic problem. It is also solvable.</strong></p>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num">2,000+</div>
+      <div class="stat-label">Languages spoken across Africa</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">&lt; 20</div>
+      <div class="stat-label">African languages meaningfully represented in modern voice AI</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">1 in 10</div>
+      <div class="stat-label">Share of the world's languages reflected in open voice datasets</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ========== HOW THE BANK WORKS ========== -->
+<section class="sec" id="how">
+<div class="wrap rv">
+  <div class="eyebrow">How it works</div>
+  <h2>A national asset, built from a company's commitment.</h2>
+  <p class="sub" style="max-width:64ch">The British Voices Bank is funded by Accent AI Studio Ltd through a long-term commitment to deposit at least 20% of its annual commercial production volume into the Bank, at no cost to users. Every hour of commercial voice work we produce for AI labs generates a deposit of verified, consented voice data for the public archive.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01 · Consent-first</div>
+      <h3>Consent-first contribution.</h3>
+      <p>Every voice contributor consents explicitly to how their data will be used, where it will go, and how long it will be retained. We never scrape, never collect without consent, and never anonymise identity against a contributor's wishes.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02 · Verified</div>
+      <h3>Linguistically verified.</h3>
+      <p>Every batch is reviewed by trained linguists before archival. Transcriptions, annotations, dialect tags, and metadata are checked for accuracy. The quality standard for Bank data is the same as our commercial product.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03 · Deposited</div>
+      <h3>Deposited into the Bank.</h3>
+      <p>A minimum of 20% of our annual commercial production volume is deposited into the British Voices Bank each year. Deposits are made in batches, with full documentation, by linguistic family and dialect.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">04 · Open</div>
+      <h3>Openly licensed, freely usable.</h3>
+      <p>Bank data is released under an open licence (CC BY 4.0 target), with attribution to contributors and the Bank. Available via API, bulk download, and curated collections, at no cost to approved users.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ========== WHAT IS IN THE BANK ========== -->
+<section class="sec sec-alt" id="contents">
+<div class="wrap rv">
+  <div class="eyebrow">The archive</div>
+  <h2>What's inside, and what's coming.</h2>
+
+  <div class="cards" style="grid-template-columns:1fr">
+    <div class="card" style="border-left:3px solid var(--acc)">
+      <div class="step-num">Q2 2027 · Launch</div>
+      <p style="color:var(--ink)"><strong>At initial public release in Q2 2027</strong>, the Bank will contain approximately 1,000 hours of verified voice data across 10 African languages, including Nigerian Pidgin, Yoruba, Igbo, Hausa, Swahili, Amharic, Zulu, Xhosa, Twi, and Wolof. Each language will include multiple dialects, multiple genders, a range of ages, and a variety of regional accents.</p>
+    </div>
+    <div class="card">
+      <div class="step-num">End of 2027 · Expansion</div>
+      <p>By end 2027, we are targeting 10,000 hours across 25 African languages, with first deposits of Commonwealth languages (Caribbean creoles, Punjabi, Bengali, Tamil) beginning Q4 2027.</p>
+    </div>
+    <div class="card">
+      <div class="step-num">2030 · Vision</div>
+      <p>By 2030, we are targeting 100,000+ hours across 100+ under-represented languages worldwide, making the British Voices Bank the world's largest consensually sourced, linguistically verified open voice archive.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ========== WHO IT IS FOR ========== -->
+<section class="sec" id="audience">
+<div class="wrap rv">
+  <div class="eyebrow">Who it's for</div>
+  <h2>Free, under an open licence, for the people and projects that need it most.</h2>
+
+  <div class="cards">
+    <div class="card">
+      <h3>UK Government and public bodies.</h3>
+      <p>Available to all UK Government departments, public bodies, and local authorities for public-interest AI applications, educational tooling, and digital-service accessibility.</p>
+    </div>
+    <div class="card">
+      <h3>Academic researchers.</h3>
+      <p>Open to UK and international universities for linguistics, AI, phonology, dialectology, and model-fairness research. Attribution requested, use freely.</p>
+    </div>
+    <div class="card">
+      <h3>Educators and schools.</h3>
+      <p>Available for use in language-learning tools, heritage language teaching, Saturday schools, and overseas educational partnerships. No fees.</p>
+    </div>
+    <div class="card">
+      <h3>Independent and small AI developers.</h3>
+      <p>Free use for AI developers building inclusive products, with reasonable scale thresholds. Larger-scale commercial use is handled separately by Accent AI Studio under its commercial licence.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ========== TRUST AND GOVERNANCE ========== -->
+<section class="sec sec-alt" id="trust">
+<div class="wrap rv">
+  <div class="eyebrow">Trust</div>
+  <h2>Built on consent, verified by linguists, held in trust.</h2>
+
+  <div class="principles">
+    <div class="principle">
+      <h3>Consent-first.</h3>
+      <p>No voice data enters the Bank without the contributor's explicit, informed consent for public release. Contributors can withdraw their consent at any time, and we honour withdrawal within 30 days of request. We publish a plain-English consent policy and are governed by UK and international data protection law.</p>
+    </div>
+    <div class="principle">
+      <h3>Linguistically verified.</h3>
+      <p>We work with trained linguists for every language in the Bank. Every recording is verified for accuracy of transcription, annotation, and language tagging before archival. We publish verification standards and audit reports annually.</p>
+    </div>
+    <div class="principle">
+      <h3>Open by default, protected where needed.</h3>
+      <p>All Bank data is released under an open licence. In specific cases (sensitive content, contributor requests, cultural sensitivity), access may be gated to approved researchers with ethics committee review. Access policies are published and reviewed with partners.</p>
+    </div>
+  </div>
+
+  <p class="sub" style="margin-top:28px;font-size:.95rem;max-width:64ch">We are preparing a formal governance board of UK and international linguists, data ethicists, Commonwealth cultural representatives, and public-interest technologists, to be convened before the Bank's public release.</p>
+</div>
+</section>
+
+<!-- ========== ROADMAP ========== -->
+<section class="sec" id="roadmap">
+<div class="wrap rv">
+  <div class="eyebrow">Roadmap</div>
+  <h2>Where we are, where we are going.</h2>
+
+  <div class="milestones">
+    <div class="ms">
+      <div class="ms-date">Q4 2026</div>
+      <div class="ms-dot"></div>
+      <div class="ms-body"><p><strong>Now.</strong> Initiative publicly announced. Partnership conversations begin with UK institutions. Interest registration opens.</p></div>
+    </div>
+    <div class="ms">
+      <div class="ms-date">Q1 2027</div>
+      <div class="ms-dot"></div>
+      <div class="ms-body"><p>Governance board convened. First pilot deposits of Nigerian Pidgin and Yoruba, approximately 100 hours.</p></div>
+    </div>
+    <div class="ms">
+      <div class="ms-date">Q2 2027</div>
+      <div class="ms-dot"></div>
+      <div class="ms-body"><p><strong>Public launch.</strong> First 10 African languages, approximately 1,000 hours. API and bulk download opened.</p></div>
+    </div>
+    <div class="ms">
+      <div class="ms-date">Q3 2027</div>
+      <div class="ms-dot"></div>
+      <div class="ms-body"><p>Expansion to 15 African languages. First academic partnerships signed. Content curation tools launched.</p></div>
+    </div>
+    <div class="ms">
+      <div class="ms-date">Q4 2027</div>
+      <div class="ms-dot"></div>
+      <div class="ms-body"><p>10,000 hours across 25 African languages. First Commonwealth language deposits.</p></div>
+    </div>
+    <div class="ms">
+      <div class="ms-date">2028</div>
+      <div class="ms-dot"></div>
+      <div class="ms-body"><p>Expansion to Commonwealth languages (Caribbean, South Asian, Pacific). Educational partnerships at scale.</p></div>
+    </div>
+    <div class="ms">
+      <div class="ms-date">2029+</div>
+      <div class="ms-dot"></div>
+      <div class="ms-body"><p>Global under-represented languages. Governance board expansion. Target: 100,000 hours across 100+ languages by 2030.</p></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ========== SUPPORTERS ========== -->
+<section class="sec sec-alt" id="partners">
+<div class="wrap rv">
+  <div class="eyebrow">Partners</div>
+  <h2>Backed by Britain's innovation ecosystem.</h2>
+  <p class="sub" style="max-width:64ch">We are in conversation with UK Government, academic institutions, and ecosystem partners who share our mission. Confirmed partners will be listed here as agreements are finalised.</p>
+
+  <div class="logo-grid">
+    <div class="logo-slot"></div>
+    <div class="logo-slot"></div>
+    <div class="logo-slot"></div>
+    <div class="logo-slot"></div>
+    <div class="logo-slot"></div>
+    <div class="logo-slot"></div>
+  </div>
+</div>
+</section>
+
+<!-- ========== CTA / REGISTRATION ========== -->
+<section class="sec sec-amber" id="register">
+<div class="wrap rv">
+  <div class="eyebrow" style="color:var(--acc2)">Get involved</div>
+  <h2>Be part of the Bank from day one.</h2>
+
+  <div class="cta-cards">
+    <div class="cta-card">
+      <h3>Register interest</h3>
+      <p>Get notified when the Bank launches in Q2 2027. We will share updates on deposits, API access, and partnership opportunities.</p>
+      <a class="btn btn-a" href="#register-form">Register below <span class="ar">↓</span></a>
+    </div>
+    <div class="cta-card">
+      <h3>Partner with us</h3>
+      <p>Universities, government bodies, foundations, and ecosystem partners: get in touch about formal partnerships, dataset access priorities, and governance board participation.</p>
+      <a class="btn btn-g" href="mailto:hello@accentstudio.io?subject=British%20Voices%20Bank%20%E2%80%94%20Partnership%20inquiry">Get in touch <span class="ar">→</span></a>
+    </div>
+    <div class="cta-card">
+      <h3>Contribute your voice</h3>
+      <p>Native speakers of under-represented languages: get paid to contribute, help build the Bank, keep your language speakable to the future.</p>
+      <a class="btn btn-g" href="#contribute">Learn more <span class="ar">↓</span></a>
+    </div>
+    <div class="cta-card">
+      <h3>Press and media</h3>
+      <p>Journalists, researchers, and policy writers covering AI inclusion, language preservation, and UK AI policy.</p>
+      <a class="btn btn-g" href="mailto:hello@accentstudio.io?subject=British%20Voices%20Bank%20%E2%80%94%20Press%20inquiry">Press contact <span class="ar">→</span></a>
+    </div>
+  </div>
+
+  <div class="form-wrap" id="register-form">
+    <h3>Register your interest</h3>
+    <p style="color:var(--ink2);font-size:.92rem;margin-bottom:20px">We will notify you when the Bank launches and share updates on deposits, API access, and partnership opportunities.</p>
+    <form id="bvbForm" autocomplete="on">
+      <div class="field">
+        <label for="rf-name">Your name</label>
+        <input type="text" id="rf-name" name="name" required autocomplete="name" placeholder="Full name">
+      </div>
+      <div class="field">
+        <label for="rf-email">Email address</label>
+        <input type="email" id="rf-email" name="email" required autocomplete="email" placeholder="you@example.org">
+      </div>
+      <div class="field">
+        <label for="rf-org">Organisation <span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--faint)">(optional)</span></label>
+        <input type="text" id="rf-org" name="org" autocomplete="organization" placeholder="University, department, company, or public body">
+      </div>
+      <div class="field">
+        <label for="rf-type">I am a</label>
+        <select id="rf-type" name="audience_type">
+          <option value="">Select one</option>
+          <option value="government">UK Government or public body</option>
+          <option value="academic">Academic researcher</option>
+          <option value="educator">Educator or school</option>
+          <option value="developer">Independent AI developer</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <input type="text" name="_gotcha" class="hp" tabindex="-1" autocomplete="off">
+      <button type="submit" class="btn btn-a">Register interest <span class="ar">→</span></button>
+      <div class="form-msg" id="bvbMsg" aria-live="polite"></div>
+    </form>
+  </div>
+</div>
+</section>
+
+<!-- ========== CONTRIBUTE ========== -->
+<section class="sec" id="contribute">
+<div class="wrap">
+  <div class="sub-hero rv">
+    <div class="eyebrow">Contribute</div>
+    <h2>Lend your voice, keep your language alive.</h2>
+    <p class="sub">Get paid to help build the British Voices Bank. Every voice makes the Bank bigger. Every language gets a chance.</p>
+  </div>
+  <div class="sub-body rv">
+    <h3>What it means to contribute.</h3>
+    <p>You record short pieces of speech, conversation, and language improv, guided by prompts, in your native language. Every recording is reviewed by a linguist. Every contribution gets you paid. Every voice gets credited.</p>
+
+    <h3>What you earn.</h3>
+    <p>We pay competitively for every verified minute of voice contributed. Payment rates vary by language and demand, but transparency is a core principle: our rates are published publicly on our contributor dashboard.</p>
+
+    <h3>What happens to your voice.</h3>
+    <p>Your voice data is used in two ways: in Accent Studio's commercial dataset for AI labs, and in the British Voices Bank for public use. You consent to both uses explicitly before you begin. You can withdraw at any time.</p>
+
+    <h3>Who can contribute.</h3>
+    <p>Native speakers of any under-represented language. Starting with African languages. Expanding to Commonwealth and global under-represented languages over 2027 and beyond.</p>
+
+    <h3>How to get started.</h3>
+    <p>Sign up at the Accent Studio contributor platform. Complete your profile and language verification. Begin contributing from your phone or computer, at your own pace.</p>
+
+    <div style="margin-top:28px">
+      <a class="btn btn-a" href="/apply">Start contributing at accentstudio.io <span class="ar">→</span></a>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ========== LICENCE ========== -->
+<section class="sec sec-alt" id="licence">
+<div class="wrap">
+  <div class="sub-hero rv">
+    <div class="eyebrow">Licence and governance</div>
+    <h2>Open by default. Governed in the public interest.</h2>
+  </div>
+  <div class="sub-body rv">
+    <h3>The licence (target).</h3>
+    <p>British Voices Bank data will be released under Creative Commons Attribution 4.0 International (CC BY 4.0), subject to final confirmation at launch. This means you can use Bank data freely for research, education, and non-commercial AI development, provided you credit the Bank and its contributors.</p>
+
+    <h3>Attribution.</h3>
+    <p>When using Bank data, cite the British Voices Bank (britishvoicesbank.org), include a reference to the specific dataset version, and credit individual contributors where they have requested named attribution.</p>
+
+    <h3>Commercial use.</h3>
+    <p>For large-scale commercial use of Bank data, please contact Accent AI Studio's commercial team at <a href="mailto:hello@accentstudio.io" style="color:var(--acc2);text-decoration:underline">hello@accentstudio.io</a>. Commercial data licences are negotiated separately and support the Bank's sustainability.</p>
+
+    <h3>Governance.</h3>
+    <p>The British Voices Bank is maintained by Accent AI Studio Ltd. Operational decisions on the Bank's content, licensing, and release are reviewed by an external governance board (in formation), composed of UK and international linguists, data ethicists, Commonwealth cultural representatives, and public-interest technologists.</p>
+
+    <h3>Consent framework.</h3>
+    <p>Full consent policy will be published at launch. Core principles: contributors give informed, specific, revocable consent before any voice data enters the Bank. Consent can be withdrawn at any time by contacting contributor support. We honour withdrawal within 30 days.</p>
+
+    <h3>Compliance.</h3>
+    <p>The Bank is operated in compliance with UK GDPR, the Data Protection Act 2018, and relevant international data protection frameworks. Full compliance statement will be published at launch.</p>
+  </div>
+</div>
+</section>
+
+<!-- ========== FOOTER ========== -->
+<footer class="foot">
+<div class="wrap">
+  <div class="foot-top">
+    <div class="foot-brand">
+      <img src="/brand/svg/lockup/accent-studio-lockup-light.svg" alt="Accent Studio" height="20">
+      <span style="color:var(--faint);font-size:.86rem">×</span>
+      <span style="font-family:var(--disp);font-weight:700;font-size:.86rem;color:var(--ink)">The British Voices Bank</span>
+    </div>
+    <div class="foot-links">
+      <a href="#mission">Mission</a>
+      <a href="#how">How it works</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="#contribute">Contribute</a>
+      <a href="#licence">Licence</a>
+      <a href="#register">Register interest</a>
+      <a href="mailto:hello@accentstudio.io">Contact</a>
+    </div>
+  </div>
+  <div class="foot-legal">
+    <a href="/privacy">Privacy</a>
+    <a href="/terms">Terms</a>
+    <a href="/cookies">Cookies</a>
+    <a href="/">accentstudio.io</a>
+  </div>
+  <p class="foot-note">The British Voices Bank is a UK-based open voice-data initiative, built and maintained by Accent AI Studio Ltd. Accent AI Studio Ltd, England.</p>
+</div>
+</footer>
+
+<script>
+(function(){
+'use strict';
+
+/* reveal on scroll */
+var obs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');obs.unobserve(e.target);}});
+},{threshold:.12});
+document.querySelectorAll('.rv').forEach(function(el){obs.observe(el);});
+
+/* mobile menu */
+var burger=document.getElementById('burger'),menu=document.getElementById('menu'),menuX=document.getElementById('menuX');
+function closeMenu(){menu.classList.remove('open');menu.setAttribute('aria-hidden','true');burger.setAttribute('aria-expanded','false');document.body.style.overflow='';}
+burger.addEventListener('click',function(){menu.classList.add('open');menu.setAttribute('aria-hidden','false');burger.setAttribute('aria-expanded','true');document.body.style.overflow='hidden';});
+menuX.addEventListener('click',closeMenu);
+menu.querySelectorAll('a').forEach(function(a){a.addEventListener('click',closeMenu);});
+
+/* registration form → Supabase bvb_registrations */
+var SB_URL='https://uazcoxinsnkjjogfovlg.supabase.co',SB_KEY='sb_publishable_cV8x-VgtGRj26so-iS9kgQ_MjvbYZzJ';
+var form=document.getElementById('bvbForm'),msg=document.getElementById('bvbMsg'),sbtn=form.querySelector('button[type=submit]');
+
+form.addEventListener('submit',function(e){
+  e.preventDefault();
+  var name=form.elements.namedItem('name').value.trim();
+  var email=form.elements.namedItem('email').value.trim();
+  var org=form.elements.namedItem('org').value.trim();
+  var aud=form.elements.namedItem('audience_type').value;
+
+  /* honeypot */
+  if(form._gotcha.value){msg.style.color='var(--acc2)';msg.textContent='Thank you. We will be in touch.';form.reset();return;}
+
+  if(name.length<2){msg.style.color='#c0392b';msg.textContent='Please enter your name.';return;}
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){msg.style.color='#c0392b';msg.textContent='Please enter a valid email address.';return;}
+
+  sbtn.disabled=true;msg.style.color='var(--mut)';msg.textContent='Submitting…';
+
+  fetch(SB_URL+'/rest/v1/bvb_registrations',{
+    method:'POST',
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+    body:JSON.stringify({name:name,email:email,organisation:org||null,audience_type:aud||null,user_agent:navigator.userAgent.slice(0,400)})
+  })
+  .then(function(r){
+    if(!r.ok)throw new Error('Could not submit right now. Please try again shortly.');
+    msg.style.color='var(--acc2)';
+    msg.textContent='Thank you, '+name.split(/\s+/)[0]+'. We will notify you when the Bank launches.';
+    form.reset();
+  })
+  .catch(function(err){msg.style.color='#c0392b';msg.textContent=err.message||'Something went wrong. Please try again.';})
+  .then(function(){sbtn.disabled=false;});
+});
+
+})();
+</script>
+</body>
+</html>
