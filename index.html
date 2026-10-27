@@ -328,6 +328,13 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
   color:var(--ak-ink);font-family:var(--sans);line-height:1.45;
 }
 .ank *{min-width:0}
+/* The dark page styles p directly, and a rule always beats inheritance, so every paragraph
+   in an exhibit would come out pale grey on cream, mint or coral. Make them follow the
+   block they sit in instead. */
+.ank p{color:inherit}
+/* The caption sits outside the phone, on the dark page, so it keeps the page's own colour
+   rather than the ink this scope sets for everything inside the handset. */
+.ank .cap{color:var(--ink2)}
 
 /* ---- device ---- */
 .ank-phone{position:relative;display:flex;flex-direction:column;width:100%;background:var(--ak-paper);border:2px solid var(--ak-ink);border-radius:34px;overflow:hidden;isolation:isolate;box-shadow:8px 8px 0 var(--ak-mint)}
@@ -481,7 +488,10 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
 .ank-top{display:flex;align-items:center;gap:9px;flex:none}
 .ank-top .ank-lab{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ank-top>div{flex:1;min-width:0}
-.ank-blk{position:relative;flex:none;border:2px solid var(--ak-ink);border-radius:18px;padding:11px 12px 10px;box-shadow:4px 4px 0 var(--ak-ink);background-clip:padding-box}
+/* The dark page sets a pale body colour on p and friends. Inside a cream exhibit that
+   lands as grey on mint or coral and all but disappears, so the block owns its own ink
+   and everything in it inherits. .inkb overrides to cream below. */
+.ank-blk{position:relative;flex:none;border:2px solid var(--ak-ink);border-radius:18px;padding:11px 12px 10px;box-shadow:4px 4px 0 var(--ak-ink);background-clip:padding-box;color:var(--ak-ink)}
 .ank-blk>*{position:relative;z-index:1}
 .ank-blk::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0}
 .ank-blk.mint{background:var(--ak-mint)}
@@ -497,7 +507,7 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
 .ank-lab{font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:.12em;text-transform:uppercase}
 .ank-lab.mut{color:var(--ak-mut)}
 .ank-blk h4,.ank-row h4{font-family:var(--disp);font-weight:800;font-size:17px;line-height:1.1;letter-spacing:-.03em;margin:4px 0 0}
-.ank-blk p{font-size:12.5px;font-weight:500;line-height:1.35;margin:4px 0 0}
+.ank-blk p{font-size:12.5px;font-weight:500;line-height:1.35;margin:4px 0 0;color:inherit}
 .ank-money{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin:3px 0}
 .ank-money b{font-family:var(--disp);font-weight:800;font-size:34px;line-height:1;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
 .ank-money span{font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:-.02em}
