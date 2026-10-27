@@ -16,8 +16,9 @@ import { Projects } from "@/routes/Projects";
 import { Team } from "@/routes/Team";
 import { Contributors } from "@/routes/Contributors";
 import { Audit } from "@/routes/Audit";
+import { RallyBoard } from "@/routes/RallyBoard";
 
-type View = "home" | "settings" | "applications" | "labs" | "cards" | "verify" | "audit" | "integrity" | "payouts" | "projects" | "team" | "contributors";
+type View = "home" | "settings" | "applications" | "labs" | "cards" | "rallies" | "verify" | "audit" | "integrity" | "payouts" | "projects" | "team" | "contributors";
 
 /** The signed-in studio: one shell, a sidebar (or a strip on phones) with what is waiting, and the current screen inside it. */
 export function Studio() {
@@ -46,6 +47,7 @@ export function Studio() {
     { key: "home", label: "Home" },
     ...(staff
       ? [
+          { key: "rallies", label: "Rally board", group: "The floor" },
           { key: "verify", label: "Queue", group: "Cutting Room", count: ov?.cutting_room.queue },
           { key: "audit", label: "Audit", group: "Cutting Room", count: ov?.cutting_room.audit_pending },
           { key: "integrity", label: "Cases", group: "Cutting Room", count: ov?.cutting_room.cases_open, accent: "gold" as const },
@@ -80,9 +82,12 @@ export function Studio() {
         { key: "integrity", label: "Cases", icon: "cases" },
         { key: "settings", label: "You", icon: "you" },
       ];
-  const dockActive = dockTabs.some((t) => t.key === view) ? view : view === "audit" || view === "integrity" ? "verify" : view === "applications" || view === "team" ? "contributors" : view === "labs" || view === "cards" ? "projects" : "home";
+  const dockActive = dockTabs.some((t) => t.key === view) ? view : view === "audit" || view === "integrity" || view === "rallies" ? "verify" : view === "applications" || view === "team" ? "contributors" : view === "labs" || view === "cards" ? "projects" : "home";
   let content: ReactNode;
   switch (view) {
+    case "rallies":
+      content = <RallyBoard onBack={() => go("home")} embedded />;
+      break;
     case "settings":
       content = <Settings onBack={() => go("home")} />;
       break;
