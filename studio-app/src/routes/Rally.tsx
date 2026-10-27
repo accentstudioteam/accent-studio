@@ -268,6 +268,18 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
 
   // presentation only
   const [rules, setRules] = useState<"shut" | "open" | "closing">("shut");
+  // Shown on every open, in-progress rallies included: the warning only works if it is unmissable.
+  const [names, setNames] = useState<"shut" | "open" | "closing">("shut");
+  const warned = useRef(false);
+  useEffect(() => {
+    if (!r || warned.current) return;
+    warned.current = true;
+    setNames("open");
+  }, [r]);
+  const closeNames = useCallback(() => {
+    setNames("closing");
+    window.setTimeout(() => setNames("shut"), reduced() ? 10 : 240);
+  }, []);
   const [cardOpen, setCardOpen] = useState(true);
   const [atBottom, setAtBottom] = useState(true);
   const threadRef = useRef<HTMLDivElement | null>(null);
@@ -560,7 +572,7 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
           <div className="hdr-partner">
             <Ava who={partner} size={36} className="p-ava" />
             <div className="p-text">
-              <span className="p-name">{r.has_partner ? "Partner" : "Finding a partner"}</span>
+              <span className="p-name">{r.has_partner ? r.partner_alias ?? "Partner" : "Finding a partner"}</span>
               <span className="p-title">{r.card.title}</span>
             </div>
           </div>
@@ -722,6 +734,26 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
       </div>
 
       {composer && <div className="composer card">{composer}</div>}
+
+      <div className={`sheet-wrap${names === "open" ? " open" : names === "closing" ? " closing" : ""}`} hidden={names === "shut"}>
+        <button className="scrim" type="button" aria-label="Close" tabIndex={-1} onClick={closeNames} />
+        <div className="sheet" role="dialog" aria-modal="true" aria-labelledby="names-title">
+          <div className="grab" aria-hidden="true" />
+          <div className="eyebrow">Before you record</div>
+          <h2 id="names-title">Keep real names out of it.</h2>
+          <p style={{ marginBottom: 14 }}>
+            In here you are <strong>{r.my_alias ?? "your alias"}</strong>, and that is all your partner ever learns about you.
+            Everything you record becomes part of a dataset other people will hear, so anything you say out loud stays in it.
+          </p>
+          <ol className="rules">
+            <li>Don't say your own name, and don't ask your partner for theirs.</li>
+            <li>Leave out phone numbers, addresses, your workplace or your school.</li>
+            <li>Play the person on the card. Invent a name if the scene needs one.</li>
+            <li>If a real name slips out, record the take again. You can redo up to {maxAttempts} times.</li>
+          </ol>
+          <button className="btn btn-mint btn-block" type="button" onClick={closeNames}>Got it</button>
+        </div>
+      </div>
 
       <div className={`sheet-wrap${rules === "open" ? " open" : rules === "closing" ? " closing" : ""}`} hidden={rules === "shut"}>
         <button className="scrim" type="button" aria-label="Close rules" tabIndex={-1} onClick={() => { setRules("closing"); window.setTimeout(() => setRules("shut"), reduced() ? 10 : 240); }} />

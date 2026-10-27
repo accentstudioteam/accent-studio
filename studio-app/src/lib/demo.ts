@@ -174,6 +174,8 @@ export const demo = {
       turns_target: TURNS_TARGET,
       card: { title: s.card.title, situation: s.card.situation, persona: s.card.persona_a, partner_persona: s.card.persona_b, audio_path: null, domain: s.card.domain },
       my_speaker_id: ME,
+      my_alias: "Golden Hornbill",
+      partner_alias: s.has_partner ? "Velvet Kingfisher" : null,
       i_am: "a",
       has_partner: s.has_partner,
       my_turn: s.status !== "complete" && s.status !== "abandoned" && s.next === "me" && !oweRating,

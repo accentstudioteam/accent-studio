@@ -35,6 +35,8 @@ export interface Rally {
   turns_target: number;
   card: { title: string; situation: string; persona: string; partner_persona: string; audio_path: string | null; domain: string };
   my_speaker_id: string;
+  my_alias: string | null;
+  partner_alias: string | null;
   i_am: "a" | "b";
   has_partner: boolean;
   my_turn: boolean;
