@@ -4,10 +4,11 @@ import type { Onboarding } from "@/lib/types";
 import { demo, isDemo } from "@/lib/demo";
 import { demoAccount } from "@/lib/demoAccount";
 import { myCases, daysLeft, type MyCase } from "@/lib/verify";
-import { money, myEarnings, type MyEarnings } from "@/lib/earn";
+import { money, myEarnings, myProvisional, type MyEarnings, type Provisional } from "@/lib/earn";
 import { lagos, mine as arenaMine, untilLabel, type Mine as ArenaMine } from "@/lib/arena";
-import { avatarFor } from "@/components/ankara-avatars";
+import { avatarById, avatarFor } from "@/components/ankara-avatars";
 import { Ava, IcArrow, Notice, Page, Seats } from "@/components/ankara-ui";
+import { ProvisionalStrip } from "@/components/provisional";
 
 /* ============================================================================
    Home in the approved "Ankara Blocks" direction.
@@ -30,6 +31,7 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, on
   const [rallies, setRallies] = useState<RallySummary[]>([]);
   const [notices, setNotices] = useState<MyCase[]>([]);
   const [earn, setEarn] = useState<MyEarnings | null>(null);
+  const [prov, setProv] = useState<Provisional | null>(null);
   const [arena, setArena] = useState<ArenaMine | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const language = me.contributor?.primary_language ?? "pcm";
@@ -40,6 +42,7 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, on
       setRallies(rs);
       setNotices(await myCases().catch(() => []));
       setEarn(await myEarnings().catch(() => null));
+      setProv(await myProvisional().catch(() => null));
       const ar = await arenaMine().catch(() => null);
       setArena(ar);
       const soonMs = 60 * 60_000;
@@ -76,7 +79,7 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, on
   return (
     <Page>
       <div className="topbar">
-        <Ava who={avatarFor(speakerId)} size={46} />
+        <Ava who={me.contributor?.avatar ? avatarById(me.contributor.avatar) : avatarFor(speakerId)} size={46} />
         <div>
           <div className="lab muted">Playing in · {LANG_NAME[language] ?? language}</div>
           <h1 className="hi">Today.</h1>
@@ -122,6 +125,8 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, on
           </div>
         </button>
       )}
+
+      {prov && <ProvisionalStrip p={prov} onOpenMoney={onEarnings} />}
 
       <div className="blk blk-lilac pat-dia-6 livecard">
         <div className="lt">
@@ -192,7 +197,7 @@ function RallyRow({ r, onOpen, accent }: { r: RallySummary; onOpen: (id: string)
   const sub = r.status === "complete" ? `Complete · ${r.turn_count} turns` : r.status === "abandoned" ? (r.abandoned_reason === "partner_quiet" ? "Partner went quiet · your takes are kept" : "Closed") : r.my_turn ? (r.turn_count === 0 ? "Record the first turn" : `Rate your partner, then record · due ${dueLabel(r.due_at)}`) : r.waiting_for_partner ? "Your take is in. Waiting for a partner to join" : `Partner's turn · due ${dueLabel(r.due_at)}`;
   return (
     <button type="button" className="card rally-row" onClick={() => onOpen(r.session_id)}>
-      <Ava who={avatarFor(r.session_id, 5)} size={36} />
+      <Ava who={r.partner_avatar ? avatarById(r.partner_avatar) : avatarFor(r.session_id, 5)} size={36} />
       <div>
         <b>{r.title}</b>
         <small>{sub} · {when}</small>

@@ -3,7 +3,7 @@
 // (the chat artifact sets it). Partner turns use the founders' recorded scene clips.
 import type { Browse, BrowseRally, PlayerProject, Rally, RallySummary, RallyTurn } from "@/lib/game";
 import type { Onboarding } from "@/lib/types";
-import type { EarningLine, MyEarnings, PayoutRow } from "@/lib/earn";
+import type { EarningLine, MyEarnings, PayoutRow, Provisional, ProvisionalRally } from "@/lib/earn";
 
 declare global {
   interface Window {
@@ -143,7 +143,56 @@ const ledger: { lines: EarningLine[]; payouts: PayoutRow[] } = {
   payouts: [{ id: "po-0", requested_at: daysAgo(30), rail: "paystack", amount_usd: 5.2, status: "paid", paid_at: daysAgo(28), reference: "PSK-88213" }],
 };
 
+/* --- Recorded, not checked yet ---------------------------------------------
+   my_provisional_earnings, in memory. The server prices unverified seconds at
+   the lowest tier in quality_tiers; the demo config is the live one, so that is
+   $16 an hour times 0.5. Four rallies are seeded as already closed and waiting
+   on a linguist, one is seeded under a clause 15 check so the held branch has
+   something to show, and anything you record in the demo is added on top: the
+   figure moves as you play, which is the whole point of the screen. */
+const PROV_RATE = 16;
+const PROV_CUR = 1; // the demo contributor sits at gold, the headline rate
+const PROV_TOP = 1.2;
+const provSeedRows = (): ProvisionalRally[] =>
+  [
+    { title: "Market Day", d: 0.3, seconds: 118, held: false },
+    { title: "Banking Wahala", d: 0.8, seconds: 104, held: false },
+    { title: "Danfo Fare", d: 1.4, seconds: 96, held: false },
+    { title: "Tailor Deadline", d: 2.1, seconds: 131, held: false },
+    { title: "Meter Palava", d: 3.2, seconds: 88, held: true },
+  ].map((r, i) => ({ session_id: `prov-${i}`, title: r.title, date: daysAgo(r.d), seconds: r.seconds, base_rate_usd: PROV_RATE, estimate_usd: provUsd(r.seconds), stage: "reviewing" as const, held: r.held }));
+const provUsd = (seconds: number) => Math.round((seconds / 3600) * PROV_RATE * PROV_CUR * 100) / 100;
+let provSeed = provSeedRows();
+
 export const demo = {
+  /** my_provisional_earnings: the seeded rallies plus everything recorded in this run. */
+  myProvisional: async (): Promise<Provisional> => {
+    const live: ProvisionalRally[] = state.sessions
+      .map((s) => {
+        const seconds = latestByTurn(s).filter((t) => t.mine).reduce((n, t) => n + t.seconds, 0);
+        return { session_id: s.id, title: s.card.title, date: s.updated_at, seconds, base_rate_usd: PROV_RATE, estimate_usd: provUsd(seconds), stage: (s.status === "waiting" || s.status === "active" ? "recording" : "reviewing") as ProvisionalRally["stage"], held: false };
+      })
+      .filter((r) => r.seconds > 0);
+    const rallies = [...live, ...provSeed].sort((a, b) => (a.date < b.date ? 1 : -1));
+    const open = rallies.filter((r) => !r.held);
+    const sum = (rs: ProvisionalRally[]) => Math.round(rs.reduce((n, r) => n + (r.seconds / 3600) * PROV_RATE * PROV_CUR, 0) * 100) / 100;
+    const held = rallies.filter((r) => r.held);
+    return {
+      pending_seconds: open.reduce((n, r) => n + r.seconds, 0),
+      pending_rallies: open.length,
+      estimate_usd: sum(open),
+      recording_usd: sum(open.filter((r) => r.stage === "recording")),
+      reviewing_usd: sum(open.filter((r) => r.stage === "reviewing")),
+      multiplier: PROV_CUR,
+      tier: "gold",
+      top_multiplier: PROV_TOP,
+      base_rate_usd: open.length > 0 ? PROV_RATE : null,
+      held_seconds: held.reduce((n, r) => n + r.seconds, 0),
+      held_rallies: held.length,
+      rallies,
+    };
+  },
+
   /** The player's earnings screen on the in-memory ledger. */
   myEarnings: async (): Promise<MyEarnings> => {
     const sum = (st: EarningLine["status"]) => Math.round(ledger.lines.filter((l) => l.status === st).reduce((n, l) => n + l.amount_usd, 0) * 100) / 100;
@@ -324,6 +373,7 @@ export const demo = {
     state.sessions = [];
     state.pool = seedPool();
     state.blobs = {};
+    provSeed = provSeedRows();
   },
 };
 
@@ -373,3 +423,4 @@ function schedulePartner(s: DemoSession, redoOnly = false) {
     });
   });
 }
+

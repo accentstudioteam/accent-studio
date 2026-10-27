@@ -19,6 +19,10 @@ export interface Project {
   status: ProjectStatus;
   notes: string | null;
   created_at: string;
+  /** US dollars per verified hour, before the quality multiplier. Null or absent: this project has no rate of its own. */
+  base_rate_usd?: number | string | null;
+  /** What this project would pay with no rate of its own: the global scarce/standard rate for its language. */
+  fallback_rate_usd?: number | string | null;
   contributors: number;
   available_seconds: number;
   available_sessions: number;
@@ -36,6 +40,11 @@ export interface ProjectInput {
   deadline: string | null;
   status: ProjectStatus;
   notes: string;
+}
+export interface RateResult {
+  ok: boolean;
+  base_rate_usd: number | null;
+  fallback_rate_usd: number;
 }
 export interface Plan {
   sessions: number;
@@ -79,6 +88,10 @@ export interface ExportStep {
 }
 
 export const TIER_LABEL: Record<Tier, string> = { standard: "Standard · non-exclusive", aligned: "Aligned · non-exclusive", exclusive: "Exclusive" };
+/** The band the database accepts for a project's pay rate, in USD per verified hour. */
+export const RATE_MIN = 0.01;
+export const RATE_MAX = 500;
+export const rateOf = (r: number | string | null | undefined): number | null => (r === null || r === undefined || r === "" ? null : Number(r));
 export const hoursOf = (s: number | string) => `${(Number(s) / 3600).toFixed(1)} h`;
 export const sizeOf = (b: number) => (b > 1_048_576 ? `${(b / 1_048_576).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`);
 
@@ -91,6 +104,11 @@ async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
 export const projects = (): Promise<Project[]> => (isDemo() ? demoVerify.projects() : rpc<Project[]>("projects_overview"));
 export const saveProject = (i: ProjectInput): Promise<{ id: string }> =>
   isDemo() ? demoVerify.saveProject(i) : rpc<{ id: string }>("project_save", { pid: i.id, name: i.name, buyer: i.buyer, language: i.language, target_hours: i.target_hours, tier: i.tier, deadline: i.deadline, status: i.status, notes: i.notes });
+/** Sets this project's pay rate in USD per verified hour; null clears it, back to the global rate. Admins only. */
+export const setProjectRate = (pid: string, rate: number | null): Promise<RateResult> => {
+  if (isDemo()) return Promise.reject(new Error("Pay rates are read-only inside the chat demo."));
+  return rpc<RateResult>("project_rate_set", { pid, rate });
+};
 export const deliveryPlan = (pid: string): Promise<Plan> => (isDemo() ? demoVerify.deliveryPlan(pid) : rpc<Plan>("delivery_plan", { pid }));
 export const createDelivery = (pid: string, note: string): Promise<{ delivery_id: string; bundle_id: string; sessions: number; files: number }> =>
   isDemo() ? demoVerify.createDelivery(pid, note) : rpc<{ delivery_id: string; bundle_id: string; sessions: number; files: number }>("delivery_create", { pid, note });

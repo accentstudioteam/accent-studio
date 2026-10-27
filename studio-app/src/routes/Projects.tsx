@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
 import { LANG_NAME } from "@/lib/game";
 import { when } from "@/lib/verify";
-import { TIER_LABEL, buildBundle, createDelivery, deliveries as listDeliveries, deliveryPlan, downloadBundle, hoursOf, manifestPreview, projects as listProjects, saveProject, sizeOf, type Delivery, type Plan, type Project, type ProjectInput, type Tier } from "@/lib/projects";
+import { RATE_MAX, RATE_MIN, TIER_LABEL, buildBundle, createDelivery, deliveries as listDeliveries, deliveryPlan, downloadBundle, hoursOf, manifestPreview, projects as listProjects, rateOf, saveProject, setProjectRate, sizeOf, type Delivery, type Plan, type Project, type ProjectInput, type Tier } from "@/lib/projects";
+import { money } from "@/lib/earn";
 import { TURN_CAP_SECONDS, TURN_MAX, TURN_MIN, approvePlan, cancelPlan, draftPlan, listPlans, recomputeTotals, rejectPlan, type PlanInputs, type PlanRow, type PlanScene } from "@/lib/corpus";
 import { isDemo } from "@/lib/demo";
 
@@ -116,6 +117,7 @@ function ProjectSheet({ p, open, onToggle, onEdit, onChanged }: { p: Project; op
   const [preview, setPreview] = useState<{ id: string; text: string } | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const pct = p.target_hours > 0 ? Math.min(100, Math.round((Number(p.delivered_seconds) / 3600 / Number(p.target_hours)) * 100)) : 0;
+  const payRate = rateOf(p.base_rate_usd) ?? rateOf(p.fallback_rate_usd); // what a rally verified now would pay
 
   const loadDels = useCallback(async () => {
     try {
@@ -193,7 +195,7 @@ function ProjectSheet({ p, open, onToggle, onEdit, onChanged }: { p: Project; op
         <div className="spread" style={{ alignItems: "flex-start", gap: 12 }}>
           <div>
             <div className="ttitle">{p.name}</div>
-            <div className="tbody muted" style={{ marginTop: 4, fontSize: "0.85rem" }}>{p.buyer || "no buyer yet"} · {LANG_NAME[p.language] ?? p.language} · {TIER_LABEL[p.tier]}{p.deadline ? ` · due ${p.deadline}` : ""}</div>
+            <div className="tbody muted" style={{ marginTop: 4, fontSize: "0.85rem" }}>{p.buyer || "no buyer yet"} · {LANG_NAME[p.language] ?? p.language} · {TIER_LABEL[p.tier]}{p.deadline ? ` · due ${p.deadline}` : ""}{payRate === null ? "" : ` · ${money(payRate)}/verified hour${rateOf(p.base_rate_usd) === null ? " (global)" : ""}`}</div>
           </div>
           <span className="chip" style={{ flex: "none" }}>{p.status}</span>
         </div>
@@ -209,6 +211,7 @@ function ProjectSheet({ p, open, onToggle, onEdit, onChanged }: { p: Project; op
 
       {open && (
         <>
+          <PayRate p={p} onChanged={onChanged} />
           <CorpusPlanner p={p} />
           <div className="tile dash">
             <div className="tlbl">Build a delivery</div>
@@ -256,6 +259,82 @@ function ProjectSheet({ p, open, onToggle, onEdit, onChanged }: { p: Project; op
           <button className="pill ghost" onClick={onEdit}>Edit the project</button>
         </>
       )}
+    </div>
+  );
+}
+
+/** What this project pays a contributor: US dollars per verified hour of recorded speech, before the
+ *  quality multiplier. Unset means it pays the global rate, and the founder can see what that is here. */
+function PayRate({ p, onChanged }: { p: Project; onChanged: () => Promise<void> }) {
+  const own = rateOf(p.base_rate_usd);
+  const fallback = rateOf(p.fallback_rate_usd);
+  const paid = own ?? fallback; // what a rally verified right now would be paid at
+  const [draft, setDraft] = useState(own === null ? "" : String(own));
+  const [editing, setEditing] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [said, setSaid] = useState<string | null>(null);
+
+  useEffect(() => {
+    setDraft(own === null ? "" : String(own));
+  }, [own]);
+
+  const typed = Number(draft);
+  const valid = draft.trim() !== "" && Number.isFinite(typed) && typed >= RATE_MIN && typed <= RATE_MAX;
+
+  const commit = async (rate: number | null) => {
+    setBusy(rate === null ? "clear" : "save");
+    setErr(null);
+    setSaid(null);
+    try {
+      const out = await setProjectRate(p.id, rate);
+      setSaid(rate === null ? `Cleared. This project now pays the global rate, ${money(out.fallback_rate_usd)} per verified hour.` : `Saved. This project now pays ${money(out.base_rate_usd)} per verified hour.`);
+      setEditing(false);
+      await onChanged();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message.replace(/^.*?: /, "") : "Couldn't change the rate.");
+    }
+    setBusy(null);
+  };
+
+  return (
+    <div className="tile dash">
+      <div className="spread" style={{ alignItems: "flex-start", gap: 10, marginBottom: 6 }}>
+        <div className="tlbl" style={{ marginBottom: 0 }}>Pay rate</div>
+        <span className="chip" style={{ flex: "none", borderColor: own === null ? undefined : "var(--acc)", color: own === null ? undefined : "var(--acc)" }}>{own === null ? "global rate" : "set for this project"}</span>
+      </div>
+      <div className="tbody" style={{ marginBottom: 6 }}>
+        {paid === null ? "No rate to show." : <>Pays <b>{money(paid)}</b> per verified hour <span className="muted">(US$ / verified hour of recorded speech, before the quality multiplier)</span></>}
+      </div>
+      <div className="tbody muted small">
+        {own === null
+          ? <>This project has no rate of its own, so it pays the global rate for {LANG_NAME[p.language] ?? p.language}{fallback === null ? "" : <>, <b>{money(fallback)}</b> per verified hour</>}. Set one to pay this project's contributors differently.</>
+          : <>Unset, it would pay the global rate{fallback === null ? "" : <> of <b>{money(fallback)}</b></>} per verified hour.</>}
+        {paid !== null && <> An hour of verified speech earns {money(paid)} at gold (×1.0) and {money(paid * 1.2)} at platinum (×1.2); the quality multiplier is applied on top of this rate, not inside it.</>}
+      </div>
+      <div className="tbody muted small" style={{ marginTop: 6 }}>Changing the rate only touches rallies verified from here on. Earnings already posted keep the rate they were paid at, and payouts already queued are untouched.</div>
+
+      {editing ? (
+        <>
+          <div className="field" style={{ marginTop: 10 }}>
+            <label>Rate · US dollars per verified hour (before the quality multiplier)</label>
+            <input type="number" inputMode="decimal" min={RATE_MIN} max={RATE_MAX} step={0.5} value={draft} autoFocus placeholder={fallback === null ? "e.g. 25" : String(fallback)} onChange={(e) => setDraft(e.target.value)} />
+          </div>
+          {draft.trim() !== "" && !valid && <div className="tbody small" style={{ color: "var(--coral)" }}>The rate has to be between {money(RATE_MIN)} and {money(RATE_MAX)} per verified hour.</div>}
+          <div className="btn-row">
+            <button className="pill mint" disabled={busy !== null || !valid} onClick={() => void commit(typed)}>{busy === "save" ? "Saving…" : "Save the rate"}</button>
+            <button className="pill ghost" disabled={busy !== null} onClick={() => { setEditing(false); setDraft(own === null ? "" : String(own)); setErr(null); }}>Cancel</button>
+          </div>
+        </>
+      ) : (
+        <div className="btn-row">
+          <button className="pill ghost" disabled={busy !== null || isDemo()} onClick={() => { setEditing(true); setSaid(null); setErr(null); }}>{own === null ? "Set a rate for this project" : "Change the rate"}</button>
+          {own !== null && <button className="pill ghost" disabled={busy !== null || isDemo()} onClick={() => void commit(null)}>{busy === "clear" ? "Clearing…" : "Clear it · pay the global rate"}</button>}
+        </div>
+      )}
+      {isDemo() && <div className="tbody muted small">Pay rates are read-only inside the chat demo.</div>}
+      {said && <div className="tbody small" style={{ color: "var(--acc)", marginTop: 8 }}>{said}</div>}
+      {err && <div className="tbody small" style={{ color: "var(--coral)", marginTop: 8 }}>{err}</div>}
     </div>
   );
 }

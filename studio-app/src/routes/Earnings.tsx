@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { STATUS_WORD, TIER_WORD, ap, cancelPayout, money, monthName, myEarnings, requestPayout, type EarningLine, type MyEarnings } from "@/lib/earn";
+import { STATUS_WORD, TIER_WORD, ap, cancelPayout, money, monthName, myEarnings, myProvisional, requestPayout, type EarningLine, type MyEarnings, type Provisional } from "@/lib/earn";
 import { when } from "@/lib/verify";
 import { Notice, Page, TopBar } from "@/components/ankara-ui";
+import { ProvisionalBlock } from "@/components/provisional";
 
 interface Props {
   onBack: () => void;
@@ -22,6 +23,7 @@ const chipFor: Record<string, string> = { held: "chip-gold", cleared: "chip-mint
 
 export function Earnings({ onBack, embedded }: Props) {
   const [e, setE] = useState<MyEarnings | null>(null);
+  const [prov, setProv] = useState<Provisional | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [rail, setRail] = useState<string>("");
   const [busy, setBusy] = useState(false);
@@ -33,6 +35,8 @@ export function Earnings({ onBack, embedded }: Props) {
       setE(next);
       setRail((r) => r || next.my_rail || next.rails[0]?.key || "");
       setErr(null);
+      // An estimate is a nicety; if it fails the rest of the screen is unaffected.
+      setProv(await myProvisional().catch(() => null));
     } catch (x) {
       setErr(x instanceof Error ? x.message.replace(/^.*?: /, "") : "Couldn't load your earnings.");
     }
@@ -97,6 +101,8 @@ export function Earnings({ onBack, embedded }: Props) {
             </p>
           </div>
 
+          {prov && <ProvisionalBlock p={prov} />}
+
           <div className="card pad payout">
             <div className="eyebrow">Payout</div>
             {openPayout ? (
@@ -135,7 +141,12 @@ export function Earnings({ onBack, embedded }: Props) {
             </>
           )}
 
-          {months.length === 0 && <p className="note-p">No verified rallies yet. Earnings appear here as a linguist verifies each rally.</p>}
+          {months.length === 0 && (
+            <p className="note-p">
+              No rally of yours has been checked yet. As a linguist gets through each one it lands here as a line, with the time and the rate it was paid at.
+              {prov && prov.pending_rallies > 0 ? " What you have recorded so far is in the block above." : ""}
+            </p>
+          )}
           {months.map((m) => {
             const lines = e.lines.filter((l) => l.month === m);
             const total = lines.filter((l) => l.status !== "forfeited").reduce((n, l) => n + Number(l.amount_usd), 0);

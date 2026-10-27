@@ -13,6 +13,8 @@ export interface RallySummary {
   waiting_for_partner: boolean;
   due_at: string | null;
   abandoned_reason: "partner_quiet" | "withdrawn" | "admin" | null;
+  partner_alias?: string | null;
+  partner_avatar?: string | null;
 }
 
 export interface RallyTurn {
@@ -36,7 +38,11 @@ export interface Rally {
   card: { title: string; situation: string; persona: string; partner_persona: string; audio_path: string | null; domain: string };
   my_speaker_id: string;
   my_alias: string | null;
+  /** The stored Ankara character, a property of the person like the alias.
+   *  Optional because demo mode does not supply one; the UI falls back. */
+  my_avatar?: string | null;
   partner_alias: string | null;
+  partner_avatar?: string | null;
   i_am: "a" | "b";
   has_partner: boolean;
   my_turn: boolean;
@@ -134,6 +140,8 @@ export interface BrowseRally {
   state: BrowseState;
   /** A generated anonymous name ("Calm Squirrel"). Real names are never shown. */
   partner_alias: string | null;
+  /** The stored Ankara character that goes with that alias. */
+  partner_avatar?: string | null;
   turn_count: number;
   can_join: boolean;
 }
