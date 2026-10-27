@@ -4,6 +4,7 @@ import { uploadRecording } from "@/lib/upload";
 import { cardAudioUrl, dueLabel, LANG_NAME, loadRally, rateTurn, submitTurn, turnUrl, type Rally as RallyState, type RallyTurn } from "@/lib/game";
 import { demo, demoSampleTake, isDemo } from "@/lib/demo";
 import { avatarFor, avatarSVG, UNKNOWN_AVATAR, type AnkaraAvatar } from "@/components/ankara-avatars";
+import { haptic } from "@/lib/haptics";
 
 /* ============================================================================
    The rally screen in the approved "Ankara Blocks" direction.
@@ -182,7 +183,10 @@ function ScoreCard({ t, maxAttempts, onParty }: { t: RallyTurn; maxAttempts: num
   const [comp, setComp] = useState(reduced());
 
   useEffect(() => {
-    if (reduced()) return;
+    if (reduced()) {
+      haptic.score(r.aggregate);
+      return;
+    }
     const timers: number[] = [];
     let raf = 0;
     timers.push(window.setTimeout(() => {
@@ -197,6 +201,7 @@ function ScoreCard({ t, maxAttempts, onParty }: { t: RallyTurn; maxAttempts: num
       for (let k = 1; k <= 5; k++) timers.push(window.setTimeout(() => setLit(k), k * 90));
       timers.push(window.setTimeout(() => {
         setComp(true);
+        haptic.score(r.aggregate);
         if (r.aggregate >= 5 && box.current) onParty(box.current);
       }, 820));
     }, 300));
@@ -285,6 +290,13 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
   const threadRef = useRef<HTMLDivElement | null>(null);
   const confettiRef = useRef<HTMLDivElement | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  // Partner takes seen so far, so the poll can tell a new reply from a redraw. Null until the first load.
+  const seenTheirs = useRef<number | null>(null);
+  // Mirrors the recorder so load() can check it without taking the recorder as a dependency.
+  const capturing = useRef(false);
+  useEffect(() => {
+    capturing.current = rec.status === "recording" || rec.status === "requesting" || fake !== null;
+  }, [rec.status, fake]);
 
   // Demo: act out a recording for a few seconds, then stand in one of the founders' clips. The mic is never touched.
   const startFakeRecording = () => {
@@ -303,6 +315,10 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
   const load = useCallback(async () => {
     try {
       const next = await loadRally(sessionId);
+      // A reply that landed since the last poll. Never buzz mid-take: the mic hears the motor.
+      const theirs = next.turns.filter((t) => !t.mine).length;
+      if (seenTheirs.current !== null && theirs > seenTheirs.current && !capturing.current) haptic.reply();
+      seenTheirs.current = theirs;
       setR(next);
       if (next.status === "abandoned") setFlash(null);
       // playback links for every turn we don't have yet
@@ -345,6 +361,7 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
       }
       rec.reset();
       setProgress(null);
+      haptic.sent();
       setFlash(r.has_partner ? "Sent. Your partner is up next." : "Sent. We'll pair you with a partner; you'll see it here when they reply.");
       await load();
     } catch (e) {
@@ -362,6 +379,7 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
     try {
       const out = await rateTurn(r.rate_turn_id, scores);
       setScores({ tone: 0, prompt_adherence: 0, mood: 0, clarity: 0 });
+      haptic.rated();
       setFlash(out.redo ? `Rated ${out.aggregate.toFixed(2)}. Below 4, so your partner will say it again.` : out.complete ? `Rated ${out.aggregate.toFixed(2)}. That was the last turn. Rally complete.` : `Rated ${out.aggregate.toFixed(2)}. Now record your reply.`);
       await load();
     } catch (e) {
