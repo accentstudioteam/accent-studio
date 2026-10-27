@@ -405,15 +405,21 @@ h2 .it{font-style:italic;color:var(--acc);font-weight:700}
 .ank-play .ic-pause,.ank-note.up .ank-play .ic-play{display:none}
 .ank-note.play .ank-play .ic-pause{display:block}
 .ank-note.play .ank-play .ic-play{display:none}
-.ank-play .ank-ring{display:none;position:absolute;left:-5px;top:-5px;width:42px;height:42px;transform:rotate(-90deg);overflow:visible}
+/* Centred on the button rather than nudged by hand. The old -5px was measured off the
+   content box and ignored the 2px border, so the upload ring sat up and to the left. */
+.ank-play .ank-ring{display:none;position:absolute;left:50%;top:50%;width:42px;height:42px;transform:translate(-50%,-50%) rotate(-90deg);overflow:visible}
 .ank-note.up .ank-play .ank-ring{display:block}
 .ank-note.up .ank-play{background:var(--ak-cream);color:var(--ak-ink)}
 .ank-ring circle{fill:none;stroke-width:4}
 .ank-ring .bg{stroke:var(--ak-sand)}
 .ank-ring .fg{stroke:var(--ak-ink);stroke-dasharray:113;stroke-dashoffset:113;transition:stroke-dashoffset .14s linear}
-.ank-wave{position:relative;height:26px}
+/* Bars are a fixed 3px and flex:none, so a narrow bubble cannot shrink them and they ran
+   out past its edge. Clip at the bubble: a waveform meeting the edge reads as intended. */
+.ank-wave{position:relative;height:26px;overflow:hidden}
 .ank-wb,.ank-wf{position:absolute;inset:0;display:flex;align-items:center;gap:2px}
-.ank-wb i,.ank-wf i{display:block;width:3px;border-radius:2px;flex:none;background:var(--ak-bar)}
+/* flex:none meant a narrow bubble could not shrink them and the row ran past its edge.
+   Let them compress instead; overflow on .ank-wave stays as the backstop. */
+.ank-wb i,.ank-wf i{display:block;width:3px;border-radius:2px;flex:0 1 auto;background:var(--ak-bar)}
 .ank-wf i{background:var(--ak-ink)}
 .ank-wf{clip-path:inset(0 100% 0 0)}
 .ank-note.play .ank-wf{animation:akSweep var(--ak-dur,5s) linear forwards}
