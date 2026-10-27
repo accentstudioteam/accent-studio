@@ -14,6 +14,7 @@ import { Dock, PlayerSidebar, type DockTab } from "@/components/StudioNav";
 import { useMedia } from "@/lib/useMedia";
 import type { Onboarding } from "@/lib/types";
 import { demoOnboarding, isDemo } from "@/lib/demo";
+import { Page } from "@/components/ankara-ui";
 
 type Tab = "home" | "play" | "live" | "money" | "you";
 
@@ -42,44 +43,40 @@ export function Player() {
     void supabase.rpc("my_onboarding").then(({ data }) => setMe((data as Onboarding) ?? null));
   }, [session]);
 
-  if (!me) return <div className="full-center"><div className="spin" /></div>;
+  if (!me) return <div className="ankara page-root"><div className="scroll no-dock"><div className="sys">Opening your app</div></div></div>;
   if (!me.contributor || !me.consent || me.consent.withdrawn_at) return <Join />;
   if (me.contributor.closed_at) {
     return (
-      <div className="app">
-        <div className="topbar"><Logo height={22} /></div>
-        <div className="shell">
-          <div className="eyebrow" style={{ marginBottom: 6 }}>Clause 15</div>
-          <h1 className="h1" style={{ marginBottom: 14 }}>This account is closed.</h1>
-          <div className="tile" style={{ marginBottom: 14 }}>
-            <div className="tbody">{me.contributor.closed_reason ? `Reason: ${me.contributor.closed_reason}. ` : "The decision and its reason were sent to your registered email. "}Verified earnings from sessions not involved in the decision are still paid on the normal schedule. You can ask for the record of the case, and you can complain to your data protection authority, by writing to privacy@accentstudio.io.</div>
-          </div>
-          <button className="pill ghost" onClick={() => void signOut()}>Sign out</button>
+      <Page dock={false}>
+        <div className="topbar"><Logo height={24} tone="mono" /></div>
+        <div className="lab muted" style={{ marginTop: 18 }}>Clause 15</div>
+        <h2 className="pg">This account is closed.</h2>
+        <div className="card pad" style={{ marginTop: 14 }}>
+          <p>{me.contributor.closed_reason ? `Reason: ${me.contributor.closed_reason}. ` : "The decision and its reason were sent to your registered email. "}Verified earnings from sessions not involved in the decision are still paid on the normal schedule. You can ask for the record of the case, and you can complain to your data protection authority, by writing to privacy@accentstudio.io.</p>
         </div>
-      </div>
+        <button className="btn btn-outline btn-block signout" type="button" onClick={() => void signOut()}>Sign out</button>
+      </Page>
     );
   }
   if (me.contributor.paused_until && new Date(me.contributor.paused_until) > new Date()) {
     const until = new Date(me.contributor.paused_until).toLocaleDateString("en-GB", { day: "numeric", month: "long", timeZone: "Africa/Lagos" });
     return (
-      <div className="app">
-        <div className="topbar"><Logo height={22} /></div>
-        <div className="shell">
-          <div className="eyebrow" style={{ marginBottom: 6 }}>Paused</div>
-          <h1 className="h1" style={{ marginBottom: 14 }}>Your account is paused until {until}.</h1>
-          <div className="tile" style={{ borderColor: "var(--gold)", marginBottom: 14 }}>
-            <div className="tlbl" style={{ color: "var(--gold)" }}>Why</div>
-            <div className="tbody">{me.contributor.paused_reason ?? "A member of the team paused new sessions for now."}</div>
-          </div>
-          <div className="tile" style={{ marginBottom: 14 }}>
-            <div className="tbody">No new rallies or bookings until then. Your verified earnings are not affected and pay on the normal schedule; you can still request a payout from Money. Questions: hello@accentstudio.io.</div>
-          </div>
-          <div className="btn-row">
-            <button className="pill ghost" onClick={() => { setTab("money"); }}>Money</button>
-            <button className="pill ghost" onClick={() => void signOut()}>Sign out</button>
-          </div>
+      <Page dock={false}>
+        <div className="topbar"><Logo height={24} tone="mono" /></div>
+        <div className="lab muted" style={{ marginTop: 18 }}>Paused</div>
+        <h2 className="pg">Your account is paused until {until}.</h2>
+        <div className="blk blk-gold pat-zig-6 bal">
+          <div className="lab">Why</div>
+          <p style={{ fontSize: 14.5, fontWeight: 500, marginTop: 8, lineHeight: 1.45 }}>{me.contributor.paused_reason ?? "A member of the team paused new sessions for now."}</p>
         </div>
-      </div>
+        <div className="card pad" style={{ marginTop: 14 }}>
+          <p>No new rallies or bookings until then. Your verified earnings are not affected and pay on the normal schedule; you can still request a payout from Money. Questions: hello@accentstudio.io.</p>
+        </div>
+        <div className="btn-row" style={{ marginTop: 14 }}>
+          <button className="btn btn-outline" type="button" onClick={() => { setTab("money"); }}>Money</button>
+          <button className="btn btn-outline" type="button" onClick={() => void signOut()}>Sign out</button>
+        </div>
+      </Page>
     );
   }
 
@@ -103,7 +100,9 @@ export function Player() {
     { key: "you", label: "You", icon: "you" },
   ];
   const side = <PlayerSidebar tabs={tabs} active={tab} onPick={go} speakerId={me.contributor.speaker_id} onSignOut={() => void signOut()} />;
-  const dock = <Dock tabs={tabs} active={tab} onPick={go} />;
+  // The dock sits on top of the Ankara screens, so it wears the skin's own dock (tokens.css, `.ankara .dock`).
+  // The studio's dock is left exactly as it was: only the player passes `skin`.
+  const dock = <Dock tabs={tabs} active={tab} onPick={go} skin="ankara" />;
   const frame = (node: JSX.Element) => (desk ? <div className="player-desk">{side}<main className="player-main">{node}</main></div> : node);
 
   // Leaf screens stand alone on a phone (their own back link); on a desk they sit in the main column beside the sidebar.
@@ -124,7 +123,12 @@ export function Player() {
           {rally ? (
             <Rally key={rally} sessionId={rally} onBack={() => setRally(null)} />
           ) : (
-            <div className="shell"><div className="empty" style={{ marginTop: 32 }}><b>Pick a rally.</b><span>Your turn first, then the ones waiting on a partner, then the closed ones. Or start a new one from the list.</span></div></div>
+            <Page dock={false}>
+              <div className="card pad" style={{ marginTop: 32 }}>
+                <h3>Pick a rally.</h3>
+                <p>Your turn first, then the ones waiting on a partner, then the closed ones. Or start a new one from the list.</p>
+              </div>
+            </Page>
           )}
         </div>
       </div>
@@ -132,5 +136,6 @@ export function Player() {
   } else screen = <PlayerHome {...homeProps} mode={tab === "play" ? "play" : "home"} />;
 
   if (desk) return <div className="player-desk">{side}<main className="player-main">{screen}</main></div>;
-  return <div className="has-dock">{screen}{dock}</div>;
+  // `.ankara` on the frame is what puts the dock in the skin; the screen inside carries its own.
+  return <div className="ankara has-dock">{screen}{dock}</div>;
 }

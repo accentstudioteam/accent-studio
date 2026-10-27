@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Logo } from "../components/Logo";
+import { Notice, Page } from "@/components/ankara-ui";
 
+/** The front door, in the "Ankara Blocks" direction. The magic-link call and its
+ * redirect are exactly as they were; only the markup changed. */
 export function SignIn() {
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState("");
@@ -33,38 +36,22 @@ export function SignIn() {
   }
 
   return (
-    <div className="full-center">
-      <div style={{ width: "100%", maxWidth: 380 }}>
-        <div style={{ marginBottom: 26 }}><Logo height={26} /></div>
-        <div className="eyebrow">Private preview</div>
-        <h1 className="h1" style={{ marginBottom: 12 }}>
-          Sign in to the studio.
-        </h1>
-        <p className="muted" style={{ marginBottom: 26, fontSize: "0.95rem" }}>
-          Access is invite-only while we build. Enter your email and we'll send a
-          one-tap sign-in link.
-        </p>
-        <form onSubmit={send} className="stack">
-          <div className="field">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <button className="pill mint" type="submit" disabled={busy}>
-            {busy ? "Sending…" : "Send magic link"}
-          </button>
-        </form>
-        <div className={`msg ${msgKind}`} style={{ marginTop: 16 }}>
-          {msg}
-        </div>
+    <Page dock={false}>
+      <div className="topbar">
+        <Logo height={24} tone="mono" />
       </div>
-    </div>
+      <div className="lab muted" style={{ marginTop: 18 }}>Private preview</div>
+      <h2 className="pg">Sign in to the studio.</h2>
+      <p className="note-p">Access is invite-only while we build. Enter your email and we'll send a one-tap sign-in link.</p>
+
+      <form onSubmit={send}>
+        <div className="field" style={{ marginTop: 18 }}>
+          <label htmlFor="email">Email</label>
+          <input id="email" type="email" inputMode="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
+        <button className="btn btn-mint btn-block" type="submit" style={{ marginTop: 14 }} disabled={busy}>{busy ? "Sending…" : "Send magic link"}</button>
+      </form>
+      {msg && <div style={{ marginTop: 16 }}><Notice tone={msgKind === "err" ? "coral" : "gold"}>{msg}</Notice></div>}
+    </Page>
   );
 }

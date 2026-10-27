@@ -4,6 +4,7 @@ import { ArenaCall, DEFAULT_ICE, SupabaseSignal } from "@/lib/rtc";
 import { openArenaMic, type ArenaMic } from "@/lib/arenaAudio";
 import { uploadRecording } from "@/lib/upload";
 import { isDemo } from "@/lib/demo";
+import { IcBack, IcStar, Notice, Page } from "@/components/ankara-ui";
 
 type Phase = "lobby" | "countdown" | "live" | "uploading" | "rate" | "done" | "lapsed";
 type Scores = { tone: number; prompt_adherence: number; mood: number; clarity: number };
@@ -263,88 +264,111 @@ export function Arena({ sessionId, onBack }: Props) {
   const remaining = scene ? Math.max(0, scene.scene_seconds - elapsed) : 0;
   const title = phase === "lobby" ? (scene?.partner_joined ? "Both in. Starting…" : "The green room.") : phase === "countdown" ? "Ready…" : phase === "live" ? "Live." : phase === "uploading" ? "Sending your track." : phase === "rate" ? "Rate your partner." : phase === "lapsed" ? "This scene did not happen." : "Scene done.";
 
+  const live = phase === "live";
+  const sub = phase === "lobby" ? "Green room" : phase === "countdown" ? "Starting" : live ? `Live · ${fmt(remaining)} left` : phase === "uploading" ? "Sending" : phase === "rate" ? "Rating" : phase === "lapsed" ? "Closed" : "Done";
+
   return (
-    <div className="app">
+    <Page dock={false}>
       <div className="topbar">
-        <button className="brand" onClick={onBack} style={{ background: "none", border: "none" }} disabled={phase === "live"}><span style={{ color: "var(--mut)", fontFamily: "var(--mono)", fontSize: "0.9rem" }}>‹ booth</span></button>
-        <span className="chip" style={{ fontFamily: "var(--mono)", fontSize: "0.7rem", borderColor: phase === "live" ? "var(--live)" : undefined, color: phase === "live" ? "var(--live)" : undefined }}>{phase === "live" ? `LIVE · ${fmt(remaining)}` : isDemo() ? "demo" : callState}</span>
+        <button className="back" type="button" onClick={onBack} disabled={live} aria-label="Back to the booth"><IcBack /></button>
+        <div>
+          <div className="lab muted">{scene?.card.title ?? "Live Arena"}{scene ? ` · with ${scene.partner ?? "a stranger"}` : ""}</div>
+        </div>
+        <span className={`chip ${live ? "chip-coral" : "chip-cream"}`}>{live ? <><i className="dot" />{`LIVE · ${fmt(remaining)}`}</> : isDemo() ? "demo" : callState}</span>
       </div>
+      <h2 className="pg">{title}</h2>
       <audio ref={remoteRef} autoPlay playsInline />
-      <div className="shell">
-        <div className="eyebrow" style={{ marginBottom: 6 }}>{scene?.card.title ?? "Live Arena"}{scene ? ` · with ${scene.partner ?? "a stranger"}` : ""}</div>
-        <h1 className="h1" style={{ marginBottom: 14, fontSize: "clamp(1.4rem,6vw,2rem)" }}>{title}</h1>
-        {err && <div className="tile" style={{ borderColor: "var(--coral)", marginBottom: 14 }}><div className="tbody" style={{ color: "var(--coral)" }}>{err}</div></div>}
 
-        {scene && phase !== "rate" && (
-          <div className="sheet" style={{ marginBottom: 18 }}>
-            <div className="handle" />
-            <div className="shead"><i className="g" />The card</div>
-            <div className="tile acc"><div className="tlbl">The situation</div><div className="ttitle" style={{ fontSize: "1rem", lineHeight: 1.35 }}>{scene.card.situation}</div></div>
-            <div className="tile"><div className="tlbl">You are</div><div className="tbody">{scene.card.persona}</div></div>
-            <div className="tile dash"><div className="tlbl">Your partner is</div><div className="tbody muted">{scene.card.partner_persona}</div></div>
+      {err && <Notice tone="coral">{err}</Notice>}
+
+      {scene && phase !== "rate" && (
+        <div className="blk blk-gold pat-rings-6 bal">
+          <div className="lab">The situation</div>
+          <h3 style={{ fontSize: 20, marginTop: 4, lineHeight: 1.2 }}>{scene.card.situation}</h3>
+          <div className="row" style={{ alignItems: "flex-start", flexDirection: "column", gap: 6 }}>
+            <span className="plate" style={{ padding: "5px 10px", fontSize: 13.5, fontWeight: 600 }}>You are {scene.card.persona}</span>
+            <span className="plate" style={{ padding: "5px 10px", fontSize: 13.5, fontWeight: 600 }}>Your partner is {scene.card.partner_persona}</span>
           </div>
-        )}
+        </div>
+      )}
 
-        {phase === "lobby" && scene && (
-          <div className="tile" style={{ marginBottom: 18 }}>
-            <div className="tbody">{scene.partner_joined ? "Your partner is in the room." : `Waiting for ${scene.partner ?? "your partner"} to arrive. The scene starts the moment you are both here; if they are not in within ${isDemo() ? "a few seconds (demo)" : "ten minutes"}, you are credited and free to go.`}</div>
-            {!isDemo() && <div className="tbody muted small" style={{ marginTop: 6 }}>Microphone {micRef.current ? "ready" : "opening…"} · call {callState}. Keep this screen open.</div>}
-          </div>
-        )}
-        {phase === "countdown" && <div className="full-center" style={{ minHeight: 120 }}><div className="h1" style={{ fontSize: "3rem" }}>3 · 2 · 1</div></div>}
+      {phase === "lobby" && scene && (
+        <div className="card pad" style={{ marginTop: 16 }}>
+          <div className="eyebrow">{sub}</div>
+          <p>{scene.partner_joined ? "Your partner is in the room." : `Waiting for ${scene.partner ?? "your partner"} to arrive. The scene starts the moment you are both here; if they are not in within ${isDemo() ? "a few seconds (demo)" : "ten minutes"}, you are credited and free to go.`}</p>
+          {!isDemo() && <p className="note-p">Microphone {micRef.current ? "ready" : "opening…"} · call {callState}. Keep this screen open.</p>}
+        </div>
+      )}
 
-        {phase === "live" && scene && (
-          <div className="sheet" style={{ marginBottom: 18 }}>
-            <div className="handle" />
-            <div className="shead"><i />Live · {fmt(remaining)} left</div>
-            {twist && <div className="tile" style={{ borderColor: "var(--gold)" }}><div className="tlbl" style={{ color: "var(--gold)" }}>Twist</div><div className="ttitle" style={{ fontSize: "1rem" }}>{twist}</div></div>}
-            <div className="row2">
-              <div className="tile"><div className="tlbl">You</div><div className="lv"><i style={{ width: `${Math.round(myLevel * 100)}%` }} /></div></div>
-              <div className="tile"><div className="tlbl">{scene.partner ?? "Partner"}</div><div className="lv them"><i style={{ width: `${Math.round(theirLevel * 100)}%` }} /></div></div>
+      {phase === "countdown" && <div className="prompt" role="status" aria-label="Starting in three"><span aria-hidden="true">3 · 2 · 1</span></div>}
+
+      {live && scene && (
+        <>
+          {twist && (
+            <div className="blk blk-coral pat-zig-6 livecard">
+              <div className="lab">Twist</div>
+              <h3 style={{ marginTop: 4 }}>{twist}</h3>
             </div>
-            <div className="tile">
-              <div className="spread"><div className="tlbl" style={{ marginBottom: 0 }}>Chemistry</div><span className="tbody small" style={{ color: "var(--acc)" }}>{chem.toFixed(1)}</span></div>
-              <div className="progress" style={{ width: "100%", marginTop: 6 }}><div className="fill" style={{ width: `${Math.max(2, chem * 10)}%` }} /></div>
-              <div className="tbody muted small" style={{ marginTop: 6 }}>Fills when you both speak, take turns and keep it flowing. It is a live quality signal, not your pay.</div>
+          )}
+          <div className="slots" style={{ marginTop: 16 }}>
+            <div className="card pad">
+              <div className="eyebrow">You</div>
+              <div className="rail" style={{ marginTop: 8 }} aria-hidden="true"><i style={{ width: `${Math.round(myLevel * 100)}%` }} /></div>
             </div>
-            {isDemo() && <button className="pill ghost" onMouseDown={() => setDemoSpeaking(true)} onMouseUp={() => setDemoSpeaking(false)} onTouchStart={() => setDemoSpeaking(true)} onTouchEnd={() => setDemoSpeaking(false)}>Hold to act out speaking (demo)</button>}
-            <button className="pill mint" onClick={() => void endScene()}>End the scene</button>
+            <div className="card pad">
+              <div className="eyebrow">{scene.partner ?? "Partner"}</div>
+              <div className="rail" style={{ marginTop: 8 }} aria-hidden="true"><i style={{ width: `${Math.round(theirLevel * 100)}%` }} /></div>
+            </div>
           </div>
-        )}
+          <div className="blk blk-mint pat-dia-6 tier">
+            <div className="lab">Chemistry</div>
+            <h3>{chem.toFixed(1)}</h3>
+            <div className="prog" aria-hidden="true"><i style={{ width: `${Math.max(2, chem * 10)}%` }} /></div>
+            <p>Fills when you both speak, take turns and keep it flowing. It is a live quality signal, not your pay.</p>
+          </div>
+          {isDemo() && <button className="btn btn-outline btn-block" type="button" style={{ marginTop: 12 }} onMouseDown={() => setDemoSpeaking(true)} onMouseUp={() => setDemoSpeaking(false)} onTouchStart={() => setDemoSpeaking(true)} onTouchEnd={() => setDemoSpeaking(false)}>Hold to act out speaking (demo)</button>}
+          <button className="btn btn-mint btn-block" type="button" style={{ marginTop: 12 }} onClick={() => void endScene()}>End the scene</button>
+        </>
+      )}
 
-        {phase === "uploading" && <div className="tile" style={{ marginBottom: 18 }}><div className="tbody">{progress ?? "Working…"}</div></div>}
+      {phase === "uploading" && <div className="card pad" style={{ marginTop: 16 }}><p>{progress ?? "Working…"}</p></div>}
 
-        {phase === "rate" && scene && (
-          <div className="sheet" style={{ marginBottom: 18 }}>
-            <div className="handle" />
-            <div className="shead"><i className="g" />Rate {scene.partner ?? "your partner"}</div>
-            {AXES.map(([key, label, hint]) => (
-              <div key={key} className="tile">
-                <div className="tlbl">{label}</div>
-                <div className="tbody muted small" style={{ marginBottom: 8 }}>{hint}</div>
-                <div className="stars" role="radiogroup" aria-label={label}>
-                  {[1, 2, 3, 4, 5].map((n) => <button key={n} type="button" role="radio" aria-checked={scores[key] === n} aria-label={`${n} of 5`} className={scores[key] >= n ? "on" : ""} onClick={() => setScores((s) => ({ ...s, [key]: n }))}>★</button>)}
-                </div>
+      {phase === "rate" && scene && (
+        <div className="card pad rform" style={{ marginLeft: 0, width: "100%" }}>
+          <h3>Rate {scene.partner ?? "your partner"}</h3>
+          {AXES.map(([key, label, hint]) => (
+            <div className={`rrow${scores[key] ? " set" : ""}`} key={key}>
+              <div className="rrow-h"><span className="rlab">{label}</span></div>
+              <div className="rhint">{hint}</div>
+              <div className="srow" role="radiogroup" aria-label={label}>
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button key={n} type="button" role="radio" aria-checked={scores[key] === n} aria-label={`${n} of 5`} className={`sbtn${scores[key] >= n ? " on" : ""}`} onClick={() => setScores((s) => ({ ...s, [key]: n }))}>
+                    <IcStar />
+                  </button>
+                ))}
               </div>
-            ))}
-            <div className="tbody muted small">Rate what you heard. A linguist checks ratings against the audio.</div>
-            <button className="pill mint" disabled={busy} onClick={() => void submitRating()}>{busy ? "Saving…" : "Save rating"}</button>
-          </div>
-        )}
+            </div>
+          ))}
+          <p className="rnote">Rate what you heard. A linguist checks ratings against the audio.</p>
+          <button className="btn btn-mint btn-block" type="button" disabled={busy} onClick={() => void submitRating()}>{busy ? "Saving…" : "Save rating"}</button>
+        </div>
+      )}
 
-        {phase === "done" && (
-          <div className="tile" style={{ borderColor: "var(--acc)", marginBottom: 18 }}>
-            <div className="tbody">Scene done. Your track is in{scene?.partner_track ? " and so is your partner's" : "; your partner's follows"}. A linguist verifies both; your verified minutes show in Earnings after that, at the base rate times your tier.</div>
-            <button className="pill ghost" style={{ marginTop: 10 }} onClick={onBack}>Back to the booth</button>
-          </div>
-        )}
-        {phase === "lapsed" && (
-          <div className="tile" style={{ borderColor: "var(--gold)", marginBottom: 18 }}>
-            <div className="tbody">{err ?? "This scene was closed."} If your partner did not show, {"the showed-up credit is in your earnings"} and no strike is on you.</div>
-            <button className="pill ghost" style={{ marginTop: 10 }} onClick={onBack}>Back to the booth</button>
-          </div>
-        )}
-      </div>
-    </div>
+      {phase === "done" && (
+        <div className="donecard in-rise" style={{ marginTop: 16 }}>
+          <div className="eyebrow">Scene done</div>
+          <h2>Your track is in.</h2>
+          <p>{scene?.partner_track ? "Your partner's is in too." : "Your partner's follows."} A linguist verifies both; your verified minutes show in Money after that, at the base rate times your tier.</p>
+          <button className="btn btn-mint btn-block" type="button" onClick={onBack}>Back to the booth</button>
+        </div>
+      )}
+
+      {phase === "lapsed" && (
+        <>
+          <Notice>{err ?? "This scene was closed."} If your partner did not show, the showed-up credit is in your earnings and no strike is on you.</Notice>
+          <button className="btn btn-outline btn-block" type="button" style={{ marginTop: 12 }} onClick={onBack}>Back to the booth</button>
+        </>
+      )}
+    </Page>
   );
 }

@@ -2639,3 +2639,229 @@ button.tile:hover {
 }
 .ankara .tile { padding: 12px 6px 10px; }
 
+
+/* --- Ankara: the rest of the player app in the same frame --------------------
+   Rally got .rally-root above: the prototype's .phone, standing in for the
+   viewport. Every other player screen is a .screen > .scroll in the prototype,
+   so .page-root is the same stand-in for those: same background, same grain,
+   the scroll beneath it. Nothing is re-authored; this is placement only. */
+.ankara.page-root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  isolation: isolate;
+}
+/* .phone::after, verbatim */
+.ankara.page-root::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: var(--grain);
+  background-size: 180px 180px;
+}
+/* In the prototype .scroll is the only scroller inside a 760px frame. Here the
+   document scrolls, so the column just grows. */
+.ankara.page-root > .scroll { flex: 1; overflow: visible; }
+.ankara.page-root > .scroll.no-dock { padding-bottom: 32px; }
+@media (min-width: 900px) {
+  /* On a desk the screen sits beside the Midnight sidebar, as the rally does. */
+  .player-main .ankara.page-root,
+  .split-list .ankara.page-root,
+  .split-detail .ankara.page-root { min-height: 100dvh; }
+  .player-main .ankara.page-root > .scroll { max-width: 760px; margin-inline: 0; padding: 20px 32px 44px; }
+  .split-list .ankara.page-root > .scroll { padding: 16px 18px 40px; }
+}
+
+/* The dock is absolute inside .phone in the prototype; in the app it is fixed
+   to the viewport, so .dockwrap keeps its Midnight placement and the dock
+   itself drops back into normal flow inside it. */
+.ankara .dockwrap {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  padding: 0 12px calc(12px + env(safe-area-inset-bottom, 0px));
+  pointer-events: none;
+}
+.ankara .dockwrap .dock {
+  position: static;
+  pointer-events: auto;
+  max-width: 440px;
+  margin: 0 auto;
+}
+/* The dock reuses the app's own icon set, which is drawn as outlines. */
+.ankara .dockwrap .dock button svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@media (min-width: 900px) {
+  .ankara .dockwrap { display: none; }
+}
+
+/* ---------- small layout helpers, from the prototype's own spacing ---------- */
+.ankara .stack { display: flex; flex-direction: column; gap: 12px; }
+.ankara .btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.ankara .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ---------- forms ------------------------------------------------------------
+   The prototype never shows a form, so there is no input recipe above. Account,
+   the booth, sign-in and join all need one. Built from the tokens already
+   declared: the .card surface, the 2px outline, the 4px offset shadow, the mono
+   label of .lab. No new colour, shadow or font. */
+.ankara .field { display: flex; flex-direction: column; gap: 6px; }
+.ankara .field > label {
+  font: 500 11px/1.2 var(--f-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+.ankara .field input,
+.ankara .field select,
+.ankara .field textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 11px 12px;
+  font: 500 15px/1.3 var(--f-body);
+  color: var(--fg);
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 2px 2px 0 var(--sh);
+}
+.ankara .field textarea { min-height: 96px; resize: vertical; line-height: 1.45; }
+.ankara .field input[type="file"] { font: 500 12px/1.4 var(--f-mono); padding: 13px 12px; }
+.ankara .field input::placeholder,
+.ankara .field textarea::placeholder { color: var(--muted); }
+.ankara .field .hint { font: 500 12px/1.4 var(--f-mono); color: var(--muted); }
+
+/* A consent tick: the agreement has to be ticked, not toggled. */
+.ankara .checkrow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 12px;
+  background: var(--surface);
+  color: var(--fg);
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  transition: box-shadow 300ms var(--ease-std);
+}
+.ankara .checkrow .box {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--cream);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: 800 15px/1 var(--f-display);
+}
+.ankara .checkrow.on { box-shadow: 3px 3px 0 var(--sh-mint), var(--glow) var(--sh-mint); }
+.ankara .checkrow.on .box { background: var(--mint); }
+.ankara .checkrow .lbl { font-size: 14.5px; line-height: 1.45; font-weight: 500; }
+
+/* The booth's time grid: chips in a grid, with the waiting count on the chip.
+   .slot above is the Live screen's two-up block, so this keeps its own name. */
+.ankara .slotgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 8px; }
+.ankara .slotgrid .chip { width: 100%; justify-content: center; position: relative; }
+.ankara .chip:disabled {
+  background: var(--dis-bg);
+  color: var(--muted);
+  border-color: var(--line-soft);
+  box-shadow: none;
+}
+.ankara .slotgrid .chip i {
+  position: absolute;
+  top: -7px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--ink);
+  color: var(--cream);
+  border: 1.5px solid var(--cream);
+  font: 800 12px/18px var(--f-display);
+  text-align: center;
+}
+/* .notice is gold above; an error wants the coral block, same recipe. */
+.ankara .notice-coral { background: var(--coral); box-shadow: 3px 3px 0 var(--sh-coral), var(--glow) var(--sh-coral); }
+
+/* .press is the prototype's pressable hook: it is already named in the
+   transition and reduced-motion lists above but never got a rule of its own,
+   because in a 390px mock no block was ever a button. Here several are. */
+.ankara .press { display: block; width: 100%; text-align: left; }
+.ankara .press:active { transition-duration: 120ms; transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--sh-c, var(--sh)); }
+
+/* The prototype only uses .card inside the thread, where `.thread .card`
+   supplies the padding. A card anywhere else needs its own. */
+.ankara .card.pad { padding: 14px 14px 12px; }
+.ankara .card.pad > h3 { font-size: 18px; }
+.ankara .card.pad > p { font-size: 14px; line-height: 1.45; margin-top: 6px; }
+
+/* The prototype shows no prose, so it has no link rule. The account, join and
+   notice screens all carry one. */
+.ankara p a,
+.ankara li a { color: var(--fg); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.ankara .blk p a,
+.ankara .blk li a { color: var(--ink); }
+
+/* --- Ankara: more guards against the Midnight rules of the same name --------
+   Same job as the block above, for the names the rest of the player app needs.
+   tokens.css already owns .topbar, .row, .rows, .slot, .chip, .btn-row and
+   .field for the admin studio. Scoping gives the Ankara rules the higher
+   specificity, but a property the prototype never declared still leaks in.
+   These reset only those leaked properties; no new look is invented here. */
+.ankara .topbar {
+  justify-content: flex-start;
+  border-bottom: 0;
+  position: static;
+  background: none;
+  backdrop-filter: none;
+  z-index: auto;
+}
+.ankara .topbar .lab { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Midnight's .row is a bordered card; the prototype's .row is a bare flex line. */
+.ankara .row {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+.ankara .rows { display: block; gap: 0; }
+/* Midnight's .slot is a mono time button; the prototype's is a colour block. */
+.ankara .slot {
+  font-family: var(--f-body);
+  font-size: 15px;
+  border-radius: 22px;
+}
+.ankara .chip { letter-spacing: normal; }
+.ankara .btn-row > * { flex: 0 1 auto; }
+.ankara .field input:focus,
+.ankara .field select:focus,
+.ankara .field textarea:focus { border-color: var(--focus); }
+
+/* The prototype's .pat-rings / .pat-zig / .pat-dia are the 8% tiles, for the
+   blocks it never puts text on. Most blocks in the rest of the app do carry
+   text, so these are the same three tiles at the 6% the direction asks for.
+   --pat-rings6 and --pat-zig6 are already declared above; --pat-dia6 is the
+   same ink diamond at .06, to complete the set. No new colour is introduced. */
+.ankara {
+  --pat-dia6: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M18 3 L33 18 L18 33 L3 18Z' fill='none' stroke='%230D0B08' stroke-opacity='.06' stroke-width='3'/%3E%3Ccircle cx='18' cy='18' r='3' fill='%230D0B08' fill-opacity='.06'/%3E%3C/svg%3E");
+}
+.ankara .pat-rings-6 { background-image: var(--pat-rings6); background-size: 48px 48px; }
+.ankara .pat-zig-6 { background-image: var(--pat-zig6); background-size: 40px 28px; }
+.ankara .pat-dia-6 { background-image: var(--pat-dia6); background-size: 36px 36px; }

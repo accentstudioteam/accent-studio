@@ -93,8 +93,24 @@ export function PlayerSidebar({ tabs, active, onPick, speakerId, onSignOut }: { 
   );
 }
 
-/** The floating dock: five places, icons only, the one you are on opens to show its name. Content scrolls under it. */
-export function Dock({ tabs, active, onPick }: { tabs: DockTab[]; active: string; onPick: (key: string) => void }) {
+/** The floating dock: five places, icons only, the one you are on opens to show its name. Content scrolls under it.
+ * `skin="ankara"` emits the player skin's own dock instead (tokens.css, `.ankara .dock`): every tab labelled,
+ * the active one blocked in mint. The studio never passes it, so the admin dock is byte-for-byte what it was. */
+export function Dock({ tabs, active, onPick, skin }: { tabs: DockTab[]; active: string; onPick: (key: string) => void; skin?: "ankara" }) {
+  if (skin === "ankara") {
+    return (
+      <div className="dockwrap">
+        <nav className="dock" aria-label="Sections">
+          {tabs.map((t) => (
+            <button key={t.key} type="button" className={t.key === active ? "on" : undefined} aria-label={t.badge != null && t.badge > 0 ? `${t.label}, ${t.badge} waiting` : t.label} aria-current={active === t.key ? "page" : undefined} onClick={() => onPick(t.key)}>
+              <Icon name={t.icon} />
+              <span>{t.label}{t.badge != null && t.badge > 0 ? ` ${t.badge}` : ""}</span>
+            </button>
+          ))}
+        </nav>
+      </div>
+    );
+  }
   return (
     <div className="dockwrap">
       <nav className="dock" aria-label="Sections">
