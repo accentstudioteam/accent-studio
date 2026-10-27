@@ -552,14 +552,18 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
     );
   } else if (r.my_turn && recording) {
     const bars = Array.from({ length: 28 }, (_, j) => liveLevels[liveLevels.length - 28 + j] ?? 0);
-    const last5 = liveSeconds >= r.max_turn_seconds - 5;
+    // A ceiling exists, but counting down to it makes people rush and cut their own story
+    // short. Show the time they have used, and only mention the limit in the last fifteen
+    // seconds, when it is finally information they can act on.
+    const nearEnd = liveSeconds >= r.max_turn_seconds - 15;
+    const left = Math.max(0, Math.ceil(r.max_turn_seconds - liveSeconds));
     composer = (
       <div className="c-state">
         <div className="rec-left">
-          <div className={`timer${last5 ? " last5" : ""}`} aria-live="off"><span id="rec-time">{fmt(liveSeconds)}</span> / {fmt(r.max_turn_seconds)}</div>
+          <div className={`timer${nearEnd ? " last5" : ""}`} aria-live="off"><span id="rec-time">{fmt(liveSeconds)}</span></div>
           <div className="meter" aria-hidden="true">{bars.map((v, j) => <i key={j} style={{ height: `${6 + Math.round(v * 30)}px` }} />)}</div>
-          <div className="rail" aria-hidden="true"><i style={{ width: `${Math.min(100, (liveSeconds / r.max_turn_seconds) * 100)}%` }} /></div>
-          <div className="c-sub">{fake ? "Recording (demo) · a sample clip stands in for your voice" : rec.status === "requesting" ? "Asking for the mic…" : last5 ? "5 seconds left" : `Recording · up to ${fmt(r.max_turn_seconds)}`}</div>
+          {nearEnd && <div className="rail" aria-hidden="true"><i style={{ width: `${Math.min(100, (liveSeconds / r.max_turn_seconds) * 100)}%` }} /></div>}
+          <div className="c-sub">{fake ? "Recording (demo) · a sample clip stands in for your voice" : rec.status === "requesting" ? "Asking for the mic…" : nearEnd ? `Wrap up, ${left}s left` : "Recording · take your time"}</div>
         </div>
         <button className="stop" type="button" onClick={() => (fake ? undefined : rec.stop())} aria-label="Stop recording"><span className="stop-core" /></button>
       </div>

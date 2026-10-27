@@ -183,7 +183,7 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, on
       <div className="card pad" style={{ marginTop: 16 }}>
         <div className="eyebrow">How a rally works</div>
         <p className="note-p" style={{ marginTop: 6 }}>
-          You get a card in your language: a situation and who you are in it. You record one voice note, up to 30 seconds, your way. A stranger gets the other role, listens, rates your take on four things, and records theirs. Six turns and the rally is done. Below 4 out of 5 you say it again. Each reply is due within 24 hours; if a partner goes quiet the rally closes, your takes still count, and the slot comes back to you.
+          You get a card in your language: a situation and who you are in it. You record one voice note, up to two minutes, your way. A stranger gets the other role, listens, rates your take on four things, and records theirs. Six turns and the rally is done. Below 4 out of 5 you say it again. Each reply is due within 24 hours; if a partner goes quiet the rally closes, your takes still count, and the slot comes back to you.
         </p>
       </div>
 

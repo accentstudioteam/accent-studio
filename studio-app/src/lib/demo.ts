@@ -308,7 +308,7 @@ export const demo = {
       redo: Boolean(redo),
       next_turn_no: redo ? redo.turn_no : s.turn_count + 1,
       next_attempt: redo ? redo.attempt + 1 : 1,
-      max_turn_seconds: 30,
+      max_turn_seconds: 120,
       due_at: s.due_at,
       i_owe: s.next === "me",
       abandoned_reason: s.abandoned_reason,
