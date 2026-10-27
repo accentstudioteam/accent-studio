@@ -3,6 +3,8 @@
 // Routing per language comes from game_config (stt_routing, gloss_model); the vendor whose key is
 // present is used. Drafts are raw_stt_text in the delivery schema: they speed the editor up and
 // measure the vendor. They never grade a contributor and are never shown to one.
+// stt_drafts.segments holds {segments, words}; words[] is {word,start,end} and only the
+// OpenAI route fills it, so word-level timing needs OPENAI_API_KEY (not an Anthropic key).
 //   POST {session_id, retry?}            drafts every take that lacks one
 //   POST {kind: "gloss", turn_id, text}  re-glosses an edited transcript, returns the gloss
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -22,7 +24,7 @@ interface Item { turn_id: string; audio_path: string; language: string; seconds:
 interface Route { engine: string; language: string | null; show?: boolean; note?: string; prompt?: string | null }
 interface Card { title?: string; situation?: string; english_note?: string | null }
 interface GlossModel { engine?: string; model?: string }
-interface Result { engine: string; text: string; confidence: number | null; detected_language: string | null; segments: unknown }
+interface Result { engine: string; text: string; confidence: number | null; detected_language: string | null; segments: unknown; words: unknown }
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json" } });
@@ -46,13 +48,15 @@ async function openaiWhisper(audioUrl: string, path: string, lang: string | null
   form.append("file", new Blob([bytes], { type: mimeFor(path) }), `take.${path.split(".").pop()}`);
   form.append("model", "whisper-1");
   form.append("response_format", "verbose_json");
+  form.append("timestamp_granularities[]", "segment");
+  form.append("timestamp_granularities[]", "word"); // adds a top-level words[] of {word,start,end}
   form.append("temperature", "0");
   if (lang && WHISPER_LANGS.has(lang)) form.append("language", lang);
   if (prompt) form.append("prompt", prompt.slice(0, 600)); // a sentence in the target orthography pulls the model toward it (tone marks, Pidgin spellings)
   const res = await fetch("https://api.openai.com/v1/audio/transcriptions", { method: "POST", headers: { Authorization: `Bearer ${key}` }, body: form });
   if (!res.ok) throw new Error(`openai ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const out = await res.json();
-  return { engine: "whisper-1@openai", text: String(out.text ?? ""), confidence: confidenceFrom(out.segments), detected_language: out.language ?? null, segments: out.segments ?? null };
+  return { engine: "whisper-1@openai", text: String(out.text ?? ""), confidence: confidenceFrom(out.segments), detected_language: out.language ?? null, segments: out.segments ?? null, words: out.words ?? null };
 }
 
 async function replicateWhisper(audioUrl: string, lang: string | null, prompt?: string | null): Promise<Result> {
@@ -71,7 +75,8 @@ async function replicateWhisper(audioUrl: string, lang: string | null, prompt?: 
   }
   if (p.status !== "succeeded") throw new Error(`replicate ${p.status}: ${String(p.error ?? "").slice(0, 200)}`);
   const out = p.output ?? {};
-  return { engine: "whisper-large-v3@replicate", text: String(out.transcription ?? ""), confidence: confidenceFrom(out.segments), detected_language: out.detected_language ?? null, segments: out.segments ?? null };
+  // Segment-level only: this model's "plain text" mode carries no per-word timing. Route to OpenAI for word timing.
+  return { engine: "whisper-large-v3@replicate", text: String(out.transcription ?? ""), confidence: confidenceFrom(out.segments), detected_language: out.detected_language ?? null, segments: out.segments ?? null, words: null };
 }
 
 async function spitch(audioUrl: string, path: string, lang: string | null): Promise<Result> {
@@ -84,7 +89,7 @@ async function spitch(audioUrl: string, path: string, lang: string | null): Prom
   const res = await fetch("https://api.spi-tch.com/v1/transcriptions", { method: "POST", headers: { Authorization: `Bearer ${key}` }, body: form });
   if (!res.ok) throw new Error(`spitch ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const out = await res.json();
-  return { engine: "spitch", text: String(out.text ?? ""), confidence: null, detected_language: lang, segments: out.timestamps ?? null };
+  return { engine: "spitch", text: String(out.text ?? ""), confidence: null, detected_language: lang, segments: out.timestamps ?? null, words: null };
 }
 
 function resolve(route: Route): { run?: (url: string, path: string, lang: string | null) => Promise<Result>; reason?: string } {
@@ -191,7 +196,7 @@ Deno.serve(async (req: Request) => {
   const glossModel = (q?.gloss ?? {}) as GlossModel;
   const language = String(q?.language ?? route.language ?? "");
   const store = (tid: string, status: "done" | "failed" | "skipped", r: Partial<Result> & { error?: string | null }, ms: number) =>
-    caller.rpc("stt_store", { tid, status, engine: r.engine ?? route.engine, text_: r.text ?? null, confidence: r.confidence ?? null, detected_language: r.detected_language ?? null, segments: r.segments ?? null, error: r.error ?? null, ms });
+    caller.rpc("stt_store", { tid, status, engine: r.engine ?? route.engine, text_: r.text ?? null, confidence: r.confidence ?? null, detected_language: r.detected_language ?? null, segments: r.segments || r.words ? { segments: r.segments ?? null, words: r.words ?? null } : null, error: r.error ?? null, ms });
   const storeGloss = (tid: string, gloss: string | null, engine: string | null, error: string | null) => caller.rpc("stt_gloss_store", { tid, gloss, engine, error });
 
   if (items.length === 0) return json({ ok: true, done: 0, failed: 0, skipped: 0 });
