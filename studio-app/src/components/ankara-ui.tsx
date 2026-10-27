@@ -7,7 +7,8 @@ import { avatarSVG, type AnkaraAvatar } from "@/components/ankara-avatars";
    Rally.tsx keeps its own copies (it is the reference port and is being edited
    elsewhere); these are the same shapes, lifted so the eight other screens do
    not each repeat them. Nothing here invents a look: every class name below
-   already exists in the .ankara block of tokens.css.
+   already exists in the .ankara block of tokens.css, bar `.seats` / `.seat`,
+   which are appended there with the rest of the play flow.
    ========================================================================= */
 
 export const IcBack = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>;
@@ -44,6 +45,23 @@ export function TopBar({ onBack, backLabel = "Back", eyebrow, title, right }: { 
       </div>
       <h2 className="pg">{title}</h2>
     </>
+  );
+}
+
+/** The three rally slots a contributor may hold, and how many are gone.
+ * `.seats` / `.seat` are the one pair of class names here that the prototype
+ * did not have: see the note beside them at the end of tokens.css. */
+export function Seats({ used, max }: { used: number; max: number }) {
+  const n = Math.max(1, max);
+  return (
+    <div className="seats" role="group" aria-label={`${used} of ${n} rally slots in play`}>
+      {Array.from({ length: n }, (_, i) => (
+        <div key={i} className={`seat${i < used ? " taken" : ""}`}>
+          <b>{i < used ? "In play" : "Free"}</b>
+          <span>Slot {i + 1}</span>
+        </div>
+      ))}
+    </div>
   );
 }
 

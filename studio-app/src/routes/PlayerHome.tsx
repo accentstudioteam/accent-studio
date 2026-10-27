@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { LANG_NAME, dueLabel, mySessions, startRally, type RallySummary } from "@/lib/game";
+import { LANG_NAME, MAX_OPEN_RALLIES, dueLabel, mySessions, type RallySummary } from "@/lib/game";
 import type { Onboarding } from "@/lib/types";
 import { demo, isDemo } from "@/lib/demo";
 import { demoAccount } from "@/lib/demoAccount";
@@ -7,27 +7,30 @@ import { myCases, daysLeft, type MyCase } from "@/lib/verify";
 import { money, myEarnings, type MyEarnings } from "@/lib/earn";
 import { lagos, mine as arenaMine, untilLabel, type Mine as ArenaMine } from "@/lib/arena";
 import { avatarFor } from "@/components/ankara-avatars";
-import { Ava, IcArrow, Notice, Page } from "@/components/ankara-ui";
+import { Ava, IcArrow, Notice, Page, Seats } from "@/components/ankara-ui";
 
 /* ============================================================================
-   Home and Play in the approved "Ankara Blocks" direction.
+   Home in the approved "Ankara Blocks" direction.
 
    The class names are the prototype's (.topbar, .earn, .livecard, .cta,
    .sec-h, .rallies, .rally-row), which live under .ankara in tokens.css.
    The data, the polling and every RPC are exactly the ones that were here:
    mySessions / myCases / myEarnings / arenaMine on the same 20 s loop (2.5 s
-   in the demo), startRally on the same button, and onCounts fed the same
-   three numbers for the dock badges.
+   in the demo), and onCounts fed the same three numbers for the dock badges.
+
+   What changed: the single blind "Play a rally" button is gone. Home is where
+   the rallies you are already holding live; the .cta leads into Play, where
+   you choose one from a project. A contributor may hold three at once, so the
+   seats under the .cta say how many are gone.
    ========================================================================= */
 
 const POLL_MS = 20_000;
 
-export function PlayerHome({ me, mode, onOpenRally, onNotices, onEarnings, onBooth, onPlayTab, onJoinScene, onAccount, onCounts }: { me: Onboarding; onOpenRally: (sessionId: string) => void; onNotices: () => void; onEarnings: () => void; onBooth: () => void; onPlayTab: () => void; onJoinScene: (sid: string) => void; onAccount: () => void; mode: "home" | "play"; onCounts?: (c: { play: number; live: number; soon: boolean }) => void }) {
+export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, onPlayTab, onJoinScene, onAccount, onCounts }: { me: Onboarding; onOpenRally: (sessionId: string) => void; onNotices: () => void; onEarnings: () => void; onBooth: () => void; onPlayTab: () => void; onJoinScene: (sid: string) => void; onAccount: () => void; onCounts?: (c: { play: number; live: number; soon: boolean }) => void }) {
   const [rallies, setRallies] = useState<RallySummary[]>([]);
   const [notices, setNotices] = useState<MyCase[]>([]);
   const [earn, setEarn] = useState<MyEarnings | null>(null);
   const [arena, setArena] = useState<ArenaMine | null>(null);
-  const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const language = me.contributor?.primary_language ?? "pcm";
 
@@ -57,22 +60,13 @@ export function PlayerHome({ me, mode, onOpenRally, onNotices, onEarnings, onBoo
     return () => window.clearInterval(id);
   }, [load]);
 
-  const play = async () => {
-    setBusy(true);
-    setErr(null);
-    try {
-      const { session_id } = await startRally(language);
-      onOpenRally(session_id);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message.replace(/^.*?: /, "") : "Couldn't start a rally.");
-      setBusy(false);
-    }
-  };
-
   const live = (r: RallySummary) => r.status === "waiting" || r.status === "active";
   const yourTurn = rallies.filter((r) => live(r) && r.my_turn);
   const waiting = rallies.filter((r) => live(r) && !r.my_turn);
   const done = rallies.filter((r) => !live(r));
+  // The cap is the server's; pp_browse carries the real number, and Play shows that one.
+  const held = rallies.filter(live).length;
+  const free = Math.max(0, MAX_OPEN_RALLIES - held);
 
   const speakerId = me.contributor?.speaker_id ?? "cast";
   const next = arena?.upcoming[0];
@@ -84,8 +78,8 @@ export function PlayerHome({ me, mode, onOpenRally, onNotices, onEarnings, onBoo
       <div className="topbar">
         <Ava who={avatarFor(speakerId)} size={46} />
         <div>
-          <div className="lab muted">{mode === "play" ? "Ping-Pong" : "Playing in"} · {LANG_NAME[language] ?? language}</div>
-          <h1 className="hi">{mode === "play" ? "Your rallies." : "Today."}</h1>
+          <div className="lab muted">Playing in · {LANG_NAME[language] ?? language}</div>
+          <h1 className="hi">Today.</h1>
         </div>
         <button className="chip chip-cream" type="button" onClick={onAccount} aria-label="Your account">{speakerId}</button>
       </div>
@@ -94,7 +88,7 @@ export function PlayerHome({ me, mode, onOpenRally, onNotices, onEarnings, onBoo
         <div className="card pad" style={{ marginTop: 14 }}>
           <div className="lab">Demo · nothing is saved</div>
           <p>
-            You are a signed contributor. A simulated partner joins, rates your takes and replies with real Pidgin clips. The third take is rated low on purpose so you can see the redo.
+            You are a signed contributor on two projects. Open Play, pick a rally, and a simulated partner joins, rates your takes and replies with real Pidgin clips. The third take is rated low on purpose so you can see the redo.
           </p>
           <button className="btn btn-ink btn-sm" type="button" style={{ marginTop: 10 }} onClick={() => { demo.reset(); demoAccount.reset(); void load(); }}>Reset the demo</button>
         </div>
@@ -129,37 +123,36 @@ export function PlayerHome({ me, mode, onOpenRally, onNotices, onEarnings, onBoo
         </button>
       )}
 
-      {mode === "home" && (
-        <div className="blk blk-lilac pat-dia-6 livecard">
-          <div className="lt">
-            <div className="lab">Live Arena</div>
-            {next && <span className="count">{untilLabel(next.starts_at)}</span>}
-          </div>
-          <h3 style={{ marginTop: 6 }}>{next ? lagos(next.starts_at) : "Five minutes, live, with a stranger"}</h3>
-          <p>{next ? (next.status === "paired" ? `Paired with ${next.partner ?? "a stranger"}. Be there five minutes early.` : "Waiting for a partner to pick the same time.") : "Pick a 15-minute slot, get paired with whoever picks the same one, improvise a scene on your phones, each of you recorded separately."}</p>
-          <div className="lb">
-            {joinable ? (
-              <button className="btn btn-ink" type="button" onClick={() => onJoinScene(joinable.session_id!)}>Join the room now</button>
-            ) : (
-              <button className="btn btn-ink" type="button" onClick={onBooth}>{next ? "Open the booth" : "Book a scene"}</button>
-            )}
-          </div>
+      <div className="blk blk-lilac pat-dia-6 livecard">
+        <div className="lt">
+          <div className="lab">Live Arena</div>
+          {next && <span className="count">{untilLabel(next.starts_at)}</span>}
         </div>
-      )}
+        <h3 style={{ marginTop: 6 }}>{next ? lagos(next.starts_at) : "Five minutes, live, with a stranger"}</h3>
+        <p>{next ? (next.status === "paired" ? `Paired with ${next.partner ?? "a stranger"}. Be there five minutes early.` : "Waiting for a partner to pick the same time.") : "Pick a 15-minute slot, get paired with whoever picks the same one, improvise a scene on your phones, each of you recorded separately."}</p>
+        <div className="lb">
+          {joinable ? (
+            <button className="btn btn-ink" type="button" onClick={() => onJoinScene(joinable.session_id!)}>Join the room now</button>
+          ) : (
+            <button className="btn btn-ink" type="button" onClick={onBooth}>{next ? "Open the booth" : "Book a scene"}</button>
+          )}
+        </div>
+      </div>
 
-      <button className="blk blk-ink cta" type="button" disabled={busy} onClick={() => void play()}>
-        <span>{busy ? "Finding a card…" : "Play a rally"}</span>
+      <button className="blk blk-ink cta" type="button" onClick={onPlayTab}>
+        <span>{held === 0 ? "Find a rally" : free > 0 ? "Find another rally" : "Your projects"}</span>
         <span className="arrow"><IcArrow /></span>
       </button>
+      <Seats used={held} max={MAX_OPEN_RALLIES} />
+      <p className="note-p" style={{ marginTop: 8 }}>
+        {held === 0
+          ? `You can hold ${MAX_OPEN_RALLIES} rallies at once. Open your projects to see the scenes inside them and pick one.`
+          : free > 0
+            ? `${held} in play, ${free} slot${free === 1 ? "" : "s"} free. Pick the next one from a project whenever you like.`
+            : `All ${MAX_OPEN_RALLIES} slots are in play. Finish one and you can pick another.`}
+      </p>
 
       {err && <div style={{ marginTop: 14 }}><Notice tone="coral">{err}</Notice></div>}
-
-      <div className="card pad" style={{ marginTop: 16 }}>
-        <div className="eyebrow">{mode === "play" ? "How a rally works" : "Ping-Pong"}</div>
-        <p className="note-p" style={{ marginTop: 6 }}>
-          {mode === "home" ? `${yourTurn.length ? `${yourTurn.length} waiting on you` : "Nothing waiting on you"}${waiting.length ? ` · ${waiting.length} with a partner` : ""}${done.length ? ` · ${done.length} closed` : ""}. ` : ""}You get a card in your language: a situation and who you are in it. You record one voice note, up to 30 seconds, your way. A stranger gets the other role, listens, rates your take on four things, and records theirs. Six turns and the rally is done. Below 4 out of 5 you say it again. Each reply is due within 24 hours; if a partner goes quiet the rally closes, your takes still count, and your next Play pairs you fresh.
-        </p>
-      </div>
 
       {yourTurn.length > 0 && (
         <>
@@ -168,34 +161,28 @@ export function PlayerHome({ me, mode, onOpenRally, onNotices, onEarnings, onBoo
         </>
       )}
 
-      {mode === "home" && (waiting.length > 0 || done.length > 0) && (
-        <button className="btn btn-outline btn-block" type="button" style={{ marginTop: 16 }} onClick={onPlayTab}>All your rallies · {rallies.length}</button>
-      )}
-
-      {mode === "play" && waiting.length > 0 && (
+      {waiting.length > 0 && (
         <>
           <div className="sec-h"><h3>Waiting on a partner</h3><span className="lab muted">{waiting.length}</span></div>
           <div className="rallies">{waiting.map((r) => <RallyRow key={r.session_id} r={r} onOpen={onOpenRally} />)}</div>
         </>
       )}
 
-      {mode === "play" && done.length > 0 && (
+      {done.length > 0 && (
         <>
           <div className="sec-h"><h3>Closed</h3><span className="lab muted">{done.length}</span></div>
           <div className="rallies">{done.map((r) => <RallyRow key={r.session_id} r={r} onOpen={onOpenRally} />)}</div>
         </>
       )}
 
-      {rallies.length === 0 && (
-        <div className="card pad" style={{ marginTop: 16 }}>
-          <h3 style={{ fontSize: 18 }}>No rallies yet.</h3>
-          <p className="note-p" style={{ marginTop: 4 }}>Tap Play a rally to get your first card. A stranger gets the other role; six turns and it is done.</p>
-        </div>
-      )}
+      <div className="card pad" style={{ marginTop: 16 }}>
+        <div className="eyebrow">How a rally works</div>
+        <p className="note-p" style={{ marginTop: 6 }}>
+          You get a card in your language: a situation and who you are in it. You record one voice note, up to 30 seconds, your way. A stranger gets the other role, listens, rates your take on four things, and records theirs. Six turns and the rally is done. Below 4 out of 5 you say it again. Each reply is due within 24 hours; if a partner goes quiet the rally closes, your takes still count, and the slot comes back to you.
+        </p>
+      </div>
 
-      {mode === "home" && (
-        <p className="note-p">Your agreement · signed v{me.consent?.agreement_version} · record {me.consent?.record_sha256.slice(0, 12)}… · withdraw any time from You.</p>
-      )}
+      <p className="note-p">Your agreement · signed v{me.consent?.agreement_version} · record {me.consent?.record_sha256.slice(0, 12)}… · withdraw any time from You.</p>
     </Page>
   );
 }

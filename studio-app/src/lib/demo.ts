@@ -1,7 +1,7 @@
 // Demo mode: the real screens on an in-memory backend with a simulated partner.
 // Nothing is saved. Active when the page carries ?demo=player or window.ACCENT_DEMO is set
 // (the chat artifact sets it). Partner turns use the founders' recorded scene clips.
-import type { Rally, RallySummary, RallyTurn } from "@/lib/game";
+import type { Browse, BrowseRally, PlayerProject, Rally, RallySummary, RallyTurn } from "@/lib/game";
 import type { Onboarding } from "@/lib/types";
 import type { EarningLine, MyEarnings, PayoutRow } from "@/lib/earn";
 
@@ -29,10 +29,19 @@ const TURNS_TARGET = 6;
 const PARTNER_CLIPS = ["scene_mkt_02", "scene_mkt_04", "scene_mkt_06", "scene_bank_02", "scene_bank_04"];
 const SAMPLE_TAKES = ["scene_mkt_01", "scene_mkt_03", "scene_mkt_05", "scene_bank_01", "scene_bank_03", "scene_bank_05"];
 
+/** The two projects the demo contributor is on, so the projects screen has something to list. */
+const PROJECTS: PlayerProject[] = [
+  { project_id: "prj-market", name: "Market & Street Pidgin", language: "pcm", note: "Haggling, danfo, repairs. Everyday Lagos trade talk." },
+  { project_id: "prj-support", name: "Customer Support Pidgin", language: "pcm", note: "Banks, telcos and utilities: complaints and the people who answer them." },
+];
+
 const CARDS = [
-  { id: "c1", title: "Market Day", situation: "Na market day. Tomato don cost. Customer wan price am down, seller no gree.", persona_a: "Buyer wey like to play and haggle. E get small money, e no wan pay too much.", persona_b: "Seller wey stand for e price, but e like this customer and e no wan lose am.", domain: "retail_market_haggle" },
-  { id: "c2", title: "Banking Wahala", situation: "Money don comot for your account wey you no spend. Na POS transaction wey you no know. You call the bank customer care.", persona_a: "Customer wey vex well well. E wan make dem return the money today today.", persona_b: "Bank agent wey calm. E wan help, but e must follow process before e fit block anything.", domain: "retail_banking_fraud" },
-  { id: "c3", title: "Telco Trouble", situation: "Your data bundle don finish overnight, and you no even use am. You call customer care.", persona_a: "Subscriber wey confuse and vex small. E wan know where the data go.", persona_b: "Customer care person wey dey try explain the plan and offer something.", domain: "telco_support" },
+  { id: "c1", project_id: "prj-market", title: "Market Day", situation: "Na market day. Tomato don cost. Customer wan price am down, seller no gree.", persona_a: "Buyer wey like to play and haggle. E get small money, e no wan pay too much.", persona_b: "Seller wey stand for e price, but e like this customer and e no wan lose am.", domain: "retail_market_haggle" },
+  { id: "c2", project_id: "prj-support", title: "Banking Wahala", situation: "Money don comot for your account wey you no spend. Na POS transaction wey you no know. You call the bank customer care.", persona_a: "Customer wey vex well well. E wan make dem return the money today today.", persona_b: "Bank agent wey calm. E wan help, but e must follow process before e fit block anything.", domain: "retail_banking_fraud" },
+  { id: "c3", project_id: "prj-support", title: "Telco Trouble", situation: "Your data bundle don finish overnight, and you no even use am. You call customer care.", persona_a: "Subscriber wey confuse and vex small. E wan know where the data go.", persona_b: "Customer care person wey dey try explain the plan and offer something.", domain: "telco_support" },
+  { id: "c4", project_id: "prj-market", title: "Danfo Fare", situation: "Conductor say the fare don change because of fuel. Passenger wey enter for the old price no gree.", persona_a: "Passenger wey hold exact change and no wan hear story.", persona_b: "Conductor wey must balance the driver, the fuel and this one passenger.", domain: "transport_fare_dispute" },
+  { id: "c5", project_id: "prj-market", title: "Tailor Deadline", situation: "The aso ebi suppose ready since. Owambe na Saturday. Customer waka come shop.", persona_a: "Customer wey dey panic small but still wan keep the tailor as friend.", persona_b: "Tailor wey get three other customers and one generator wey no dey work.", domain: "services_tailor_deadline" },
+  { id: "c6", project_id: "prj-support", title: "Meter Palava", situation: "Estimated bill land for house wey get prepaid meter. You call the disco.", persona_a: "Landlord wey don tire for estimated billing and get the receipts.", persona_b: "Disco agent wey must log the complaint before anybody fit adjust anything.", domain: "utilities_billing_dispute" },
 ];
 
 interface DemoTurn extends RallyTurn {
@@ -43,6 +52,7 @@ interface DemoSession {
   card: (typeof CARDS)[number];
   status: Rally["status"];
   has_partner: boolean;
+  partner_alias: string;
   turn_count: number;
   next: "me" | "partner" | null;
   turns: DemoTurn[];
@@ -54,7 +64,27 @@ interface DemoSession {
   flags: string[];
 }
 
-const state: { sessions: DemoSession[]; blobs: Record<string, string>; timers: number[] } = { sessions: [], blobs: {}, timers: [] };
+/** A rally nobody of ours is in yet: what pp_browse shows as "open" or "waiting". */
+interface PoolRally {
+  id: string;
+  card: (typeof CARDS)[number];
+  waiting: boolean;
+  partner_alias: string | null;
+  turn_count: number;
+}
+
+const MAX_OPEN = 3;
+const ALIASES = ["Calm Squirrel", "Velvet Kingfisher", "Quick Mongoose", "Bright Tilapia", "Patient Heron", "Golden Hornbill"];
+
+/** Two rallies per card: one nobody has touched, one with a partner already waiting. */
+function seedPool(): PoolRally[] {
+  return CARDS.flatMap((card, i) => [
+    { id: `pool-${card.id}-a`, card, waiting: false, partner_alias: null, turn_count: 0 },
+    { id: `pool-${card.id}-b`, card, waiting: true, partner_alias: ALIASES[i % ALIASES.length], turn_count: 1 },
+  ]);
+}
+
+const state: { sessions: DemoSession[]; pool: PoolRally[]; blobs: Record<string, string>; timers: number[] } = { sessions: [], pool: seedPool(), blobs: {}, timers: [] };
 let counter = 0;
 const now = () => new Date().toISOString();
 
@@ -146,9 +176,54 @@ export const demo = {
     const open = state.sessions.find((s) => s.status === "waiting" || s.status === "active");
     if (open) return { session_id: open.id, joined: false };
     // every second rally in the demo gets a partner who goes quiet, to show the closure
-    const s: DemoSession = { id: `demo-${++counter}`, card: CARDS[(counter - 1) % CARDS.length], status: "waiting", has_partner: false, turn_count: 0, next: "me", turns: [], updated_at: now(), lowRatingGiven: false, due_at: null, quietPartner: counter % 2 === 0, abandoned_reason: null, flags: [] };
+    const s: DemoSession = { id: `demo-${++counter}`, card: CARDS[(counter - 1) % CARDS.length], status: "waiting", has_partner: false, partner_alias: ALIASES[counter % ALIASES.length], turn_count: 0, next: "me", turns: [], updated_at: now(), lowRatingGiven: false, due_at: null, quietPartner: counter % 2 === 0, abandoned_reason: null, flags: [] };
     state.sessions.unshift(s);
     return { session_id: s.id, joined: false };
+  },
+
+  /** The projects screen. */
+  projects: async (): Promise<PlayerProject[]> => {
+    const live = state.sessions.filter((s) => s.status === "waiting" || s.status === "active");
+    return PROJECTS.map((p) => ({
+      ...p,
+      open_count: state.pool.filter((r) => r.card.project_id === p.project_id && !r.waiting).length,
+      waiting_count: state.pool.filter((r) => r.card.project_id === p.project_id && r.waiting).length,
+      mine_count: live.filter((s) => s.card.project_id === p.project_id).length,
+    }));
+  },
+
+  /** pp_browse: every rally in the project, plus how many of my three slots are gone. */
+  browse: async (pid: string | null): Promise<Browse> => {
+    for (const s of state.sessions) await demo.loadRally(s.id); // applies the reply-window sweep
+    const live = state.sessions.filter((s) => s.status === "waiting" || s.status === "active");
+    const my_open_count = live.length;
+    const inProject = (p: string) => !pid || p === pid;
+    const mine: BrowseRally[] = live
+      .filter((s) => inProject(s.card.project_id))
+      .map((s) => ({ session_id: s.id, card_title: s.card.title, card_situation: s.card.situation, domain: s.card.domain, turns_target: TURNS_TARGET, state: "mine", partner_alias: s.has_partner ? s.partner_alias : null, turn_count: s.turn_count, can_join: false }));
+    const rest: BrowseRally[] = state.pool
+      .filter((r) => inProject(r.card.project_id))
+      .map((r) => ({ session_id: r.id, card_title: r.card.title, card_situation: r.card.situation, domain: r.card.domain, turns_target: TURNS_TARGET, state: r.waiting ? "waiting" : "open", partner_alias: r.partner_alias, turn_count: r.turn_count, can_join: my_open_count < MAX_OPEN }));
+    return { max_open: MAX_OPEN, my_open_count, rallies: [...mine, ...rest] };
+  },
+
+  /** pp_join: take a free rally, or the other role in one somebody is waiting in. */
+  joinRally: async (sid: string): Promise<{ session_id: string; role: "a" | "b" }> => {
+    const live = state.sessions.filter((s) => s.status === "waiting" || s.status === "active");
+    if (live.length >= MAX_OPEN) throw new Error(`you are already holding ${MAX_OPEN} rallies; finish one first`);
+    const i = state.pool.findIndex((r) => r.id === sid);
+    if (i < 0) throw new Error("somebody else took that rally");
+    const [r] = state.pool.splice(i, 1);
+    counter += 1;
+    const s: DemoSession = { id: `demo-${counter}`, card: r.card, status: r.waiting ? "active" : "waiting", has_partner: r.waiting, partner_alias: r.partner_alias ?? ALIASES[counter % ALIASES.length], turn_count: 0, next: "me", turns: [], updated_at: now(), lowRatingGiven: false, due_at: null, quietPartner: counter % 3 === 0, abandoned_reason: null, flags: [] };
+    if (r.waiting) {
+      // The partner was first in and already recorded turn one, so my first move is to rate it.
+      s.turns.push({ turn_id: `t-${s.id}-1-1`, turn_no: 1, attempt: 1, mine: false, audio_path: `${s.id}/turn-1-a1-${PARTNER}.mp3`, seconds: 7, status: "recorded", created_at: now(), rating: null, url: clipUrl(PARTNER_CLIPS[0]) });
+      s.turn_count = 1;
+      s.due_at = new Date(Date.now() + 24 * 3600_000).toISOString();
+    }
+    state.sessions.unshift(s);
+    return { session_id: s.id, role: r.waiting ? "b" : "a" };
   },
 
   loadRally: async (id: string): Promise<Rally> => {
@@ -175,7 +250,7 @@ export const demo = {
       card: { title: s.card.title, situation: s.card.situation, persona: s.card.persona_a, partner_persona: s.card.persona_b, audio_path: null, domain: s.card.domain },
       my_speaker_id: ME,
       my_alias: "Golden Hornbill",
-      partner_alias: s.has_partner ? "Velvet Kingfisher" : null,
+      partner_alias: s.has_partner ? s.partner_alias : null,
       i_am: "a",
       has_partner: s.has_partner,
       my_turn: s.status !== "complete" && s.status !== "abandoned" && s.next === "me" && !oweRating,
@@ -247,6 +322,7 @@ export const demo = {
   reset: () => {
     state.timers.forEach(clearTimeout);
     state.sessions = [];
+    state.pool = seedPool();
     state.blobs = {};
   },
 };

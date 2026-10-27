@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/auth/AuthProvider";
 import { PlayerHome } from "@/routes/PlayerHome";
+import { PlayerPlay } from "@/routes/PlayerPlay";
 import { Rally } from "@/routes/Rally";
 import { Join } from "@/routes/Join";
 import { CaseNotice } from "@/routes/CaseNotice";
@@ -26,6 +27,8 @@ export function Player() {
   const [me, setMe] = useState<Onboarding | null>(null);
   const [tab, setTab] = useState<Tab>("home");
   const [rally, setRally] = useState<string | null>(null);
+  // Which project Play is open on, held here so it survives a trip into a rally.
+  const [pid, setPid] = useState<string | null>(null);
   const [scene, setScene] = useState<string | null>(null);
   const [notices, setNotices] = useState(false);
   const [counts, setCounts] = useState({ play: 0, live: 0, soon: false });
@@ -111,6 +114,8 @@ export function Player() {
   if (rally && !desk) return <Rally sessionId={rally} onBack={() => setRally(null)} />;
 
   const homeProps = { me, onOpenRally: openRally, onNotices: () => setNotices(true), onEarnings: () => go("money"), onBooth: () => go("live"), onPlayTab: () => go("play"), onJoinScene: (sid: string) => setScene(sid), onAccount: () => go("you"), onCounts: setCounts };
+  // Play: the projects this contributor is on, the rallies inside one, and joining.
+  const playProps = { projectId: pid, onPickProject: setPid, onOpenRally: openRally, onHome: home };
   let screen: JSX.Element;
   if (tab === "you") screen = <Account onBack={home} onChanged={reloadMe} />;
   else if (tab === "money") screen = <Earnings onBack={home} />;
@@ -118,7 +123,7 @@ export function Player() {
   else if (tab === "play" && desk) {
     screen = (
       <div className="split">
-        <div className="split-list"><PlayerHome {...homeProps} mode="play" /></div>
+        <div className="split-list"><PlayerPlay {...playProps} /></div>
         <div className="split-detail">
           {rally ? (
             <Rally key={rally} sessionId={rally} onBack={() => setRally(null)} />
@@ -126,14 +131,15 @@ export function Player() {
             <Page dock={false}>
               <div className="card pad" style={{ marginTop: 32 }}>
                 <h3>Pick a rally.</h3>
-                <p>Your turn first, then the ones waiting on a partner, then the closed ones. Or start a new one from the list.</p>
+                <p>The ones already yours first, then the ones somebody is waiting in, then the ones nobody has touched. Join one from the list and it opens here.</p>
               </div>
             </Page>
           )}
         </div>
       </div>
     );
-  } else screen = <PlayerHome {...homeProps} mode={tab === "play" ? "play" : "home"} />;
+  } else if (tab === "play") screen = <PlayerPlay {...playProps} />;
+  else screen = <PlayerHome {...homeProps} />;
 
   if (desk) return <div className="player-desk">{side}<main className="player-main">{screen}</main></div>;
   // `.ankara` on the frame is what puts the dock in the skin; the screen inside carries its own.
