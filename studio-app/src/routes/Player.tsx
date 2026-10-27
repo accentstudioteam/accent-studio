@@ -117,7 +117,7 @@ export function Player() {
   // Play: the projects this contributor is on, the rallies inside one, and joining.
   const playProps = { projectId: pid, onPickProject: setPid, onOpenRally: openRally, onHome: home };
   let screen: JSX.Element;
-  if (tab === "you") screen = <Account onBack={home} onChanged={reloadMe} />;
+  if (tab === "you") screen = <Account onBack={home} onChanged={reloadMe} avatar={me.contributor?.avatar} />;
   else if (tab === "money") screen = <Earnings onBack={home} />;
   else if (tab === "live") screen = <Booth language={me.contributor.primary_language ?? "pcm"} onBack={home} onJoin={(sid) => setScene(sid)} />;
   else if (tab === "play" && desk) {

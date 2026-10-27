@@ -4,12 +4,14 @@ import { LANG_NAME } from "@/lib/game";
 import { hours } from "@/lib/admin";
 import { DOC_KINDS, IDENTITY_WORD, LANGUAGES, RAIL_FIELDS, closeAccount, dataRequest, identityUrl, myAccount, setLanguages, setPayout, submitIdentity, withdrawConsent, type Account, type DocKind } from "@/lib/account";
 import { when } from "@/lib/verify";
-import { avatarFor } from "@/components/ankara-avatars";
+import { avatarById, avatarFor } from "@/components/ankara-avatars";
 import { Ava, Notice, Page, TopBar } from "@/components/ankara-ui";
 
 interface Props {
   onBack: () => void;
   onChanged?: () => void;
+  /** The stored avatar id, so this screen shows the same face as the rally and the mail. */
+  avatar?: string | null;
 }
 
 const day = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "");
@@ -22,7 +24,7 @@ const day = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleDat
    identity check, consent, data requests, closing — keeps its own RPC, its own
    validation and its own wording; only the markup is the skin's.
    ========================================================================= */
-export function Account({ onBack, onChanged }: Props) {
+export function Account({ onBack, onChanged, avatar }: Props) {
   const { session, signOut } = useAuth();
   const [a, setA] = useState<Account | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -64,7 +66,7 @@ export function Account({ onBack, onChanged }: Props) {
       {a && (
         <>
           <div className="card you-card">
-            <Ava who={avatarFor(a.speaker_id)} size={64} />
+            <Ava who={avatar ? avatarById(avatar) : avatarFor(a.speaker_id)} size={64} />
             <div>
               <b>{a.full_name ?? a.speaker_id}</b>
               <span className="mono">{a.speaker_id} · since {day(a.joined_at)}</span>

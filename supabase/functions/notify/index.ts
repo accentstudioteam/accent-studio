@@ -5,7 +5,7 @@
 // crash or a mail failure retries up to three times and nothing is sent twice.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { SITE, button, esc, send, shell, tile } from "./mail.ts";
+import { SITE, button, esc, p, send, shell, tile, who } from "./mail.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -21,6 +21,10 @@ interface Item {
   contributor_id: string;
   email: string | null;
   speaker_id: string | null;
+  // The recipient's own alias and stored Ankara character, from notify_claim.
+  // The partner's pair lives in detail.partner / detail.partner_avatar.
+  alias: string | null;
+  avatar: string | null;
   attempt: number;
 }
 interface Mail {
@@ -58,15 +62,30 @@ const FOOTER = "You're getting this because you are a signed Accent Studio contr
 function compose(it: Item): Mail {
   const d = it.detail;
   const partner = str(d.partner) || "your partner";
+  const partnerFace = str(d.partner_avatar) || null;
+  // Every message opens on a face. For the two that are about a pairing it is the
+  // partner's, the way partners already refer to each other in the app; for the two
+  // about money it is the reader's own, which is the character they see in their own
+  // header. The clause 15 notice deliberately carries none: a cartoon face next to a
+  // misconduct notice reads as flippant, and that message has no partner anyway.
+  const mine = (caption: string) => who(it.avatar, it.alias || str(it.speaker_id) || "You", caption);
   if (it.kind === "reply_due") {
     const due = when(d.due_at);
+    // Three touches across the window. The first is news, the last is a deadline; saying
+    // the same thing three times is how a reminder becomes spam.
+    const touch = str(d.touch) || "last";
+    const line = touch === "new"
+      ? { subject: `${partner} replied in ${str(d.title)}`, title: `${esc(partner)} has recorded their turn.`, caption: "Just replied", lede: "Your turn now. One take, up to 30 seconds, in your language, your way.", label: "Reply by" }
+      : touch === "mid"
+      ? { subject: `${partner} is still waiting in ${str(d.title)}`, title: `${esc(partner)} is still waiting on you.`, caption: "Still waiting on you", lede: "One take, up to 30 seconds, whenever you have a quiet minute.", label: "Reply by" }
+      : { subject: `Your reply in ${str(d.title)} is due by ${due}`, title: `${esc(partner)} is waiting for your reply.`, caption: "Waiting on you", lede: "One take, up to 30 seconds, in your language, your way. After the window the rally closes early; your takes are kept and still count.", label: "Last call · reply by" };
     return {
-      subject: `Your reply in ${str(d.title)} is due by ${due}`,
+      subject: line.subject,
       eyebrow: "Ping-Pong",
-      title: `${esc(partner)} is waiting for your reply.`,
-      inner: `${tile("The rally", `${esc(str(d.title))} · with ${esc(partner)}`)}${tile("Reply by", esc(due))}
-        <p style="margin:0 0 6px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#c9bfad">One take, up to 30 seconds, in your language, your way. After the window the rally closes early; your takes are kept and still count.</p>${button(APP, "Open the rally")}`,
-      text: `${partner} is waiting for your reply in ${str(d.title)}. Reply by ${due}. After the window the rally closes early; your takes are kept and still count. ${APP}`,
+      title: line.title,
+      inner: `${who(partnerFace, partner, line.caption)}${tile("The rally", esc(str(d.title)))}${tile(line.label, esc(due))}
+        ${p(esc(line.lede))}${button(APP, "Open the rally")}`,
+      text: `${line.subject}. Reply by ${due}. ${line.lede} ${APP}`,
       footer: FOOTER,
     };
   }
@@ -76,8 +95,8 @@ function compose(it: Item): Mail {
       subject: `Your live scene starts at ${at}`,
       eyebrow: "Live Arena",
       title: "Your scene is in about an hour.",
-      inner: `${tile("Starts", esc(at))}${tile("With", esc(partner))}
-        <p style="margin:0 0 6px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#c9bfad">The room opens five minutes before. Headphones, a quiet place, a charged phone. If you are not in within ten minutes of the start your partner is credited and you take a strike, so cancel now if you cannot make it.</p>${button(APP, "Open the booth")}`,
+      inner: `${who(partnerFace, partner, "You are on with")}${tile("Starts", esc(at))}${tile("Bring", "Headphones, a quiet place, a charged phone.")}
+        ${p("The room opens five minutes before. If you are not in within ten minutes of the start your partner is credited and you take a strike, so cancel now if you cannot make it.")}${button(APP, "Open the booth")}`,
       text: `Your live scene starts at ${at} with ${partner}. The room opens five minutes before. If you are not in within ten minutes of the start your partner is credited and you take a strike; cancel now if you cannot make it. ${APP}`,
       footer: FOOTER,
     };
@@ -90,7 +109,7 @@ function compose(it: Item): Mail {
       eyebrow: "Clause 15",
       title: "Your response window closes tomorrow.",
       inner: `${tile("Respond by", esc(by))}${tile("The notice was about", esc(reason))}
-        <p style="margin:0 0 6px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#c9bfad">You do not have to respond. If you want your side read before anyone decides, reply in the app or by replying to this email before the window closes. A different member of the team from the one who raised the flag decides.</p>${button(APP, "Respond in the app")}`,
+        ${p("You do not have to respond. If you want your side read before anyone decides, reply in the app or by replying to this email before the window closes. A different member of the team from the one who raised the flag decides.")}${button(APP, "Respond in the app")}`,
       text: `Your clause 15 response window closes at ${by}. The notice was about ${reason}. Reply in the app (${APP}) or by replying to this email if you want your side read before anyone decides.`,
       footer: FOOTER,
     };
@@ -100,8 +119,8 @@ function compose(it: Item): Mail {
       subject: `Your payout of ${money(d.amount_usd)} was sent`,
       eyebrow: "Earnings",
       title: `${money(d.amount_usd)} is on its way.`,
-      inner: `${tile("Sent by", esc(str(d.rail)))}${tile("Reference", esc(str(d.reference) || "none given"))}${tile("Sent", esc(when(d.paid_at)))}
-        <p style="margin:0 0 6px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#c9bfad">It lands on the rail's own timing. The lines behind it now show as paid on your statement. If it has not arrived in five working days, reply to this email with the reference.</p>${button(`${APP}`, "Open earnings")}`,
+      inner: `${mine("Paid to")}${tile("Sent by", esc(str(d.rail)))}${tile("Reference", esc(str(d.reference) || "none given"))}${tile("Sent", esc(when(d.paid_at)))}
+        ${p("It lands on the rail's own timing. The lines behind it now show as paid on your statement. If it has not arrived in five working days, reply to this email with the reference.")}${button(`${APP}`, "Open earnings")}`,
       text: `Your payout of ${money(d.amount_usd)} was sent by ${str(d.rail)}${d.reference ? ` (reference ${str(d.reference)})` : ""} on ${when(d.paid_at)}. If it has not arrived in five working days, reply to this email with the reference. ${APP}`,
       footer: FOOTER,
     };
@@ -112,18 +131,18 @@ function compose(it: Item): Mail {
   const totals = (d.totals as Record<string, unknown> | undefined) ?? {};
   const payouts = (d.payouts as Record<string, unknown>[] | undefined) ?? [];
   const balance = (d.balance as Record<string, unknown> | undefined) ?? {};
-  const row = (l: Record<string, unknown>) => `${day(l.date)} · ${esc(str(l.title))}${l.mode === "live" ? " (live)" : ""} · ${Math.round(Number(l.seconds ?? 0) / 60)} min · ${TIER[str(l.tier)] ?? str(l.tier) ?? ""} · <b style="color:#f4eee1">${money(l.amount_usd)}</b> · ${STATUS[str(l.status)] ?? str(l.status)}`;
-  const linesHtml = lines.length ? lines.map((l) => `<div style="padding:4px 0;border-bottom:1px solid #2b2418">${row(l)}</div>`).join("") : "No verified sessions this month.";
+  const row = (l: Record<string, unknown>) => `${day(l.date)} · ${esc(str(l.title))}${l.mode === "live" ? " (live)" : ""} · ${Math.round(Number(l.seconds ?? 0) / 60)} min · ${TIER[str(l.tier)] ?? str(l.tier) ?? ""} · <b style="color:#0D0B08">${money(l.amount_usd)}</b> · ${STATUS[str(l.status)] ?? str(l.status)}`;
+  const linesHtml = lines.length ? lines.map((l, i) => `<div style="padding:5px 0;${i === lines.length - 1 ? "" : "border-bottom:1px solid #E2D8C4"}">${row(l)}</div>`).join("") : "No verified sessions this month.";
   const payoutsHtml = payouts.length ? payouts.map((p) => `<div style="padding:4px 0">${day(p.at)} · ${money(p.amount_usd)} by ${esc(str(p.rail))} · ${esc(str(p.status))}${p.reference ? ` · ${esc(str(p.reference))}` : ""}</div>`).join("") : "None this month.";
   return {
     subject: `Your Accent Studio statement for ${monthName(ym)}`,
     eyebrow: "Statement",
     title: `${monthName(ym)}: ${money(totals.earned_usd)} earned.`,
-    inner: `${tile(`Verified sessions · ${lines.length}`, linesHtml)}
+    inner: `${mine("Statement for")}${tile(`Verified sessions · ${lines.length}`, linesHtml)}
       ${tile("This month", `${Math.round(Number(totals.seconds ?? 0) / 60)} verified minutes · ${money(totals.earned_usd)} earned${Number(totals.forfeited_usd ?? 0) > 0 ? ` · ${money(totals.forfeited_usd)} forfeited under clause 15` : ""}`)}
       ${tile("Payouts this month", payoutsHtml)}
       ${tile("Your balance today", `${money(balance.cleared_usd)} ready to request · ${money(balance.requested_usd)} on its way · ${money(balance.held_usd)} on hold · ${money(balance.paid_usd)} paid to date`)}
-      <p style="margin:0 0 6px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#c9bfad">Pay is per verified hour at the published base rate times your tier for each session. Anything on hold is tied to an open clause 15 case and is released or forfeited with the decision.</p>${button(APP, "Open earnings")}`,
+      ${p("Pay is per verified hour at the published base rate times your tier for each session. Anything on hold is tied to an open clause 15 case and is released or forfeited with the decision.")}${button(APP, "Open earnings")}`,
     text: [
       `Your statement for ${monthName(ym)} (${str(d.speaker_id)})`,
       "",

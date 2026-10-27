@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { LANG_NAME, browse, domainLabel, joinRally, myProjects, type Browse, type BrowseRally, type PlayerProject } from "@/lib/game";
 import { isDemo } from "@/lib/demo";
-import { UNKNOWN_AVATAR, avatarFor } from "@/components/ankara-avatars";
+import { UNKNOWN_AVATAR, avatarById, avatarFor } from "@/components/ankara-avatars";
 import { Ava, Notice, Page, Seats, TopBar } from "@/components/ankara-ui";
 
 /* ============================================================================
@@ -188,7 +188,9 @@ function SceneRow({ r, full, joining, onJoin, onOpen }: { r: BrowseRally; full: 
   const mine = r.state === "mine";
   const waiting = r.state === "waiting";
   const surface = mine ? "blk blk-mint" : waiting ? "blk blk-gold" : "card";
-  const who = waiting ? avatarFor(r.partner_alias ?? r.session_id, 3) : mine ? avatarFor(r.session_id, 5) : UNKNOWN_AVATAR;
+  // The stored character wins; the hash is the demo-mode and pre-backfill fallback.
+  const stored = r.partner_avatar ? avatarById(r.partner_avatar) : null;
+  const who = waiting ? stored ?? avatarFor(r.partner_alias ?? r.session_id, 3) : mine ? stored ?? avatarFor(r.session_id, 5) : UNKNOWN_AVATAR;
   const word = mine ? "Yours" : waiting ? "One seat left" : "Empty";
   return (
     <div className={`${surface} scene-row`}>

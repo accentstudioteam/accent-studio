@@ -3,7 +3,7 @@ import { useRecorder } from "@/lib/recorder";
 import { uploadRecording } from "@/lib/upload";
 import { cardAudioUrl, dueLabel, LANG_NAME, loadRally, rateTurn, submitTurn, turnUrl, type Rally as RallyState, type RallyTurn } from "@/lib/game";
 import { demo, demoSampleTake, isDemo } from "@/lib/demo";
-import { avatarFor, avatarSVG, UNKNOWN_AVATAR, type AnkaraAvatar } from "@/components/ankara-avatars";
+import { avatarById, avatarFor, avatarSVG, UNKNOWN_AVATAR, type AnkaraAvatar } from "@/components/ankara-avatars";
 import { haptic } from "@/lib/haptics";
 
 /* ============================================================================
@@ -471,8 +471,11 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
   const liveSeconds = fake ? fake.seconds : rec.seconds;
   const liveLevels = fake ? fake.levels : rec.levels;
 
-  const me = avatarFor(r.my_speaker_id);
-  const partner = r.has_partner ? avatarFor(r.session_id, 5) : UNKNOWN_AVATAR;
+  // The character is stored on the contributor now, so it is the same face here,
+  // on every other rally, and in the mail. avatarFor() is only the demo-mode and
+  // pre-backfill fallback.
+  const me = r.my_avatar ? avatarById(r.my_avatar) : avatarFor(r.my_speaker_id);
+  const partner = !r.has_partner ? UNKNOWN_AVATAR : r.partner_avatar ? avatarById(r.partner_avatar) : avatarFor(r.session_id, 5);
   // The attempt cap is DB game config; pp_session does not surface it, so this
   // mirrors the server value and only ever drives wording and pip state.
   const maxAttempts = 3;
