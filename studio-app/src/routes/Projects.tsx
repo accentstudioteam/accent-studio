@@ -3,6 +3,7 @@ import { Logo } from "@/components/Logo";
 import { LANG_NAME } from "@/lib/game";
 import { when } from "@/lib/verify";
 import { TIER_LABEL, buildBundle, createDelivery, deliveries as listDeliveries, deliveryPlan, downloadBundle, hoursOf, manifestPreview, projects as listProjects, saveProject, sizeOf, type Delivery, type Plan, type Project, type ProjectInput, type Tier } from "@/lib/projects";
+import { TURN_CAP_SECONDS, TURN_MAX, TURN_MIN, approvePlan, cancelPlan, draftPlan, listPlans, recomputeTotals, rejectPlan, type PlanInputs, type PlanRow, type PlanScene } from "@/lib/corpus";
 import { isDemo } from "@/lib/demo";
 
 interface Props {
@@ -208,6 +209,7 @@ function ProjectSheet({ p, open, onToggle, onEdit, onChanged }: { p: Project; op
 
       {open && (
         <>
+          <CorpusPlanner p={p} />
           <div className="tile dash">
             <div className="tlbl">Build a delivery</div>
             <div className="tbody muted small" style={{ marginBottom: 8 }}>Freezes every verified, unheld, undelivered rally in {LANG_NAME[p.language] ?? p.language} whose speakers still consent, copies the audio with checksums, and writes the manifest, speakers, consent log, index, README and checksums to the bundle. Nothing leaves without a linguist's verification behind it.</div>
@@ -253,6 +255,200 @@ function ProjectSheet({ p, open, onToggle, onEdit, onChanged }: { p: Project; op
           )}
           <button className="pill ghost" onClick={onEdit}>Edit the project</button>
         </>
+      )}
+    </div>
+  );
+}
+
+const TRAINS = ["speech recognition", "a conversational model", "speech translation", "speaker diarisation", "emotion and prosody", "keyword spotting"];
+
+/** The corpus planner: a handful of questions, a drafted set of scenes to review, and one approval
+ *  that turns them into active scenario cards with unclaimed rallies waiting behind each one. */
+function CorpusPlanner({ p }: { p: Project }) {
+  const [form, setForm] = useState<PlanInputs>({ project_id: p.id, industry: "", trains: TRAINS[0], topics: 40, target_hours: Number(p.target_hours) || 10, language: p.language });
+  const [asking, setAsking] = useState(false);
+  const [draft, setDraft] = useState<{ planId: string; model: string; scenes: PlanScene[] } | null>(null);
+  const [openScene, setOpenScene] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [progress, setProgress] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [history, setHistory] = useState<PlanRow[] | null>(null);
+
+  const totals = draft ? recomputeTotals(draft.scenes, form.target_hours, form.topics) : null;
+  const say = (e: unknown, fallback: string) => setErr(e instanceof Error ? e.message.replace(/^.*?: /, "") : fallback);
+
+  const loadHistory = useCallback(async () => {
+    try {
+      setHistory(await listPlans(p.id));
+    } catch {
+      setHistory([]); // the table may not be migrated yet; the planner itself reports that clearly
+    }
+  }, [p.id]);
+
+  useEffect(() => {
+    void loadHistory();
+  }, [loadHistory]);
+
+  const run = async () => {
+    setBusy("draft");
+    setErr(null);
+    setConfirming(false);
+    setProgress("Working out the arithmetic…");
+    try {
+      const out = await draftPlan(form, setProgress);
+      setDraft({ planId: out.planId, model: out.model, scenes: out.scenes });
+      setAsking(false);
+      setProgress(`Drafted ${out.scenes.length} scenes. Read them before you release anything.`);
+      await loadHistory();
+    } catch (e) {
+      say(e, "The planner failed.");
+      setProgress(null);
+    }
+    setBusy(null);
+  };
+
+  const editScene = (key: string, patch: Partial<PlanScene>) => setDraft((d) => (d ? { ...d, scenes: d.scenes.map((s) => (s.key === key ? { ...s, ...patch } : s)) } : d));
+  const dropScene = (key: string) => {
+    setConfirming(false);
+    setDraft((d) => (d ? { ...d, scenes: d.scenes.filter((s) => s.key !== key) } : d));
+  };
+
+  const discard = async () => {
+    if (!draft) return;
+    setBusy("discard");
+    try {
+      await cancelPlan(draft.planId);
+    } catch (e) {
+      say(e, "Couldn't mark the draft rejected.");
+    }
+    setDraft(null);
+    setConfirming(false);
+    setProgress(null);
+    setBusy(null);
+    await loadHistory();
+  };
+
+  const release = async () => {
+    if (!draft || !totals) return;
+    setBusy("approve");
+    setErr(null);
+    try {
+      const out = await approvePlan(draft.planId, draft.scenes, form.language, form.target_hours, form.topics, draft.model, setProgress);
+      setProgress(`Released. ${out.cards} cards are active and ${out.rallies} rallies are waiting for contributors.`);
+      setDraft(null);
+      setConfirming(false);
+      await loadHistory();
+    } catch (e) {
+      say(e, "The release failed.");
+    }
+    setBusy(null);
+  };
+
+  const set = (k: keyof PlanInputs, v: string | number) => setForm({ ...form, [k]: v });
+  const live = (history ?? []).filter((r) => r.status === "approved");
+
+  return (
+    <div className="tile dash">
+      <div className="tlbl">Corpus plan</div>
+      <div className="tbody muted small" style={{ marginBottom: 8 }}>
+        Answer a few questions and a model drafts the whole set of scenes for this project: a title, a situation and two personas each, and how many turns the exchange can honestly sustain. The hours are turned into turns and rallies here, not by the model — a turn is capped at {TURN_CAP_SECONDS} s and runs to about 20 s in practice. Nothing reaches a contributor until you have read it and approved it.
+        {live.length > 0 && ` ${live.length} ${live.length === 1 ? "plan has" : "plans have"} already been released for this project.`}
+      </div>
+
+      {!draft && !asking && (
+        <div className="btn-row">
+          <button className="pill ghost" disabled={busy !== null || isDemo()} onClick={() => { setAsking(true); setErr(null); setProgress(null); }}>Plan the corpus</button>
+        </div>
+      )}
+      {isDemo() && !draft && <div className="tbody muted small">Planning is turned off inside the chat demo.</div>}
+
+      {asking && (
+        <>
+          <div className="field"><label>The industry or domain the buyer cares about</label><input value={form.industry} onChange={(e) => set("industry", e.target.value)} placeholder="e.g. retail banking and agent networks" /></div>
+          <div className="row2">
+            <div className="field"><label>What the data will train</label><input list="corpus-trains" value={form.trains} onChange={(e) => set("trains", e.target.value)} placeholder="e.g. speech recognition" /><datalist id="corpus-trains">{TRAINS.map((t) => <option key={t} value={t} />)}</datalist></div>
+            <div className="field"><label>Language</label><select value={form.language} onChange={(e) => set("language", e.target.value)}>{Object.entries(LANG_NAME).map(([k, n]) => <option key={k} value={k}>{n}</option>)}</select></div>
+          </div>
+          <div className="row2">
+            <div className="field"><label>Roughly how many distinct topics</label><input type="number" min={1} max={400} step={1} value={form.topics} onChange={(e) => set("topics", Math.max(1, Math.min(400, Number(e.target.value) || 1)))} /></div>
+            <div className="field"><label>Target · hours</label><input type="number" min={1} step={1} value={form.target_hours} onChange={(e) => set("target_hours", Math.max(1, Number(e.target.value) || 1))} /></div>
+          </div>
+          <div className="btn-row">
+            <button className="pill mint" disabled={busy !== null || !form.industry.trim() || !form.trains.trim()} onClick={() => void run()}>{busy === "draft" ? "Drafting…" : "Draft the plan"}</button>
+            <button className="pill ghost" disabled={busy !== null} onClick={() => setAsking(false)}>Cancel</button>
+          </div>
+        </>
+      )}
+
+      {draft && totals && (
+        <>
+          <div className="tile" style={{ marginTop: 10 }}>
+            <div className="tlbl">The sums</div>
+            <div className="tbody small">
+              <b>{totals.scenes}</b> scenes · <b>{totals.turns_per_round}</b> turns across the set, averaging <b>{totals.avg_turns}</b> a scene · <b>{totals.rallies_per_scene}</b> {totals.rallies_per_scene === 1 ? "rally" : "rallies"} per scene · <b>{totals.rallies}</b> rallies in all.
+            </div>
+            <div className="tbody muted small" style={{ marginTop: 4 }}>
+              {totals.turns} turns at about 20 s each is <b>{totals.estimated_hours} h</b> against a target of {totals.target_hours} h, and {totals.max_hours} h if every turn runs the full {TURN_CAP_SECONDS} s. Each rally averages {Math.round(totals.seconds_per_rally / 6) / 10} min. Drafted by {draft.model || "the configured model"}.
+            </div>
+          </div>
+
+          <div className="tbody muted small" style={{ margin: "10px 0 6px" }}>Read every scene. Edit anything that is thin, stereotyped, or would push a contributor into saying something real about themselves; drop what you cannot fix. The cards are written in {LANG_NAME[form.language] ?? form.language} with an English note for the editor, and they go live without card audio — record that in the card library afterwards.</div>
+
+          {draft.scenes.map((s, i) => {
+            const isOpen = openScene === s.key;
+            return (
+              <div key={s.key} className="tile" style={{ marginBottom: 8 }}>
+                <div className="spread" style={{ alignItems: "flex-start", gap: 10 }}>
+                  <button type="button" onClick={() => setOpenScene(isOpen ? null : s.key)} style={{ textAlign: "left", cursor: "pointer", flex: 1, background: "none", border: "none", padding: 0 }}>
+                    <div className="tbody" style={{ fontSize: "0.9rem" }}>{i + 1}. {s.title}</div>
+                    <div className="tbody muted small" style={{ marginTop: 2 }}>{s.domain || "no domain"} · {s.turns} turns · {s.rallies || totals.rallies_per_scene} rallies{s.english_note ? ` · ${s.english_note}` : ""}</div>
+                  </button>
+                  <button className="pill ghost" style={{ flex: "none", width: "auto" }} disabled={busy !== null} onClick={() => dropScene(s.key)}>Drop</button>
+                </div>
+                {isOpen && (
+                  <div style={{ marginTop: 8 }}>
+                    <div className="field"><label>Title</label><input value={s.title} onChange={(e) => editScene(s.key, { title: e.target.value })} /></div>
+                    <div className="field"><label>Situation</label><textarea rows={3} value={s.situation} onChange={(e) => editScene(s.key, { situation: e.target.value })} /></div>
+                    <div className="row2">
+                      <div className="field"><label>Persona a</label><input value={s.persona_a} onChange={(e) => editScene(s.key, { persona_a: e.target.value })} /></div>
+                      <div className="field"><label>Persona b</label><input value={s.persona_b} onChange={(e) => editScene(s.key, { persona_b: e.target.value })} /></div>
+                    </div>
+                    <div className="row2">
+                      <div className="field"><label>Domain</label><input value={s.domain} onChange={(e) => editScene(s.key, { domain: e.target.value })} /></div>
+                      <div className="field"><label>Turns ({TURN_MIN}–{TURN_MAX})</label><input type="number" min={TURN_MIN} max={TURN_MAX} step={1} value={s.turns} onChange={(e) => editScene(s.key, { turns: Math.max(TURN_MIN, Math.min(TURN_MAX, Number(e.target.value) || TURN_MIN)) })} /></div>
+                    </div>
+                    <div className="field"><label>English note</label><input value={s.english_note} onChange={(e) => editScene(s.key, { english_note: e.target.value })} /></div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <div className="btn-row" style={{ marginTop: 10 }}>
+            {confirming ? (
+              <button className="pill mint" disabled={busy !== null} onClick={() => void release()}>{busy === "approve" ? "Releasing…" : `Yes — release ${totals.scenes} cards and ${totals.rallies} rallies`}</button>
+            ) : (
+              <button className="pill mint" disabled={busy !== null || totals.scenes === 0} onClick={() => setConfirming(true)}>Approve the plan</button>
+            )}
+            <button className="pill ghost" disabled={busy !== null} onClick={() => { if (confirming) setConfirming(false); else void discard(); }}>{confirming ? "Not yet" : "Discard the draft"}</button>
+          </div>
+          {confirming && <div className="tbody small" style={{ color: "var(--gold)", marginTop: 8 }}>This creates {totals.scenes} active scenario cards and spawns {totals.rallies} unclaimed rallies in {LANG_NAME[form.language] ?? form.language}. Contributors can pick them up straight away.</div>}
+        </>
+      )}
+
+      {progress && <div className="tbody small" style={{ color: "var(--acc)", marginTop: 8 }}>{progress}</div>}
+      {err && <div className="tbody small" style={{ color: "var(--coral)", marginTop: 8 }}>{err}</div>}
+
+      {!draft && history && history.length > 0 && (
+        <div style={{ marginTop: 10 }}>
+          {history.slice(0, 6).map((r) => (
+            <div key={r.id} className="tbody muted small" style={{ padding: "4px 0" }}>
+              {when(r.created_at)} · {r.status} · {r.plan?.totals?.scenes ?? 0} scenes · {r.plan?.totals?.rallies ?? 0} rallies · {r.inputs?.industry ?? ""}
+              {r.status === "draft" && <button className="pill ghost" style={{ width: "auto", marginLeft: 8, padding: "2px 10px", fontSize: "0.7rem" }} onClick={() => void rejectPlan(r.id).then(loadHistory).catch((e) => say(e, "Couldn't reject it."))}>Reject</button>}
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
