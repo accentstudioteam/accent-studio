@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Logo } from "@/components/Logo";
 
 export interface NavItem {
@@ -12,6 +13,22 @@ interface Props {
   items: NavItem[];
   active: string;
   onPick: (key: string) => void;
+}
+
+/** A waiting count that re-lands when it changes, so work arriving while you are
+ *  on another screen registers in the corner of the eye. `.sx-bump` is the
+ *  shared primitive; see the motion block at the end of tokens.css. */
+function NavCount({ value, gold }: { value: number; gold?: boolean }) {
+  const prev = useRef(value);
+  const [bump, setBump] = useState(false);
+  useEffect(() => {
+    if (prev.current === value) return;
+    prev.current = value;
+    setBump(true);
+    const id = window.setTimeout(() => setBump(false), 500);
+    return () => window.clearTimeout(id);
+  }, [value]);
+  return <span className={`snav-count${gold ? " gold" : ""}${bump ? " sx-bump" : ""}`} aria-hidden="true">{value}</span>;
 }
 
 /** The studio's navigation on a desk: a grouped sidebar with counts of what is waiting. */
@@ -31,7 +48,7 @@ export function StudioNav({ items, active, onPick }: Props) {
           {g.items.map((it) => (
             <button key={it.key} type="button" className={`snav-item${active === it.key ? " on" : ""}`} aria-label={it.label} title={it.count != null && it.count > 0 ? `${it.label}: ${it.count} waiting` : it.label} aria-current={active === it.key ? "page" : undefined} onClick={() => onPick(it.key)}>
               <span>{it.label}</span>
-              {it.count != null && it.count > 0 && <span className={`snav-count${it.accent === "gold" ? " gold" : ""}`} aria-hidden="true">{it.count}</span>}
+              {it.count != null && it.count > 0 && <NavCount value={it.count} gold={it.accent === "gold"} />}
             </button>
           ))}
         </div>

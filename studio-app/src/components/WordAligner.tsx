@@ -116,16 +116,16 @@ export function WordAligner({ transcript, gloss, language, value, onChange, disa
       <div className="row">{srcWords.length ? chip("src", srcWords, srcLink, selSrc) : <span className="muted small">Write the gloss first.</span>}</div>
       {!disabled && (
         <div className="row" style={{ alignItems: "center", gap: 8, marginTop: 8 }}>
-          <select value={type} onChange={(e) => setType(e.target.value as AlignType)} title={TYPE_HINT[type]} style={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: 10, padding: "7px 10px", color: "var(--ink)", fontSize: "0.8rem" }}>
+          <select className="sx-sel" value={type} onChange={(e) => setType(e.target.value as AlignType)} title={TYPE_HINT[type]}>
             {ALIGN_TYPES.map((k) => <option key={k} value={k}>{k.replace(/_/g, " ")}</option>)}
           </select>
-          <select value={conf} onChange={(e) => setConf(Number(e.target.value))} style={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: 10, padding: "7px 10px", color: "var(--ink)", fontSize: "0.8rem" }}>
+          <select className="sx-sel" value={conf} onChange={(e) => setConf(Number(e.target.value))}>
             {CONF.map(([c, label]) => <option key={c} value={c}>{label}</option>)}
           </select>
           {active == null ? (
             <button type="button" className="pill mint" style={{ width: "auto", padding: "9px 14px", minHeight: 0 }} disabled={!canLink} onClick={link}>{linkLabel}</button>
           ) : (
-            <button type="button" className="pill ghost" style={{ width: "auto", padding: "9px 14px", minHeight: 0, borderColor: "var(--coral)", color: "var(--coral)" }} onClick={unlink}>Unlink</button>
+            <button type="button" className="pill coral" style={{ width: "auto", padding: "9px 14px", minHeight: 0 }} onClick={unlink}>Unlink</button>
           )}
           <span className="muted small" style={{ flexBasis: "100%" }}>{TYPE_HINT[type]}. Tap a first and a last word to pick a run of words.</span>
         </div>

@@ -66,9 +66,9 @@ export function LinguistDemo() {
   const bench = sid ? <Workbench sessionId={sid} onBack={() => setSid(null)} onCases={() => go("cases")} embedded /> : null;
 
   return (
-    <div className="app" key={epoch}>
+    <div className="app ankara studio-ank" key={epoch}>
       <div className="topbar">
-        <Logo height={22} />
+        <Logo height={22} tone="mono" />
         <span className="chip" style={{ fontFamily: "var(--mono)", fontSize: "0.7rem" }}>Cutting Room · demo</span>
       </div>
       <div className="studio">

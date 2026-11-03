@@ -3009,3 +3009,950 @@ button.tile:hover {
 @media (prefers-reduced-motion: reduce) {
   .ankara .p-pres.on i { animation: none; }
 }
+
+/* ===========================================================================
+   ANKARA · THE STUDIO (the admin flavour of the direction)
+
+   HOW THIS IS SCOPED, and why it is safe
+   --------------------------------------
+   The admin shell carries TWO classes: `ankara studio-ank`. `.ankara` brings
+   the tokens and the base above; `.studio-ank` says "this is the dense admin
+   flavour". Every rule below is written as the compound `.ankara.studio-ank X`,
+   which is (0,3,0): higher than the player's own `.ankara X` (0,2,0) and than
+   Midnight's bare `.X` (0,1,0). So a name the player block already owns —
+   .sheet, .tile, .chip, .shell, .field, .row, .stack, .topbar — resolves to the
+   admin recipe inside the Studio and to the player recipe everywhere else.
+   The player app never carries `.studio-ank`, so nothing here can reach it.
+   Nothing is on bare :root.
+
+   THE ARGUMENT THIS IS BUILT ON
+   -----------------------------
+   The player app is one card at a time, so it can afford a 390px-wide block of
+   mint. The Studio is a queue of two hundred rows a linguist scans for hours.
+   So the admin flavour keeps the whole language — cream ground, 2px ink
+   outlines, hard offset shadows, the three faces, the pattern tiles — and
+   spends it differently:
+
+     1. Colour lives in the chrome and on the EDGE of data, never as a fill
+        behind it. A state is a 5px coloured spine (`.sx-spine-*`, `.tile.acc`,
+        `.wt`), not a coloured card. Same palette, a tenth of the area.
+     2. One strong frame per GROUP, quiet surfaces inside it. `.sheet` keeps the
+        2px ink outline and the hard offset; `.tile` inside it drops to the soft
+        outline and a 2px offset. Hierarchy by weight, not by hue.
+     3. The hard offset shadow is reserved for things you press and things that
+        frame. A list of 200 rows that each cast one is noise, so rows share
+        hairlines inside a single frame (`.sx-list`).
+     4. Everything is one step tighter: --pad, the type scale, control heights.
+     5. Pattern tiles only where no text sits: the top band, nothing else.
+     6. Motion belongs to arrivals and state changes, never to static content.
+        See the motion section at the end of this block.
+
+   WHERE TO START IF YOU ARE THE NEXT AGENT
+   ----------------------------------------
+   Put `ankara studio-ank` on the route's outermost div if it renders its own
+   shell; inside the Studio you already have it. Then: you probably need no new
+   CSS. The Midnight card vocabulary (.sheet/.tile/.tlbl/.ttitle/.tbody/.pill/
+   .chip/.field/.empty/.stat/.badge/.row) is bridged below, so an untouched
+   screen already reads as Ankara. Convert by reaching for the recipes under
+   "new recipes" — `.sx-list` for long lists, `.sx-bar` for filters,
+   `.sx-split` / `.sx-pair` for side-by-side review — and by deleting inline
+   styles in favour of them.
+   ========================================================================= */
+
+/* ---------- the admin token set: density, plus the Midnight names bridged --- */
+.ankara.studio-ank{
+  /* density. The player's own value is one step larger in every case. */
+  --pad: clamp(14px, 2.6vw, 22px);
+  --sx-top: 50px;              /* the top band's height: every sticky offset uses it */
+  --sx-off: 3px;               /* the admin's hard offset (the player uses 4px) */
+  --sx-off-sm: 2px;
+  --sx-r-group: 18px;
+  --sx-r-tile: 12px;
+  --sx-r-inset: 9px;
+  --sx-spine: 5px;             /* the width of a state edge */
+
+  /* The two hues the Studio needs as TEXT, which the direction only ever uses
+     as a fill. Brand gold on cream is about 2:1, so a note set in it cannot be
+     read; these are the same hues carried down far enough to hold. The fills
+     keep the brand values, under their own names. */
+  --gold-fill: #E0A24E;
+  --coral-fill: #E08A5C;
+  --gold: #85571A;
+  --coral: #A3421B;
+
+  /* The word aligner's per-link hue arrives as --hue on the element, so its
+     fill is built from these lightness tokens and the dark override below
+     stays four lines instead of forty. */
+  --sx-aw-s: 72%; --sx-aw-l: 86%; --sx-aw-bs: 45%; --sx-aw-bl: 42%;
+  --sx-aw-fg: var(--ink);
+
+  /* Midnight's token names, pointed at this direction. Every inline
+     `var(--mono)` / `var(--mut)` / `var(--acc)` still left in the admin routes
+     resolves through these, which is why an unconverted screen holds up.
+     --acc goes to the ink on purpose: in this direction an accent is a fill or
+     an edge, never a tinted text colour. If you want a fill: --mint,
+     --gold-fill, --coral-fill, --lilac. --ink is deliberately NOT redefined —
+     it is the brand near-black that every colour block outlines itself with,
+     in both themes. */
+  --mono: var(--f-mono);
+  --disp: var(--f-display);
+  --sans: var(--f-body);
+  --mut: var(--muted);
+  --ink2: var(--muted);
+  --faint: var(--line-soft);
+  --acc: var(--fg);
+  --acc2: var(--fg);
+  --accink: var(--cream);
+  --accdim: var(--surface2);
+  --green: var(--mint);
+  --goldb: var(--gold-fill);
+  --card: var(--surface);
+  --card2: var(--surface2);
+  --bg0: var(--bg);
+  --bg1: var(--bg);
+  --line2: var(--line-soft);
+
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 14.5px/1.5 var(--f-body);
+}
+:root[data-theme="dark"] .ankara.studio-ank{
+  --gold: #F0B866; --coral: #FF9A70;
+  --sx-aw-s: 42%; --sx-aw-l: 26%; --sx-aw-bs: 55%; --sx-aw-bl: 58%;
+  --sx-aw-fg: var(--cream);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .ankara.studio-ank{
+    --gold: #F0B866; --coral: #FF9A70;
+    --sx-aw-s: 42%; --sx-aw-l: 26%; --sx-aw-bs: 55%; --sx-aw-bl: 58%;
+    --sx-aw-fg: var(--cream);
+  }
+}
+
+/* ---------- the shell: top band, sidebar, content column ------------------- */
+/* The top band is where the Studio spends its pattern and most of its colour,
+   because nothing in it is body text: a logo, a plate and a chip. */
+.ankara.studio-ank > .topbar{
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  min-height: var(--sx-top);
+  padding: 7px var(--pad);
+  background: var(--surface2); color: var(--fg);
+  border-bottom: 2px solid var(--line);
+  backdrop-filter: none;
+}
+.ankara.studio-ank > .topbar::before{
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: var(--pat-zig6); background-size: 40px 28px;
+}
+.ankara.studio-ank > .topbar > *{ position: relative; }
+/* on the narrowest phones the band's chips shrink before the page does */
+.ankara.studio-ank > .topbar .chip{
+  display: inline-block; min-width: 0; max-width: 40vw;
+  overflow: hidden; text-overflow: ellipsis; line-height: 20px;
+}
+.ankara.studio-ank .studio{ display: grid; grid-template-columns: minmax(0,1fr); flex: 1; min-height: 0; }
+.ankara.studio-ank .studio-main{ min-width: 0; }
+.ankara.studio-ank .shell{
+  width: 100%; margin: 0 auto; padding: var(--pad);
+  flex: 1; display: flex; flex-direction: column; position: static; min-height: 0;
+}
+.ankara.studio-ank.has-dock .shell,
+.ankara.studio-ank .has-dock .shell{ padding-bottom: 104px; }
+
+/* The sidebar. On a phone a scrolling strip of chips; on a desk a cream column
+   with the ink rule down its edge. The place you are on is the one mint block
+   on the screen — that is the whole colour budget for navigation. */
+.ankara.studio-ank .snav{
+  display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
+  padding: 8px var(--pad);
+  background: var(--bg);
+  border-bottom: 2px solid var(--line-soft);
+}
+.ankara.studio-ank .snav-h{ display: none; }
+.ankara.studio-ank .snav-item{
+  flex: none; display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 11px; border-radius: 999px;
+  border: 2px solid var(--line-soft); background: var(--surface); color: var(--fg);
+  font: 600 12.5px/1 var(--f-body); white-space: nowrap;
+  transition: transform 160ms var(--ease-std), box-shadow 160ms var(--ease-std),
+              background 160ms, border-color 160ms;
+}
+.ankara.studio-ank .snav-item:hover{ border-color: var(--line); background: var(--surface2); }
+.ankara.studio-ank .snav-item.on{
+  background: var(--mint); color: var(--ink); border-color: var(--ink);
+  box-shadow: var(--sx-off-sm) var(--sx-off-sm) 0 var(--sh-mint), var(--glow) var(--sh-mint);
+  font-weight: 700;
+}
+.ankara.studio-ank .snav-item:active{ transform: translate(1px,1px); box-shadow: none; }
+.ankara.studio-ank .snav-count{
+  font: 700 11px/1.3 var(--f-mono); font-variant-numeric: tabular-nums;
+  padding: 1px 6px; border-radius: 999px;
+  background: var(--surface2); color: var(--fg); border: 1.5px solid var(--line-soft);
+}
+.ankara.studio-ank .snav-item.on .snav-count{ background: var(--cream); color: var(--ink); border-color: var(--ink); }
+.ankara.studio-ank .snav-count.gold{ background: var(--gold-fill); color: var(--ink); border-color: var(--ink); }
+@media (min-width: 900px){
+  .ankara.studio-ank .studio{ grid-template-columns: 228px minmax(0,1fr); }
+  .ankara.studio-ank .snav{
+    flex-direction: column; gap: 2px; padding: 14px 12px;
+    background: var(--surface2);
+    border-bottom: 0; border-right: 2px solid var(--line);
+    position: sticky; top: var(--sx-top); align-self: start;
+    max-height: calc(100dvh - var(--sx-top)); overflow-y: auto;
+  }
+  .ankara.studio-ank .snav-grp{ display: block; margin-bottom: 10px; }
+  .ankara.studio-ank .snav-h{
+    display: block; padding: 8px 10px 3px;
+    font: 500 10.5px/1.2 var(--f-mono); text-transform: uppercase; letter-spacing: .12em;
+    color: var(--muted);
+  }
+  .ankara.studio-ank .snav-item{
+    display: flex; width: 100%; justify-content: space-between; text-align: left;
+    white-space: normal; border-radius: 10px; padding: 7px 10px;
+    border-color: transparent; background: transparent; font-size: 14px;
+  }
+  .ankara.studio-ank .snav-item:hover{ background: var(--surface); border-color: var(--line-soft); }
+  .ankara.studio-ank .snav-item.on{ border-radius: 10px; border-color: var(--ink); }
+  .ankara.studio-ank .studio-main .shell{ margin: 0; }
+}
+
+/* ---------- the type scale, one step down from the player's ---------------- */
+.ankara.studio-ank .h1{
+  font-family: var(--f-display); font-weight: 800;
+  font-size: clamp(1.3rem, 3.4vw, 1.7rem); line-height: 1.06; letter-spacing: -.03em;
+  color: var(--fg); margin: 0;
+}
+.ankara.studio-ank .eyebrow{
+  font: 500 10.5px/1.3 var(--f-mono); text-transform: uppercase; letter-spacing: .14em;
+  color: var(--muted); margin-bottom: 0;
+}
+.ankara.studio-ank .tlbl{
+  font: 500 10.5px/1.3 var(--f-mono); text-transform: uppercase; letter-spacing: .1em;
+  color: var(--muted); margin-bottom: 4px;
+}
+.ankara.studio-ank .ttitle{
+  font: 800 15px/1.2 var(--f-display); letter-spacing: -.02em; color: var(--fg);
+}
+.ankara.studio-ank .tbody{ font: 400 13.5px/1.45 var(--f-body); color: var(--fg); }
+.ankara.studio-ank .tbody.muted, .ankara.studio-ank .muted{ color: var(--muted); }
+.ankara.studio-ank .small{ font-size: 12.5px; }
+.ankara.studio-ank .center{ text-align: center; }
+.ankara.studio-ank .mono{ font: 500 11.5px/1.4 var(--f-mono); }
+.ankara.studio-ank .lab{ font: 500 10.5px/1.2 var(--f-mono); text-transform: uppercase; letter-spacing: .12em; }
+.ankara.studio-ank .spread{ display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ankara.studio-ank .stack{ display: flex; flex-direction: column; gap: 10px; }
+.ankara.studio-ank .row2{ display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+@media (max-width: 480px){ .ankara.studio-ank .row2{ grid-template-columns: 1fr; } }
+/* min(…, 100%) so a screen that ends up nested inside another `.shell` — the
+   linguist demo does this — cannot push itself off the side of the page. */
+.ankara.studio-ank .bench, .ankara.studio-ank .wide{ max-width: min(760px, 100%); }
+@media (min-width: 1000px){
+  .ankara.studio-ank .bench, .ankara.studio-ank .wide{ max-width: min(1080px, 100%); }
+}
+.ankara.studio-ank .msg{ font: 500 12px/1.4 var(--f-mono); min-height: 1.3em; }
+.ankara.studio-ank .msg.err{ color: var(--coral); }
+.ankara.studio-ank .msg.ok{ color: var(--fg); }
+.ankara.studio-ank p a, .ankara.studio-ank li a{ color: var(--fg); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+
+/* ---------- surfaces: one strong frame, quiet units inside ----------------- */
+/* `.sheet` is the GROUP. It keeps the full direction: 2px ink outline, hard
+   offset, cream ground. */
+.ankara.studio-ank .sheet{
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px;
+  background: var(--surface2); color: var(--fg);
+  border: 2px solid var(--line); border-radius: var(--sx-r-group);
+  box-shadow: var(--sx-off) var(--sx-off) 0 var(--sh);
+}
+/* The grab handle is a phone affordance. Nothing here is draggable and it costs
+   10px of vertical rhythm per group, so it goes. */
+.ankara.studio-ank .sheet .handle{ display: none; }
+/* Group headers read flush left, not centred: a column of centred mono labels
+   is slower to scan down than a column of left-aligned ones. */
+.ankara.studio-ank .sheet .shead{
+  display: flex; align-items: center; justify-content: flex-start; gap: 8px;
+  padding: 0 2px 2px;
+  font: 500 10.5px/1.2 var(--f-mono); text-transform: uppercase; letter-spacing: .14em;
+  color: var(--muted);
+}
+.ankara.studio-ank .sheet .shead i{
+  width: 9px; height: 9px; flex: none; border-radius: 2px;
+  background: var(--mint); border: 1.5px solid var(--ink); box-shadow: none;
+}
+.ankara.studio-ank .sheet .shead i.g{ background: var(--gold-fill); }
+
+/* `.tile` is the QUIET UNIT: the same card, with the soft outline and a 2px
+   offset in place of the ink outline and the 4px one. This is the piece the
+   brief asks for — same language, less air, less colour per square inch. */
+.ankara.studio-ank .tile{
+  background: var(--surface); color: var(--fg);
+  border: 2px solid var(--line-soft); border-radius: var(--sx-r-tile);
+  padding: 9px 11px;
+  box-shadow: var(--sx-off-sm) var(--sx-off-sm) 0 var(--line-soft);
+}
+.ankara.studio-ank button.tile{
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  transition: transform 160ms var(--ease-std), box-shadow 160ms var(--ease-std), border-color 160ms;
+}
+.ankara.studio-ank button.tile:hover{ border-color: var(--line); box-shadow: var(--sx-off) var(--sx-off) 0 var(--sh); }
+.ankara.studio-ank button.tile:active{ transform: translate(2px,2px); box-shadow: none; }
+/* `.acc` is the state edge: a 5px spine, which is how the whole admin says
+   "this one is different" without filling a card with colour. */
+.ankara.studio-ank .tile.acc{ border-left-width: var(--sx-spine); border-left-color: var(--gold-fill); }
+.ankara.studio-ank .tile.dash{
+  border-style: dashed; border-color: var(--line-soft); background: transparent; box-shadow: none;
+}
+.ankara.studio-ank .card{
+  background: var(--surface); color: var(--fg);
+  border: 2px solid var(--line); border-radius: var(--sx-r-tile);
+  box-shadow: var(--sx-off) var(--sx-off) 0 var(--sh);
+}
+.ankara.studio-ank .card.pad{ padding: 11px 12px; }
+.ankara.studio-ank .empty{
+  border: 2px dashed var(--line-soft); border-radius: var(--sx-r-tile);
+  padding: 16px 14px; text-align: center; background: var(--surface2);
+  color: var(--muted); font-size: 13.5px;
+}
+.ankara.studio-ank .empty b{
+  display: block; margin-bottom: 3px;
+  font: 800 15px/1.2 var(--f-display); letter-spacing: -.02em; color: var(--fg);
+}
+.ankara.studio-ank .empty span{ display: block; font-size: 12.5px; line-height: 1.5; }
+
+/* The one colour block the admin keeps whole, for the rare thing that has to
+   stop you: `.sx-block` plus a hue. Pattern at 6% only, and never under a
+   paragraph. */
+.ankara.studio-ank .sx-block{
+  position: relative; padding: 11px 13px;
+  border: 2px solid var(--ink); border-radius: var(--sx-r-tile); color: var(--ink);
+  background-color: var(--c, var(--gold-fill));
+  box-shadow: var(--sx-off) var(--sx-off) 0 var(--sh-c, var(--sh-gold)), var(--glow) var(--sh-c, transparent);
+}
+.ankara.studio-ank .sx-block-mint{ --c: var(--mint); --sh-c: var(--sh-mint); }
+.ankara.studio-ank .sx-block-gold{ --c: var(--gold-fill); --sh-c: var(--sh-gold); }
+.ankara.studio-ank .sx-block-coral{ --c: var(--coral-fill); --sh-c: var(--sh-coral); }
+.ankara.studio-ank .sx-block-lilac{ --c: var(--lilac); --sh-c: var(--sh-lilac); }
+.ankara.studio-ank .sx-block .tlbl, .ankara.studio-ank .sx-block .muted{ color: var(--ink); opacity: .74; }
+.ankara.studio-ank .sx-block .ttitle, .ankara.studio-ank .sx-block .tbody{ color: var(--ink); }
+
+/* The state spine itself is declared at the end of the recipes, after `.sx-row`,
+   so that a row's own `border: 0` cannot win on source order. */
+
+/* ---------- controls ------------------------------------------------------- */
+/* `.ankara button` zeroes padding, background and border at (0,1,1), so every
+   control below has to restate them. Keep that in mind if you add one. */
+.ankara.studio-ank .pill{
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  width: auto; min-height: 36px; padding: 0 14px;
+  border: 2px solid var(--ink); border-radius: 999px;
+  font: 800 13.5px/1.1 var(--f-display); letter-spacing: -.01em; text-transform: none;
+  color: var(--ink); background: var(--gold-fill);
+  box-shadow: var(--sx-off-sm) var(--sx-off-sm) 0 var(--sh-gold), var(--glow) var(--sh-gold);
+  transition: transform 160ms var(--ease-std), box-shadow 160ms var(--ease-std), filter 160ms;
+}
+.ankara.studio-ank .pill:hover:not(:disabled){ transform: translate(-1px,-1px); box-shadow: var(--sx-off) var(--sx-off) 0 var(--sh-gold), var(--glow) var(--sh-gold); }
+.ankara.studio-ank .pill:active:not(:disabled){ transform: translate(2px,2px); box-shadow: none; }
+.ankara.studio-ank .pill.mint{ background: var(--mint); box-shadow: var(--sx-off-sm) var(--sx-off-sm) 0 var(--sh-mint), var(--glow) var(--sh-mint); }
+.ankara.studio-ank .pill.mint:hover:not(:disabled){ box-shadow: var(--sx-off) var(--sx-off) 0 var(--sh-mint), var(--glow) var(--sh-mint); filter: none; }
+.ankara.studio-ank .pill.gold{ background: var(--gold-fill); }
+.ankara.studio-ank .pill.coral{ background: var(--coral-fill); box-shadow: var(--sx-off-sm) var(--sx-off-sm) 0 var(--sh-coral), var(--glow) var(--sh-coral); }
+.ankara.studio-ank .pill.coral:hover:not(:disabled){ box-shadow: var(--sx-off) var(--sx-off) 0 var(--sh-coral), var(--glow) var(--sh-coral); }
+.ankara.studio-ank .pill.ghost{
+  background: var(--surface); color: var(--fg); border-color: var(--line-soft);
+  box-shadow: var(--sx-off-sm) var(--sx-off-sm) 0 var(--line-soft);
+  font: 600 13px/1.1 var(--f-body); letter-spacing: 0;
+}
+.ankara.studio-ank .pill.ghost:hover:not(:disabled){ border-color: var(--line); color: var(--fg); box-shadow: var(--sx-off) var(--sx-off) 0 var(--sh); }
+.ankara.studio-ank .pill:disabled{
+  background: var(--dis-bg); color: var(--muted); border-color: var(--line-soft);
+  box-shadow: none; transform: none; cursor: default;
+}
+.ankara.studio-ank .pill.auto{ width: auto; }
+/* `.sheet` is a stretch column, so a primary action inside one would run the
+   full width unless it is told otherwise. */
+.ankara.studio-ank .sheet > .pill, .ankara.studio-ank .sheet > .btn-row{ align-self: flex-start; }
+.ankara.studio-ank .btn-row{ display: flex; flex-wrap: wrap; gap: 8px; }
+.ankara.studio-ank .btn-row > *{ flex: 0 1 auto; }
+
+/* Chips. A 200-row queue carries hundreds of them, so the default is FLAT —
+   outline only. The hard offset is kept for a chip you can press or one that
+   is on, which is also what tells the two kinds apart at a glance. */
+.ankara.studio-ank .chip{
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 24px; padding: 0 9px;
+  border: 2px solid var(--line-soft); border-radius: 999px;
+  font: 600 11.5px/1 var(--f-body); letter-spacing: 0;
+  color: var(--fg); background: var(--surface); box-shadow: none; white-space: nowrap;
+}
+.ankara.studio-ank .chips{ display: flex; flex-wrap: wrap; gap: 6px; }
+.ankara.studio-ank button.chip{
+  cursor: pointer; border-color: var(--line);
+  box-shadow: var(--sx-off-sm) var(--sx-off-sm) 0 var(--line-soft);
+  transition: transform 140ms var(--ease-std), box-shadow 140ms var(--ease-std), background 140ms;
+}
+.ankara.studio-ank button.chip:hover{ background: var(--surface2); box-shadow: var(--sx-off-sm) var(--sx-off-sm) 0 var(--sh); }
+.ankara.studio-ank button.chip:active{ transform: translate(1px,1px); box-shadow: none; }
+.ankara.studio-ank .chip.on{
+  background: var(--mint); color: var(--ink); border-color: var(--ink);
+  box-shadow: var(--sx-off-sm) var(--sx-off-sm) 0 var(--sh-mint), var(--glow) var(--sh-mint);
+  font-weight: 700;
+}
+.ankara.studio-ank .chip.gold, .ankara.studio-ank .chip.on.gold{
+  background: var(--gold-fill); color: var(--ink); border-color: var(--ink);
+}
+.ankara.studio-ank .chip.on.gold{ box-shadow: var(--sx-off-sm) var(--sx-off-sm) 0 var(--sh-gold), var(--glow) var(--sh-gold); font-weight: 700; }
+.ankara.studio-ank .chip.coral, .ankara.studio-ank .chip.on.coral{
+  background: var(--coral-fill); color: var(--ink); border-color: var(--ink);
+}
+.ankara.studio-ank .chip.on.coral{ box-shadow: var(--sx-off-sm) var(--sx-off-sm) 0 var(--sh-coral), var(--glow) var(--sh-coral); font-weight: 700; }
+.ankara.studio-ank .chip:disabled{ background: var(--dis-bg); color: var(--muted); border-color: var(--line-soft); box-shadow: none; }
+.ankara.studio-ank .chip.num{ font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* Forms. Flat: a screen of ten fields each casting a hard shadow is noise, and
+   the hard offset is this skin's signal for "press me". Transcript-sized
+   textareas stay larger than the chrome around them, on purpose. */
+.ankara.studio-ank .field{ display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.ankara.studio-ank .field > label{
+  font: 500 10.5px/1.2 var(--f-mono); text-transform: uppercase; letter-spacing: .1em;
+  color: var(--muted);
+}
+.ankara.studio-ank .field input,
+.ankara.studio-ank .field select,
+.ankara.studio-ank .field textarea,
+.ankara.studio-ank .sx-sel{
+  width: 100%; min-height: 36px; padding: 7px 10px;
+  font: 400 14px/1.4 var(--f-body); color: var(--fg);
+  background: var(--surface); border: 2px solid var(--line-soft); border-radius: var(--sx-r-inset);
+  box-shadow: none; outline: none; transition: border-color 160ms;
+}
+.ankara.studio-ank .field textarea{ min-height: 76px; resize: vertical; font: 400 15px/1.5 var(--f-body); }
+.ankara.studio-ank .field input:hover,
+.ankara.studio-ank .field select:hover,
+.ankara.studio-ank .field textarea:hover,
+.ankara.studio-ank .sx-sel:hover{ border-color: var(--line); }
+.ankara.studio-ank .field input:focus,
+.ankara.studio-ank .field select:focus,
+.ankara.studio-ank .field textarea:focus,
+.ankara.studio-ank .sx-sel:focus{ border-color: var(--focus); }
+.ankara.studio-ank .field input::placeholder,
+.ankara.studio-ank .field textarea::placeholder{ color: var(--muted); }
+.ankara.studio-ank .sx-sel{ width: auto; min-height: 30px; padding: 3px 8px; font: 500 12px/1.3 var(--f-mono); cursor: pointer; }
+
+/* The editor score. Shape carries the state, not hue: a filled star against an
+   outline one, the same rule the player's `.sbtn` follows. */
+.ankara.studio-ank .stars{ display: flex; gap: 4px; }
+.ankara.studio-ank .stars button{
+  width: 34px; height: 34px; padding: 0; border: 0; background: none;
+  font-size: 1.5rem; line-height: 1; color: var(--line-soft);
+  transition: transform 120ms var(--ease-std), color 120ms;
+}
+.ankara.studio-ank .stars button:hover{ color: var(--muted); transform: scale(1.08); }
+.ankara.studio-ank .stars button.on{ color: var(--fg); filter: none; }
+.ankara.studio-ank .stars button:active{ transform: scale(.92); }
+
+.ankara.studio-ank .spin{ width: 20px; height: 20px; border: 2px solid var(--line-soft); border-top-color: var(--mint); }
+.ankara.studio-ank .full-center{ min-height: 40vh; display: grid; place-items: center; padding: var(--pad); }
+.ankara.studio-ank .dots i{ background: var(--fg); }
+
+/* ===========================================================================
+   NEW RECIPES · the four things the player app never needed
+   ========================================================================= */
+
+/* 1. `.sx-head` — a screen's header: eyebrow, h1, and the actions hard right.
+      Every admin screen opens with one, so it is a recipe rather than the same
+      inline flexbox eleven times. */
+.ankara.studio-ank .sx-head{
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
+}
+.ankara.studio-ank .sx-head > div:first-child{ min-width: 0; }
+.ankara.studio-ank .sx-head .btn-row{ flex: none; margin-left: auto; }
+/* The standing explanation each screen carries: quiet, and never a card. */
+.ankara.studio-ank .sx-note{
+  font: 400 12.5px/1.5 var(--f-body); color: var(--muted);
+  border-left: 2px solid var(--line-soft); padding: 1px 0 1px 10px; margin-bottom: 12px;
+}
+.ankara.studio-ank .sx-note-gold{ color: var(--gold); border-left-color: var(--gold-fill); }
+.ankara.studio-ank .sx-note-coral{ color: var(--coral); border-left-color: var(--coral-fill); }
+/* An inline control that reads as a link, for "reset to the draft" and friends.
+   The player app has no such thing; it has buttons. Here the sentence needs one. */
+.ankara.studio-ank .sx-link{
+  display: inline; padding: 0; border: 0; background: none; color: var(--fg);
+  font: inherit; cursor: pointer;
+  text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px;
+}
+.ankara.studio-ank .sx-link:hover{ text-decoration-thickness: 3px; }
+.ankara.studio-ank .sx-link:disabled{ color: var(--muted); text-decoration-style: dotted; cursor: default; }
+.ankara.studio-ank .sx-link-gold{ color: var(--gold); }
+/* A line of mono facts under a title: the admin's workhorse. Tabular, so
+   columns of seconds and counts line up down a list. */
+.ankara.studio-ank .sx-meta{
+  font: 500 11.5px/1.45 var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums;
+}
+.ankara.studio-ank .sx-meta b{ color: var(--fg); font-weight: 700; }
+/* The two text hues, as utilities, so a figure or a phrase that has to carry a
+   warning does not need an inline style. Both are legible on cream and on the
+   dark surface; the brand fills are not. */
+.ankara.studio-ank .sx-fig-gold{ color: var(--gold); }
+.ankara.studio-ank .sx-fig-coral{ color: var(--coral); }
+.ankara.studio-ank .sx-clip{ display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 2. `.sx-bar` — the filter bar. Sticky under the top band, cream, ink-outlined,
+      chips inside it. One frame for the whole set of controls, so filtering a
+      list costs one outline instead of eight. */
+.ankara.studio-ank .sx-bar{
+  position: sticky; top: var(--sx-top); z-index: 6;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 7px;
+  padding: 7px 9px; margin-bottom: 10px;
+  background: var(--surface2);
+  border: 2px solid var(--line); border-radius: 14px;
+  box-shadow: var(--sx-off) var(--sx-off) 0 var(--sh);
+}
+.ankara.studio-ank .sx-bar-end{ margin-left: auto; display: flex; align-items: center; gap: 7px; }
+.ankara.studio-ank .sx-bar .sx-bar-lab{
+  font: 500 10.5px/1.2 var(--f-mono); text-transform: uppercase; letter-spacing: .1em;
+  color: var(--muted); margin-right: 1px;
+}
+
+/* 3. `.sx-list` / `.sx-row` — the long list. ONE frame with the ink outline and
+      the hard offset; the rows inside share 2px hairlines and cast nothing.
+      That is what keeps two hundred rows scannable while still reading as this
+      direction: the block language sits at the edge of the list, not repeated
+      two hundred times inside it. A row's state is a spine, never a fill. */
+.ankara.studio-ank .sx-list{
+  background: var(--surface);
+  border: 2px solid var(--line); border-radius: 14px;
+  box-shadow: var(--sx-off) var(--sx-off) 0 var(--sh);
+  overflow: hidden;
+}
+.ankara.studio-ank .sx-row{
+  display: block; width: 100%; text-align: left;
+  padding: 9px 11px;
+  background: var(--surface); color: var(--fg);
+  border: 0; border-bottom: 2px solid var(--line-soft); border-left: 0 solid transparent;
+  border-radius: 0;
+  transition: background 140ms;
+}
+.ankara.studio-ank .sx-list > .sx-row:last-child{ border-bottom: 0; }
+.ankara.studio-ank button.sx-row{ cursor: pointer; }
+.ankara.studio-ank button.sx-row:hover{ background: var(--surface2); }
+.ankara.studio-ank button.sx-row:active{ background: var(--sand); }
+.ankara.studio-ank .sx-list.tight .sx-row{ padding: 6px 10px; }
+/* The row's own grid: title and facts down the left, a status column hard right
+   that stays on one line, so the eye can run straight down it. */
+.ankara.studio-ank .sx-row-top{ display: flex; align-items: flex-start; gap: 10px; }
+.ankara.studio-ank .sx-row-main{ flex: 1; min-width: 0; }
+.ankara.studio-ank .sx-row-end{ flex: none; display: flex; align-items: center; gap: 6px; }
+.ankara.studio-ank .sx-row-t{
+  font: 800 14px/1.25 var(--f-display); letter-spacing: -.02em; color: var(--fg);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ankara.studio-ank .sx-row-s{ font: 400 12.5px/1.4 var(--f-body); color: var(--muted); margin-top: 1px; }
+.ankara.studio-ank .sx-row-m{ font: 500 11px/1.4 var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; margin-top: 1px; }
+.ankara.studio-ank .sx-row .chips{ margin-top: 5px; gap: 5px; }
+
+/* THE STATE SPINE. The admin's one colour device: 5px on the leading edge of a
+   row, a tile or a card. Put it on anything — `.sx-row`, `.tile`, `.card` —
+   and nothing else about the surface changes. This sits after `.sx-row` on
+   purpose: a row declares `border: 0`, so the spine has to come later to win. */
+.ankara.studio-ank .sx-spine-mint{ border-left-style: solid; border-left-width: var(--sx-spine); border-left-color: var(--mint); }
+.ankara.studio-ank .sx-spine-gold{ border-left-style: solid; border-left-width: var(--sx-spine); border-left-color: var(--gold-fill); }
+.ankara.studio-ank .sx-spine-coral{ border-left-style: solid; border-left-width: var(--sx-spine); border-left-color: var(--coral-fill); }
+.ankara.studio-ank .sx-spine-lilac{ border-left-style: solid; border-left-width: var(--sx-spine); border-left-color: var(--lilac); }
+
+/* 4. `.sx-split` / `.sx-pair` — side-by-side review.
+      `.sx-split` is the two-column bench: what you are checking against on the
+      left, what you are writing on the right, the left column sticky so the
+      audio and the card stay put while the transcript scrolls.
+      `.sx-pair` is the tighter case: two text panes that have to stay on the
+      same baseline, so a linguist comparing a machine draft to what they hear
+      never has to hunt for the line they were on. Both stack below the
+      breakpoint. */
+/* The reference column is narrow on purpose: it holds a card and two personas,
+   while the column beside it holds everything being typed into. */
+.ankara.studio-ank .sx-split{ display: grid; grid-template-columns: minmax(0,1fr); gap: 12px; }
+@media (min-width: 1240px){
+  .ankara.studio-ank .sx-split{ grid-template-columns: minmax(0,330px) minmax(0,1fr); gap: 0 14px; align-items: start; }
+  /* clears the top band and the sticky `.sx-bar` above it */
+  .ankara.studio-ank .sx-split > .sx-aside{ position: sticky; top: calc(var(--sx-top) + 58px); max-height: calc(100dvh - var(--sx-top) - 70px); overflow-y: auto; }
+}
+/* `.sx-pair` takes NO breakpoint: auto-fit means it splits when the box it is
+   in is wide enough and stacks when it is not. A media query would be wrong
+   here, because this pair usually sits inside the narrower half of
+   `.sx-split` — the viewport is not what decides whether it fits. */
+.ankara.studio-ank .sx-pair{
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 10px 14px; align-items: start;
+}
+/* Midnight's own two-up on the bench, kept working for anything still using it. */
+.ankara.studio-ank .bench-cols{ display: grid; grid-template-columns: minmax(0,1fr); gap: 0; }
+@media (min-width: 1000px){
+  .ankara.studio-ank .bench-cols{ grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0 14px; align-items: start; }
+}
+/* A labelled text pane. The label sits on the mono line; the text is the
+   biggest thing in the pane, because reading it IS the job. */
+.ankara.studio-ank .sx-pane{ display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.ankara.studio-ank .sx-pane-h{
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 4px 10px; flex-wrap: wrap; min-height: 18px;
+}
+.ankara.studio-ank .sx-pane-h > label, .ankara.studio-ank .sx-pane-h > span:first-child{
+  font: 500 10.5px/1.2 var(--f-mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted);
+  flex: 1 1 auto;
+}
+.ankara.studio-ank .sx-pane-h > .sx-link{ flex: none; font-size: 12px; }
+.ankara.studio-ank .sx-pane textarea{
+  width: 100%; min-height: 84px; resize: vertical; padding: 9px 11px;
+  font: 400 15.5px/1.55 var(--f-body); color: var(--fg);
+  background: var(--surface); border: 2px solid var(--line); border-radius: var(--sx-r-inset);
+  box-shadow: none; outline: none; transition: border-color 160ms;
+}
+.ankara.studio-ank .sx-pane textarea:focus{ border-color: var(--focus); }
+/* Read-only transcript text, where there is no box to type in. */
+.ankara.studio-ank .sx-read{ font: 400 15px/1.55 var(--f-body); color: var(--fg); }
+.ankara.studio-ank .sx-read-sub{ font: 400 13.5px/1.5 var(--f-body); color: var(--muted); margin-top: 3px; }
+
+/* ---------- the Cutting Room ----------------------------------------------- */
+/* A take on the bench. Speaker identity is the spine: gold for A, mint for B,
+   the one place the two voices are told apart by colour, and it costs 5px
+   rather than a card. */
+.ankara.studio-ank .wt{
+  background: var(--surface); color: var(--fg);
+  border: 2px solid var(--line); border-left: 6px solid var(--gold-fill);
+  border-radius: 14px; padding: 10px 12px;
+  box-shadow: var(--sx-off) var(--sx-off) 0 var(--sh);
+}
+.ankara.studio-ank .wt.b{ border-left-color: var(--mint); }
+.ankara.studio-ank .wt.old{ opacity: .58; }
+
+/* The voice note. Restyle only — VoiceNote.tsx's audio logic is untouched. */
+.ankara.studio-ank .vnote{ display: flex; align-items: center; gap: 9px; min-width: min(230px, 70vw); }
+.ankara.studio-ank .vplay{
+  width: 34px; height: 34px; flex: none; padding: 0;
+  display: grid; place-items: center; border-radius: 50%;
+  border: 2px solid var(--ink); background: var(--mint); color: var(--ink);
+  box-shadow: var(--sx-off-sm) var(--sx-off-sm) 0 var(--sh-mint);
+  cursor: pointer; transition: transform 160ms var(--ease-std), box-shadow 160ms var(--ease-std);
+}
+.ankara.studio-ank .vnote.them .vplay{ background: var(--lilac); box-shadow: var(--sx-off-sm) var(--sx-off-sm) 0 var(--sh-lilac); }
+.ankara.studio-ank .vplay:hover{ transform: translate(-1px,-1px); }
+.ankara.studio-ank .vplay:active{ transform: translate(1px,1px); box-shadow: none; }
+.ankara.studio-ank .vbar{ flex: 1; height: 24px; position: relative; cursor: pointer; }
+.ankara.studio-ank .vbar::before{
+  content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 4px;
+  transform: translateY(-50%); background: var(--bar); border-radius: 2px;
+}
+.ankara.studio-ank .vfill{ position: absolute; left: 0; top: 50%; height: 4px; transform: translateY(-50%); background: var(--fg); border-radius: 2px; }
+.ankara.studio-ank .vknob{
+  position: absolute; top: 50%; width: 13px; height: 13px; border-radius: 50%;
+  background: var(--fg); border: 2px solid var(--surface);
+  transform: translate(-50%,-50%); box-shadow: none;
+}
+.ankara.studio-ank .vtime{
+  font: 500 11.5px/1 var(--f-mono); color: var(--muted);
+  min-width: 34px; text-align: right; font-variant-numeric: tabular-nums;
+}
+
+/* The word aligner. */
+.ankara.studio-ank .align{
+  border: 2px solid var(--line-soft); border-radius: var(--sx-r-tile);
+  padding: 9px 10px; background: var(--surface2);
+}
+.ankara.studio-ank .align .rl{
+  font: 500 10.5px/1.2 var(--f-mono); text-transform: uppercase; letter-spacing: .1em;
+  color: var(--muted); margin-top: 4px;
+}
+.ankara.studio-ank .align .row{ display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; padding: 0; border: 0; background: none; box-shadow: none; }
+.ankara.studio-ank .align .links{ font: 400 12.5px/1.5 var(--f-body); color: var(--muted); margin-top: 8px; }
+.ankara.studio-ank .aw{
+  font: 400 14px/1.2 var(--f-body); padding: 4px 8px; border-radius: 8px;
+  border: 2px solid var(--line-soft); background: var(--surface); color: var(--fg);
+  cursor: pointer; transition: background 120ms, border-color 120ms;
+}
+.ankara.studio-ank .aw:hover:not(:disabled){ border-color: var(--line); }
+.ankara.studio-ank .aw:disabled{ cursor: default; }
+.ankara.studio-ank .aw.linked{
+  background: hsl(var(--hue) var(--sx-aw-s) var(--sx-aw-l));
+  border-color: hsl(var(--hue) var(--sx-aw-bs) var(--sx-aw-bl));
+  color: var(--sx-aw-fg);
+}
+.ankara.studio-ank .aw.sel{ outline: 3px solid var(--focus); outline-offset: 1px; }
+.ankara.studio-ank .aw.act{ outline: 3px solid var(--gold-fill); outline-offset: 1px; }
+.ankara.studio-ank .aw.stale{ border-style: dashed; border-color: var(--coral-fill); }
+
+.ankara.studio-ank .draft{
+  background: var(--surface2); border: 2px dashed var(--gold-fill); border-radius: var(--sx-r-tile);
+  padding: 9px 11px;
+}
+.ankara.studio-ank .timeline li{
+  display: flex; gap: 10px; font: 400 12.5px/1.45 var(--f-body);
+  padding: 5px 0; border-bottom: 2px dashed var(--line-soft);
+}
+.ankara.studio-ank .timeline li:last-child{ border-bottom: 0; }
+
+/* ---------- the dashboard vocabulary, bridged for the screens still to come - */
+.ankara.studio-ank .stats{ display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; margin-bottom: 12px; }
+@media (min-width: 720px){ .ankara.studio-ank .stats{ grid-template-columns: repeat(4, minmax(0,1fr)); } }
+.ankara.studio-ank .stat{
+  background: var(--surface); border: 2px solid var(--line-soft); border-radius: var(--sx-r-tile);
+  padding: 9px 11px; box-shadow: var(--sx-off-sm) var(--sx-off-sm) 0 var(--line-soft);
+}
+.ankara.studio-ank .stat .n{ font: 800 1.45rem/1.1 var(--f-display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: var(--fg); }
+.ankara.studio-ank .stat .s{ font-size: 12.5px; color: var(--muted); margin-top: 1px; }
+.ankara.studio-ank .dash{ max-width: 1080px; }
+.ankara.studio-ank .dash-grid{ display: grid; grid-template-columns: minmax(0,1fr); gap: 12px; }
+@media (min-width: 900px){ .ankara.studio-ank .dash-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); align-items: start; } }
+.ankara.studio-ank .need{
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%; text-align: left; padding: 8px 2px; color: var(--fg);
+  border: 0; border-bottom: 2px solid var(--line-soft); background: none; border-radius: 0;
+  transition: background 140ms;
+}
+.ankara.studio-ank .need:last-child{ border-bottom: 0; }
+.ankara.studio-ank .need:hover{ background: var(--surface2); }
+.ankara.studio-ank .need:hover .nt{ color: var(--fg); }
+.ankara.studio-ank .need .nt{ flex: 1; font-size: 13.5px; }
+.ankara.studio-ank .need .nt small{ display: block; font-size: 12px; color: var(--muted); }
+.ankara.studio-ank .need .nn{
+  font: 700 14px/1.2 var(--f-mono); font-variant-numeric: tabular-nums;
+  min-width: 32px; text-align: right; color: var(--fg);
+}
+.ankara.studio-ank .need .nn.zero{ color: var(--line-soft); font-weight: 400; }
+.ankara.studio-ank .need .nn.gold{ color: var(--gold); }
+.ankara.studio-ank .badge{
+  display: inline-flex; align-items: center; gap: 5px;
+  font: 500 10.5px/1 var(--f-mono); text-transform: uppercase; letter-spacing: .08em;
+  padding: 4px 9px; border-radius: 999px;
+  border: 2px solid var(--line-soft); background: var(--surface); color: var(--fg);
+}
+.ankara.studio-ank .badge.ok{ background: var(--mint); color: var(--ink); border-color: var(--ink); }
+.ankara.studio-ank .badge.pending{ background: var(--gold-fill); color: var(--ink); border-color: var(--ink); }
+.ankara.studio-ank .badge.warn{ background: var(--coral-fill); color: var(--ink); border-color: var(--ink); }
+.ankara.studio-ank .progress{ height: 8px; border: 2px solid var(--ink); border-radius: 999px; background: var(--cream); overflow: hidden; }
+.ankara.studio-ank .progress .fill{ height: 100%; border-radius: 0; background: var(--ink); }
+.ankara.studio-ank .rows{ display: flex; flex-direction: column; gap: 6px; }
+.ankara.studio-ank .row{
+  display: flex; align-items: center; gap: 10px; padding: 9px 11px;
+  background: var(--surface); border: 2px solid var(--line-soft); border-radius: var(--sx-r-tile);
+  box-shadow: var(--sx-off-sm) var(--sx-off-sm) 0 var(--line-soft);
+}
+.ankara.studio-ank .row.tap{ cursor: pointer; }
+.ankara.studio-ank .row.tap:hover{ border-color: var(--line); }
+.ankara.studio-ank .row.tap:active{ transform: translate(2px,2px); box-shadow: none; }
+.ankara.studio-ank .row .ricon{
+  flex: none; width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+  background: var(--surface2); border: 2px solid var(--line-soft); font-size: 1rem;
+}
+.ankara.studio-ank .row .rmain{ flex: 1; min-width: 0; }
+.ankara.studio-ank .row .rt{ font: 800 14px/1.2 var(--f-display); letter-spacing: -.02em; }
+.ankara.studio-ank .row .rs{ font-size: 12.5px; color: var(--muted); margin-top: 1px; }
+.ankara.studio-ank .row .rend{ flex: none; text-align: right; font: 500 12px/1.3 var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.ankara.studio-ank .roster-nums .rn b{ font-family: var(--f-display); font-variant-numeric: tabular-nums; color: var(--fg); }
+.ankara.studio-ank .roster-nums .rn span{ font: 500 10.5px/1.2 var(--f-mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.ankara.studio-ank .spark i{ background: var(--line-soft); }
+.ankara.studio-ank .spark i.h{ background: var(--mint); }
+.ankara.studio-ank .spark i.t{ background: var(--gold-fill); }
+.ankara.studio-ank .feed div{ border-bottom: 2px solid var(--line-soft); }
+.ankara.studio-ank .feed span{ color: var(--muted); font-family: var(--f-mono); }
+.ankara.studio-ank .feed b{ color: var(--fg); }
+
+/* The dock on a phone is the player's own (`.ankara .dock`, opted into with
+   Dock skin="ankara"), so there is nothing to restate here. */
+
+/* ---------- guards against the player's rules of the same name --------------
+   The same job the two guard blocks further up this file do, now in the other
+   direction. Scoping gives the admin recipes the higher specificity, but only
+   for the properties they actually declare — anything the player's rule sets
+   and mine does not still lands. `.ankara .sheet` is a bottom sheet: absolutely
+   positioned, translated off the bottom of the screen and clipped to 94% of it.
+   `.ankara .tile` is a centred flex column in the avatar picker. Both would
+   silently destroy a Studio screen, so they are reset here.
+
+   IF YOU ADD A RECIPE for a name the player block also owns, check it the same
+   way: look up the player's rule and reset every positioning, sizing or layout
+   property you are not declaring yourself. */
+.ankara.studio-ank .sheet{
+  position: static; left: auto; right: auto; bottom: auto;
+  transform: none; transition: none;
+  max-height: none; overflow: visible;
+}
+.ankara.studio-ank .tile{
+  display: block; position: relative;
+  align-items: stretch; justify-content: flex-start; gap: 0;
+}
+.ankara.studio-ank button.tile{ display: block; }
+.ankara.studio-ank .msg{ display: block; max-width: none; flex: 0 1 auto; align-items: baseline; }
+.ankara.studio-ank .draft{ width: auto; transform-origin: center; transition: none; }
+
+/* ===========================================================================
+   ANKARA · THE STUDIO · MOTION PRIMITIVES
+
+   The player app earned its reputation with motion, so the Studio gets the same
+   vocabulary — the same curves (--ease-decel, --ease-accel, --ease-std,
+   --spring) and, where one already exists, the same keyframes (inCard, inRise,
+   inPop, inFade, bump). Nothing new is invented that could be reused.
+
+   THE RULE THAT DECIDES WHERE MOTION GOES
+   ---------------------------------------
+   Motion marks an ARRIVAL or a STATE CHANGE. It is never decoration on static
+   content, and it never runs in the corner of a screen somebody is reading. So:
+   the queue, the rally board and the transitions between sections move; the
+   Cutting Room's working surface does not. `.sx-pulse` in particular must not
+   be used on the bench — a linguist mid-transcript should have nothing moving
+   in their peripheral vision.
+
+   THE PRIMITIVES, and what each is for
+   ------------------------------------
+     .sx-enter  + .sx-enter-row   a list arriving: rows rise in, staggered
+     .sx-flash  (-gold, -coral)   a row whose status just changed, washed once
+     .sx-leave                    an item leaving a queue: slides out and fades
+     .sx-countup                  a numeric tile counting up from zero on load
+     .sx-bump                     a number that just changed, re-landing
+     .sx-pop                      something small arriving: a chip, a tick
+     .sx-pulse                    overdue or live: a slow ring. Board only.
+     .sx-live                     the same, as a 7px bobbing dot
+     .sx-view                     a section or tab transition
+     .sx-working                  a sliver sweeping a group while it polls
+     .sx-rise / .sx-in-card       a screen or a card arriving (reuses the
+                                  player's own inRise / inCard)
+
+   Every one of them settles into its composed end state under
+   prefers-reduced-motion, which is what the player app does.
+   ========================================================================= */
+
+@property --sx-cv{ syntax: "<integer>"; inherits: false; initial-value: 0; }
+
+@keyframes sxRowIn{ from{ opacity: 0; transform: translateY(9px); } to{ opacity: 1; transform: none; } }
+@keyframes sxLeave{ from{ opacity: 1; transform: none; } to{ opacity: 0; transform: translateX(-14px) scale(.985); } }
+@keyframes sxViewIn{ from{ opacity: 0; transform: translateY(7px); } to{ opacity: 1; transform: none; } }
+@keyframes sxCount{ from{ --sx-cv: 0; } }
+@keyframes sxSweep{ from{ background-position: -50% 0; } to{ background-position: 150% 0; } }
+@keyframes sxPulse{
+  0%, 100%{ box-shadow: 0 0 0 0 transparent; }
+  50%{ box-shadow: 0 0 0 4px var(--sx-pulse-c); }
+}
+@keyframes sxFlash{
+  0%{ background: var(--sx-fl); box-shadow: inset var(--sx-spine) 0 0 var(--sx-fl-edge); }
+  62%{ background: var(--sx-fl); box-shadow: inset var(--sx-spine) 0 0 var(--sx-fl-edge); }
+  100%{ background: transparent; box-shadow: inset 0 0 0 transparent; }
+}
+
+/* a list arriving. The stagger is driven by --i, which the container sets for
+   its first eighteen children; past that a row enters with no delay, because
+   staggering row two hundred would only keep the reader waiting. */
+.ankara.studio-ank .sx-enter-row{
+  animation: sxRowIn 300ms var(--ease-decel) both;
+  animation-delay: calc(var(--i, 0) * 34ms);
+}
+.ankara.studio-ank .sx-enter > *:nth-child(1){ --i: 0; }
+.ankara.studio-ank .sx-enter > *:nth-child(2){ --i: 1; }
+.ankara.studio-ank .sx-enter > *:nth-child(3){ --i: 2; }
+.ankara.studio-ank .sx-enter > *:nth-child(4){ --i: 3; }
+.ankara.studio-ank .sx-enter > *:nth-child(5){ --i: 4; }
+.ankara.studio-ank .sx-enter > *:nth-child(6){ --i: 5; }
+.ankara.studio-ank .sx-enter > *:nth-child(7){ --i: 6; }
+.ankara.studio-ank .sx-enter > *:nth-child(8){ --i: 7; }
+.ankara.studio-ank .sx-enter > *:nth-child(9){ --i: 8; }
+.ankara.studio-ank .sx-enter > *:nth-child(10){ --i: 9; }
+.ankara.studio-ank .sx-enter > *:nth-child(11){ --i: 10; }
+.ankara.studio-ank .sx-enter > *:nth-child(12){ --i: 11; }
+.ankara.studio-ank .sx-enter > *:nth-child(13){ --i: 12; }
+.ankara.studio-ank .sx-enter > *:nth-child(14){ --i: 13; }
+.ankara.studio-ank .sx-enter > *:nth-child(15){ --i: 14; }
+.ankara.studio-ank .sx-enter > *:nth-child(16){ --i: 15; }
+.ankara.studio-ank .sx-enter > *:nth-child(17){ --i: 16; }
+.ankara.studio-ank .sx-enter > *:nth-child(18){ --i: 17; }
+
+/* a row whose status just changed. One wash of the hue, then back to the
+   surface; the spine is drawn with an inset shadow so nothing shifts. */
+.ankara.studio-ank .sx-flash{
+  --sx-fl: color-mix(in srgb, var(--mint) 24%, transparent);
+  --sx-fl-edge: var(--mint);
+  animation: sxFlash 1000ms var(--ease-decel) both;
+}
+.ankara.studio-ank .sx-flash-gold{
+  --sx-fl: color-mix(in srgb, var(--gold-fill) 26%, transparent);
+  --sx-fl-edge: var(--gold-fill);
+}
+.ankara.studio-ank .sx-flash-coral{
+  --sx-fl: color-mix(in srgb, var(--coral-fill) 26%, transparent);
+  --sx-fl-edge: var(--coral-fill);
+}
+
+/* an item leaving a queue: claimed by somebody else, verified, swept. */
+.ankara.studio-ank .sx-leave{
+  animation: sxLeave 260ms var(--ease-accel) both;
+  pointer-events: none;
+}
+
+/* a numeric tile counting up. Set --sx-cv inline to the figure; the visible
+   number is the counter, so put the real one beside it for a screen reader
+   (see <Num> in components/sx-motion.tsx). Browsers without @property simply
+   show the final figure. */
+.ankara.studio-ank .sx-countup{
+  font-variant-numeric: tabular-nums;
+  counter-reset: sxc var(--sx-cv);
+  animation: sxCount 740ms var(--ease-decel) both;
+}
+.ankara.studio-ank .sx-countup::after{ content: counter(sxc); }
+.ankara.studio-ank .sx-bump{ animation: bump 440ms var(--spring); }
+.ankara.studio-ank .sx-pop{ animation: inPop 260ms var(--spring) both; }
+.ankara.studio-ank .sx-rise{ animation: inRise 420ms var(--ease-decel) both; }
+.ankara.studio-ank .sx-in-card{ animation: inCard 360ms var(--ease-decel) both; }
+
+/* overdue, or live. The board only. */
+.ankara.studio-ank .sx-pulse{
+  --sx-pulse-c: color-mix(in srgb, var(--coral-fill) 60%, transparent);
+  animation: sxPulse 2s ease-in-out infinite;
+}
+.ankara.studio-ank .sx-pulse-mint{ --sx-pulse-c: color-mix(in srgb, var(--mint) 60%, transparent); }
+.ankara.studio-ank .sx-live{
+  display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--live); animation: dot 1.2s ease-in-out infinite;
+}
+
+/* a section or tab transition: deliberate, not instant. Key the element on the
+   view so React remounts it and the animation runs again. */
+.ankara.studio-ank .sx-view{ animation: sxViewIn 280ms var(--ease-decel) both; }
+
+/* a group that is working: polling, drafting, signing a URL. A 3px sliver
+   sweeping its top edge, in the mint the whole skin uses for "live". */
+.ankara.studio-ank .sx-working{ position: relative; }
+.ankara.studio-ank .sx-working::after{
+  content: ""; position: absolute; left: 3px; right: 3px; top: 3px; height: 3px;
+  border-radius: 2px; pointer-events: none;
+  background-image: linear-gradient(90deg, transparent 0, var(--mint) 50%, transparent 100%);
+  background-size: 45% 100%; background-repeat: no-repeat;
+  animation: sxSweep 1300ms linear infinite;
+}
+
+/* feedback that an action landed: a mint tick chip that pops and stays. */
+.ankara.studio-ank .chip.sx-ok{
+  background: var(--mint); color: var(--ink); border-color: var(--ink);
+  box-shadow: var(--sx-off-sm) var(--sx-off-sm) 0 var(--sh-mint), var(--glow) var(--sh-mint);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce){
+  /* settle into the composed end state, as the player app does */
+  .ankara.studio-ank .sx-enter-row,
+  .ankara.studio-ank .sx-view,
+  .ankara.studio-ank .sx-rise,
+  .ankara.studio-ank .sx-in-card,
+  .ankara.studio-ank .sx-pop{ animation: inFade 120ms ease-out both; animation-delay: 0ms; }
+  .ankara.studio-ank .sx-flash,
+  .ankara.studio-ank .sx-bump,
+  .ankara.studio-ank .sx-countup{ animation: none; }
+  .ankara.studio-ank .sx-pulse,
+  .ankara.studio-ank .sx-live,
+  .ankara.studio-ank .sx-working::after{ animation: none; }
+  .ankara.studio-ank .sx-leave{ animation-duration: 1ms; }
+  .ankara.studio-ank .pill,
+  .ankara.studio-ank button.chip,
+  .ankara.studio-ank button.tile,
+  .ankara.studio-ank .snav-item,
+  .ankara.studio-ank .vplay,
+  .ankara.studio-ank .sx-row,
+  .ankara.studio-ank .need{ transition: none; }
+}

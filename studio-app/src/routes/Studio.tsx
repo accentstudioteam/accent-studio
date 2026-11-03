@@ -129,19 +129,27 @@ export function Studio() {
       content = <Home ov={ov} onGo={go} onRefresh={refresh} />;
   }
 
+  // `ankara studio-ank` is the whole skin switch: `.ankara` brings the player
+  // app's tokens and base, `.studio-ank` the dense admin flavour of them. Both
+  // are needed; see the ANKARA · THE STUDIO block at the end of tokens.css.
   return (
-    <div className="app">
+    <div className="app ankara studio-ank">
       <div className="topbar">
-        <Logo height={22} />
+        <Logo height={22} tone="mono" />
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <span className="chip" style={{ fontFamily: "var(--mono)", fontSize: "0.7rem" }}>{profile?.editor_id ?? profile?.handle ?? "studio"}</span>
-          <button type="button" className="chip" style={{ cursor: "pointer" }} onClick={() => void signOut()}>Sign out</button>
+          <span className="chip num">{profile?.editor_id ?? profile?.handle ?? "studio"}</span>
+          <button type="button" className="chip" onClick={() => void signOut()}>Sign out</button>
         </div>
       </div>
       <div className="studio with-dock has-dock">
         <StudioNav items={items} active={view} onPick={go} />
-        <main className="studio-main">{content}</main>
-        <Dock tabs={dockTabs} active={dockActive} onPick={go} />
+        {/* keyed on the view so moving between sections is a deliberate
+            transition rather than a swap: `.sx-view` replays on every mount. */}
+        <main className="studio-main">
+          <div className="sx-view" key={sessionId ? `${view}:open` : view}>{content}</div>
+        </main>
+        {/* The dock wears the player skin's own dock, which is what `skin` is for. */}
+        <Dock tabs={dockTabs} active={dockActive} onPick={go} skin="ankara" />
       </div>
     </div>
   );
