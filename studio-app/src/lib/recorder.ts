@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { withDuration } from "@/lib/webm-duration";
 
 export type RecorderStatus = "idle" | "requesting" | "recording" | "done" | "error";
 
@@ -159,18 +160,24 @@ export function useRecorder(maxSeconds = 60) {
       rec.onstop = () => {
         stopMeter();
         const finalType = rec.mimeType || type || "audio/webm";
-        const out = new Blob(chunksRef.current, { type: finalType });
+        const raw = new Blob(chunksRef.current, { type: finalType });
         stream.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
-        if (urlRef.current) URL.revokeObjectURL(urlRef.current);
-        const objectUrl = URL.createObjectURL(out);
-        urlRef.current = objectUrl;
-        setMime(finalType);
-        setBlob(out);
-        setUrl(objectUrl);
-        setSeconds(Math.round(((Date.now() - startedAtRef.current) / 1000) * 10) / 10);
-        setLevels([]);
-        setStatus("done");
+        const secs = Math.round(((Date.now() - startedAtRef.current) / 1000) * 10) / 10;
+        // MediaRecorder leaves the WebM with no duration, so long takes stall mid-playback
+        // and the files we deliver carry no length. Write the real one in. withDuration
+        // checks its own work and hands back the original on any doubt.
+        void withDuration(raw, secs).then((out) => {
+          if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+          const objectUrl = URL.createObjectURL(out);
+          urlRef.current = objectUrl;
+          setMime(finalType);
+          setBlob(out);
+          setUrl(objectUrl);
+          setSeconds(secs);
+          setLevels([]);
+          setStatus("done");
+        });
       };
       rec.start(250);
       startedAtRef.current = Date.now();
