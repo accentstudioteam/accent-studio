@@ -182,6 +182,17 @@ export async function approvePlan(
   const totals = recomputeTotals(scenes, targetHours, scenesTarget);
   const priced = withRallies(scenes, totals);
 
+  // pp_spawn refuses a card with no project, because browsing is project-scoped.
+  // The plan row is the authority on which project this belongs to.
+  const { data: planRow, error: projectErr } = await supabase
+    .from("rally_plans")
+    .select("project_id")
+    .eq("id", planId)
+    .single();
+  if (projectErr) throw new Error(projectErr.message);
+  const projectId = (planRow as { project_id?: string } | null)?.project_id;
+  if (!projectId) throw new Error("this plan is not attached to a project, so its cards would be invisible to contributors");
+
   const { data: who } = await supabase.auth.getUser();
   onProgress(`Creating ${priced.length} scenario cards…`);
   const { data: made, error: cardErr } = await supabase
@@ -189,6 +200,7 @@ export async function approvePlan(
     .insert(
       priced.map((s) => ({
         language,
+        project_id: projectId,
         title: s.title,
         situation: s.situation,
         persona_a: s.persona_a,
@@ -209,7 +221,15 @@ export async function approvePlan(
   let rallies = 0;
   for (let i = 0; i < priced.length; i += 1) {
     const { error } = await supabase.rpc("pp_spawn", { card: ids[i], n: priced[i].rallies });
-    if (error) throw new Error(`${priced[i].title}: ${error.message} (${rallies} rallies were already spawned)`);
+    if (error) {
+      // Everything from here on is a card with nothing behind it. Earlier cards keep
+      // their rallies and are left alone; the foreign key would refuse them anyway.
+      const stranded = ids.slice(i);
+      await supabase.from("scenario_cards").delete().in("id", stranded);
+      throw new Error(
+        `${priced[i].title}: ${error.message} — ${rallies} rallies were spawned from ${i} cards, and the ${stranded.length} cards with nothing behind them were removed`,
+      );
+    }
     rallies += priced[i].rallies;
     onProgress(`Spawning rallies · ${i + 1} of ${priced.length} scenes · ${rallies} rallies`);
   }
