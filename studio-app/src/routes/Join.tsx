@@ -127,9 +127,18 @@ export interface SignaturePayload {
    initials against the three clauses that carry weight. Built from the .field,
    .checkrow and .card pad recipes already in the stylesheet.
    ------------------------------------------------------------------------- */
-export function Signature({ applicationName, email, busy, problem, onSign, onProblem, onCancel }: {
+/** A date a person would say out loud, not an ISO stamp on a legal screen. */
+function longDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+}
+
+export function Signature({ applicationName, email, agreement, busy, problem, onSign, onProblem, onCancel }: {
   applicationName: string | null;
   email: string;
+  /** The version being signed, so the screen can separate its date from today's. */
+  agreement: { version: string; effective_date: string } | null;
   busy: boolean;
   problem: string | null;
   onSign: (payload: SignaturePayload) => void;
@@ -163,6 +172,13 @@ export function Signature({ applicationName, email, busy, problem, onSign, onPro
   return (
     <>
       <div className="sec-h"><h3>Sign it</h3></div>
+      {/* Two different dates, and people read the one on the PDF as the day they signed.
+          Say both plainly so the September date cannot be mistaken for today. */}
+      {agreement && (
+        <p className="note-p" style={{ marginTop: 0 }}>
+          You are signing version {agreement.version} of the agreement, which took effect on {longDate(agreement.effective_date)}. Your signature is dated today, {longDate(new Date().toISOString())}.
+        </p>
+      )}
       <div className="field">
         <label htmlFor="legal-name">Your full legal name</label>
         <input
@@ -361,6 +377,7 @@ export function Join() {
         <Signature
           applicationName={inv?.full_name ?? null}
           email={session.user.email ?? ""}
+          agreement={agreement ? { version: agreement.version, effective_date: agreement.effective_date } : null}
           busy={busy}
           problem={problem}
           onSign={(payload) => void sign(payload)}
