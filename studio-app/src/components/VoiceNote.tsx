@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
+import { useStallGuard } from "@/lib/stall-guard";
 
 const clock = (s: number): string => {
   const safe = Number.isFinite(s) && s > 0 ? s : 0;
@@ -49,6 +50,15 @@ export function VoiceNote({ src, seconds, tone }: VoiceNoteProps) {
       a.removeEventListener("pause", onPause);
     };
   }, [src]);
+
+  // Takes recorded before the recorder wrote a duration can go silent mid-play
+  // while still reporting as playing. The linguist reviews the longest takes, so
+  // this player needs the same guard the contributor-facing one has.
+  const onStopped = useCallback(() => {
+    setIsPlaying(false);
+    setAt(0);
+  }, []);
+  useStallGuard(ref, { playing: isPlaying, seconds, onStopped });
 
   const toggle = () => {
     const a = ref.current;

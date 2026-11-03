@@ -4,7 +4,7 @@ import { LANG_NAME } from "@/lib/game";
 import { when } from "@/lib/verify";
 import { RATE_MAX, RATE_MIN, TIER_LABEL, buildBundle, createDelivery, deliveries as listDeliveries, deliveryPlan, downloadBundle, hoursOf, manifestPreview, projects as listProjects, rateOf, saveProject, setProjectRate, sizeOf, type Delivery, type Plan, type Project, type ProjectInput, type Tier } from "@/lib/projects";
 import { money } from "@/lib/earn";
-import { TURN_CAP_SECONDS, TURN_MAX, TURN_MIN, approvePlan, cancelPlan, draftPlan, listPlans, recomputeTotals, rejectPlan, type PlanInputs, type PlanRow, type PlanScene } from "@/lib/corpus";
+import { TURN_AVG_SECONDS, TURN_CAP_SECONDS, TURN_MAX, TURN_MIN, approvePlan, cancelPlan, draftPlan, listPlans, recomputeTotals, rejectPlan, type PlanInputs, type PlanRow, type PlanScene } from "@/lib/corpus";
 import { isDemo } from "@/lib/demo";
 
 interface Props {
@@ -431,7 +431,7 @@ function CorpusPlanner({ p }: { p: Project }) {
     <div className="tile dash">
       <div className="tlbl">Corpus plan</div>
       <div className="tbody muted small" style={{ marginBottom: 8 }}>
-        Answer a few questions and a model drafts the whole set of scenes for this project: a title, a situation and two personas each, and how many turns the exchange can honestly sustain. The hours are turned into turns and rallies here, not by the model — a turn is capped at {TURN_CAP_SECONDS} s and runs to about 20 s in practice. Nothing reaches a contributor until you have read it and approved it.
+        Answer a few questions and a model drafts the whole set of scenes for this project: a title, a situation and two personas each, and how many turns the exchange can honestly sustain. The hours are turned into turns and rallies here, not by the model — a turn is capped at {TURN_CAP_SECONDS} s and runs to about {TURN_AVG_SECONDS} s in practice. Nothing reaches a contributor until you have read it and approved it.
         {live.length > 0 && ` ${live.length} ${live.length === 1 ? "plan has" : "plans have"} already been released for this project.`}
       </div>
 

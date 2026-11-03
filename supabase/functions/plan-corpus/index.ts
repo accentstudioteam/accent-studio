@@ -30,8 +30,9 @@ const CORS = {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 const DEFAULT_MODEL = "claude-haiku-4-5-20251001";
-const TURN_CAP_SECONDS = 30; // the recorder's hard cap on one voice note
-const TURN_AVG_SECONDS = 20; // what a turn actually runs to, measured across recorded rallies
+// TODO: read both from game_config (max_turn_seconds) so they cannot drift again.
+const TURN_CAP_SECONDS = 120; // the recorder's hard cap, raised from 30 s
+const TURN_AVG_SECONDS = 25; // measured: the first real rally ran 164 s over 6 turns
 const TURN_MIN = 4;
 const TURN_MAX = 16;
 const PLANNED_AVG_TURNS = 10; // the average the model is asked to land on, before real turn counts come back
@@ -186,7 +187,9 @@ const TOOL = {
             persona_b: { type: "string", description: "The second speaker's role in one sentence, in the target language." },
             domain: { type: "string", description: "One or two words placing the card in the buyer's world." },
             english_note: { type: "string", description: "The same scene in plain English, for the editor." },
-            turns: { type: "integer", minimum: TURN_MIN, maximum: TURN_MAX, description: "How many turns this exchange can honestly sustain." },
+            // No minimum/maximum here: the API rejects them on an integer property.
+            // sceneFrom() clamps to the band anyway, so the bound is stated in words.
+            turns: { type: "integer", description: `How many turns this exchange can honestly sustain, a whole number from ${TURN_MIN} to ${TURN_MAX}.` },
           },
         },
       },

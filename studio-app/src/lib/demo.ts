@@ -62,6 +62,13 @@ interface DemoSession {
   quietPartner: boolean;
   abandoned_reason: "partner_quiet" | null;
   flags: string[];
+  /* --- presence, the same two rungs the real backend keeps ---
+     partnerRecordingUntil is an instant, not a flag, so it expires on its own
+     exactly as a_recording_until / b_recording_until do on the server, and a
+     partner who never "stops" cannot leave it stuck on.
+     partnerSeen stands in for contributors.last_active_at. */
+  partnerRecordingUntil: number | null;
+  partnerSeen: number;
 }
 
 /** A rally nobody of ours is in yet: what pp_browse shows as "open" or "waiting". */
@@ -72,6 +79,12 @@ interface PoolRally {
   partner_alias: string | null;
   turn_count: number;
 }
+
+/** The server's rule: max_turn_seconds + 60, floored at 90. The live cap is 120. */
+const RECORDING_TTL = 180;
+/** The simulated partner was last here a while back, so the presence line opens on
+ *  its quietest honest state and you can watch it climb as they act. */
+const SEEN_AGO_MS = 38 * 60_000;
 
 const MAX_OPEN = 3;
 const ALIASES = ["Calm Squirrel", "Velvet Kingfisher", "Quick Mongoose", "Bright Tilapia", "Patient Heron", "Golden Hornbill"];
@@ -84,7 +97,7 @@ function seedPool(): PoolRally[] {
   ]);
 }
 
-const state: { sessions: DemoSession[]; pool: PoolRally[]; blobs: Record<string, string>; timers: number[] } = { sessions: [], pool: seedPool(), blobs: {}, timers: [] };
+const state: { sessions: DemoSession[]; pool: PoolRally[]; blobs: Record<string, string>; timers: number[]; myRecordingUntil: number | null } = { sessions: [], pool: seedPool(), blobs: {}, timers: [], myRecordingUntil: null };
 let counter = 0;
 const now = () => new Date().toISOString();
 
@@ -225,7 +238,7 @@ export const demo = {
     const open = state.sessions.find((s) => s.status === "waiting" || s.status === "active");
     if (open) return { session_id: open.id, joined: false };
     // every second rally in the demo gets a partner who goes quiet, to show the closure
-    const s: DemoSession = { id: `demo-${++counter}`, card: CARDS[(counter - 1) % CARDS.length], status: "waiting", has_partner: false, partner_alias: ALIASES[counter % ALIASES.length], turn_count: 0, next: "me", turns: [], updated_at: now(), lowRatingGiven: false, due_at: null, quietPartner: counter % 2 === 0, abandoned_reason: null, flags: [] };
+    const s: DemoSession = { id: `demo-${++counter}`, card: CARDS[(counter - 1) % CARDS.length], status: "waiting", has_partner: false, partner_alias: ALIASES[counter % ALIASES.length], turn_count: 0, next: "me", turns: [], updated_at: now(), lowRatingGiven: false, due_at: null, quietPartner: counter % 2 === 0, abandoned_reason: null, flags: [], partnerRecordingUntil: null, partnerSeen: Date.now() - SEEN_AGO_MS };
     state.sessions.unshift(s);
     return { session_id: s.id, joined: false };
   },
@@ -264,10 +277,10 @@ export const demo = {
     if (i < 0) throw new Error("somebody else took that rally");
     const [r] = state.pool.splice(i, 1);
     counter += 1;
-    const s: DemoSession = { id: `demo-${counter}`, card: r.card, status: r.waiting ? "active" : "waiting", has_partner: r.waiting, partner_alias: r.partner_alias ?? ALIASES[counter % ALIASES.length], turn_count: 0, next: "me", turns: [], updated_at: now(), lowRatingGiven: false, due_at: null, quietPartner: counter % 3 === 0, abandoned_reason: null, flags: [] };
+    const s: DemoSession = { id: `demo-${counter}`, card: r.card, status: r.waiting ? "active" : "waiting", has_partner: r.waiting, partner_alias: r.partner_alias ?? ALIASES[counter % ALIASES.length], turn_count: 0, next: "me", turns: [], updated_at: now(), lowRatingGiven: false, due_at: null, quietPartner: counter % 3 === 0, abandoned_reason: null, flags: [], partnerRecordingUntil: null, partnerSeen: Date.now() - SEEN_AGO_MS };
     if (r.waiting) {
       // The partner was first in and already recorded turn one, so my first move is to rate it.
-      s.turns.push({ turn_id: `t-${s.id}-1-1`, turn_no: 1, attempt: 1, mine: false, audio_path: `${s.id}/turn-1-a1-${PARTNER}.mp3`, seconds: 7, status: "recorded", created_at: now(), rating: null, url: clipUrl(PARTNER_CLIPS[0]) });
+      s.turns.push({ turn_id: `t-${s.id}-1-1`, turn_no: 1, attempt: 1, mine: false, audio_path: `${s.id}/turn-1-a1-${PARTNER}.mp3`, seconds: 7, status: "recorded", created_at: now(), heard_at: null, rating: null, url: clipUrl(PARTNER_CLIPS[0]) });
       s.turn_count = 1;
       s.due_at = new Date(Date.now() + 24 * 3600_000).toISOString();
     }
@@ -313,6 +326,9 @@ export const demo = {
       i_owe: s.next === "me",
       abandoned_reason: s.abandoned_reason,
       flags: s.flags,
+      partner_recording: s.has_partner && s.status !== "complete" && s.status !== "abandoned" && s.partnerRecordingUntil !== null && s.partnerRecordingUntil > Date.now(),
+      partner_last_active_seconds: s.has_partner ? Math.max(0, Math.floor((Date.now() - s.partnerSeen) / 1000)) : null,
+      recording_ttl_seconds: RECORDING_TTL,
       turns: latest.map(({ url: _url, ...t }) => t),
     };
   },
@@ -328,7 +344,7 @@ export const demo = {
     const r = await demo.loadRally(id);
     if (!r.my_turn) throw new Error("not your turn");
     const url = state.blobs[path] ?? demoSampleTake().url;
-    s.turns.push({ turn_id: `t-${s.id}-${r.next_turn_no}-${r.next_attempt}`, turn_no: r.next_turn_no, attempt: r.next_attempt, mine: true, audio_path: path, seconds, status: "recorded", created_at: now(), rating: null, url });
+    s.turns.push({ turn_id: `t-${s.id}-${r.next_turn_no}-${r.next_attempt}`, turn_no: r.next_turn_no, attempt: r.next_attempt, mine: true, audio_path: path, seconds, status: "recorded", created_at: now(), heard_at: null, rating: null, url });
     s.turn_count = Math.max(s.turn_count, r.next_turn_no);
     s.next = "partner";
     s.due_at = new Date(Date.now() + (s.quietPartner ? 12_000 : 24 * 3600_000)).toISOString();
@@ -363,6 +379,26 @@ export const demo = {
     return { aggregate, redo: false, complete };
   },
 
+  /** pp_mark_heard: the other speaker's takes only, set once, never moved back. */
+  markHeard: async (turnId: string): Promise<void> => {
+    for (const s of state.sessions) {
+      const t = s.turns.find((x) => x.turn_id === turnId);
+      if (!t) continue;
+      if (t.mine) throw new Error("you cannot mark your own take heard");
+      if (!t.heard_at) t.heard_at = now();
+      return;
+    }
+    throw new Error("no such turn");
+  },
+
+  /** pp_set_recording: my own flag. Nothing renders it — you are never your own
+   *  partner — but the demo keeps the call path honest, TTL and all. */
+  setRecording: async (sessionId: string, recording: boolean): Promise<void> => {
+    const s = state.sessions.find((x) => x.id === sessionId);
+    if (!s) throw new Error("not your rally");
+    state.myRecordingUntil = recording ? Date.now() + RECORDING_TTL * 1_000 : null;
+  },
+
   turnUrl: async (path: string): Promise<string | null> => {
     for (const s of state.sessions) for (const t of s.turns) if (t.audio_path === path) return t.url;
     return state.blobs[path] ?? null;
@@ -373,16 +409,41 @@ export const demo = {
     state.sessions = [];
     state.pool = seedPool();
     state.blobs = {};
+    state.myRecordingUntil = null;
     provSeed = provSeedRows();
   },
 };
 
-/** The simulated partner: joins, rates your latest take (once deliberately below 4 to show the redo), then records a reply. */
+/** The simulated partner: turns up and *plays* your take (second tick), rates it
+ *  (once deliberately below 4 to show the redo), then holds the mic for a few
+ *  seconds (presence) before the reply lands. Every state the two new features
+ *  have is reachable here without a second human.
+ *
+ *  The windows are short because the demo polls every 2.5 s; the real app's are
+ *  the server's. */
+const PARTNER_RECORDS_FOR = 4_000;
+/** Hearing and rating are deliberately further apart than the 2.5 s demo poll,
+ *  or the two-tick state would flash past between two renders and the whole
+ *  middle rung of the receipt would be invisible in the demo. */
+const PARTNER_HEARS_AFTER = 1_200;
+const PARTNER_RATES_AFTER = 6_000;
+
 function schedulePartner(s: DemoSession, redoOnly = false) {
   const later = (ms: number, fn: () => void) => state.timers.push(window.setTimeout(fn, ms));
-  later(2600, () => {
+
+  /** Your partner opens the rally and plays your latest take: tick two. */
+  later(PARTNER_HEARS_AFTER, () => {
     if (!s.has_partner) s.has_partner = true;
     s.status = "active";
+    s.partnerSeen = Date.now();
+    const mine = [...latestByTurn(s)].reverse().find((t) => t.mine && t.status === "recorded");
+    if (mine && !mine.heard_at) mine.heard_at = now();
+  });
+
+  later(PARTNER_RATES_AFTER, () => {
+    if (!s.has_partner) s.has_partner = true;
+    s.status = "active";
+    s.partnerSeen = Date.now();
     // rate my latest recorded take
     const mine = [...latestByTurn(s)].reverse().find((t) => t.mine && t.status === "recorded");
     if (mine) {
@@ -398,13 +459,17 @@ function schedulePartner(s: DemoSession, redoOnly = false) {
       }
     }
     if (redoOnly) {
-      // partner re-records the turn I asked them to redo
+      // partner picks the mic back up for the turn I asked them to redo
       const theirs = [...latestByTurn(s)].reverse().find((t) => !t.mine && t.status === "redo");
-      if (theirs) {
-        s.turns.push({ ...theirs, turn_id: `${theirs.turn_id}-a${theirs.attempt + 1}`, attempt: theirs.attempt + 1, status: "recorded", rating: null, created_at: now(), url: clipUrl(PARTNER_CLIPS[(theirs.turn_no + 1) % PARTNER_CLIPS.length]) });
+      if (!theirs) return;
+      s.partnerRecordingUntil = Date.now() + PARTNER_RECORDS_FOR;
+      later(PARTNER_RECORDS_FOR, () => {
+        s.partnerRecordingUntil = null;
+        s.partnerSeen = Date.now();
+        s.turns.push({ ...theirs, turn_id: `${theirs.turn_id}-a${theirs.attempt + 1}`, attempt: theirs.attempt + 1, status: "recorded", heard_at: null, rating: null, created_at: now(), url: clipUrl(PARTNER_CLIPS[(theirs.turn_no + 1) % PARTNER_CLIPS.length]) });
         s.next = "me";
         s.updated_at = now();
-      }
+      });
       return;
     }
     if (s.turn_count >= TURNS_TARGET) {
@@ -412,10 +477,14 @@ function schedulePartner(s: DemoSession, redoOnly = false) {
       if (s.status === "complete") s.next = null;
       return;
     }
-    later(2400, () => {
+    // ...and then they pick up the mic, which is the whole point of presence.
+    s.partnerRecordingUntil = Date.now() + PARTNER_RECORDS_FOR;
+    later(PARTNER_RECORDS_FOR, () => {
+      s.partnerRecordingUntil = null;
+      s.partnerSeen = Date.now();
       const no = s.turn_count + 1;
       const clip = PARTNER_CLIPS[(no / 2 - 1) % PARTNER_CLIPS.length] ?? PARTNER_CLIPS[0];
-      s.turns.push({ turn_id: `t-${s.id}-${no}-1`, turn_no: no, attempt: 1, mine: false, audio_path: `${s.id}/turn-${no}-a1-${PARTNER}.mp3`, seconds: 7, status: "recorded", created_at: now(), rating: null, url: clipUrl(clip) });
+      s.turns.push({ turn_id: `t-${s.id}-${no}-1`, turn_no: no, attempt: 1, mine: false, audio_path: `${s.id}/turn-${no}-a1-${PARTNER}.mp3`, seconds: 7, status: "recorded", created_at: now(), heard_at: null, rating: null, url: clipUrl(clip) });
       s.turn_count = no;
       s.next = "me";
       s.due_at = new Date(Date.now() + 24 * 3600_000).toISOString();

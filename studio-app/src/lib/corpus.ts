@@ -8,8 +8,10 @@
 import { supabase } from "@/lib/supabase";
 import { isDemo } from "@/lib/demo";
 
-export const TURN_CAP_SECONDS = 30;
-export const TURN_AVG_SECONDS = 20;
+// Mirrors plan-corpus. These drifted once already when the cap moved from 30 s;
+// if you change one, change both.
+export const TURN_CAP_SECONDS = 120;
+export const TURN_AVG_SECONDS = 25;
 export const TURN_MIN = 4;
 export const TURN_MAX = 16;
 

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useRecorder } from "@/lib/recorder";
 import { uploadRecording } from "@/lib/upload";
-import { cardAudioUrl, dueLabel, LANG_NAME, loadRally, rateTurn, submitTurn, turnUrl, type Rally as RallyState, type RallyTurn } from "@/lib/game";
+import { cardAudioUrl, dueLabel, LANG_NAME, loadRally, markHeard, rateTurn, setRecording, submitTurn, turnUrl, type Rally as RallyState, type RallyTurn } from "@/lib/game";
 import { demo, demoSampleTake, isDemo } from "@/lib/demo";
 import { avatarById, avatarFor, avatarSVG, UNKNOWN_AVATAR, type AnkaraAvatar } from "@/components/ankara-avatars";
 import { haptic } from "@/lib/haptics";
@@ -81,6 +81,8 @@ const IcPause = () => <svg className="ic-pause" viewBox="0 0 24 24" fill="curren
 const IcStar = () => <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.3 6.4L12 17.1l-5.8 3.2 1.3-6.4L2.8 9.5l6.4-.8z" /></svg>;
 const IcClock = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg>;
 const IcTick = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" /></svg>;
+/** Two ticks: stored *and* heard. The shape carries it, not a colour. */
+const IcTick2 = () => <svg viewBox="0 0 34 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2 12.5l5 5L18 6.5" /><path d="M13 12.5l5 5L29 6.5" /></svg>;
 const IcChevDown = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>;
 const IcBack = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>;
 const IcMic = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor" stroke="none" /><path d="M5 11a7 7 0 0 0 14 0" /><path d="M12 18v3" /><path d="M8.5 21h7" /></svg>;
@@ -97,8 +99,39 @@ function Ava({ who, size, className = "" }: { who: AnkaraAvatar; size: number; c
 /* ---------- voice note ---------- */
 type NoteState = "idle" | "uploading";
 
-/** The prototype's .note, driven by a real <audio> element. */
-function Note({ src, seconds, levels, label, time, mine, state = "idle", ring, status }: {
+/** What the tick under one of my own notes says, in words, for the label. */
+const STATUS_WORDS: Record<string, string> = {
+  clock: "Sending",
+  tick: "Sent · not heard yet",
+  heard: "Heard by your partner",
+  rated: "Rated by your partner",
+};
+
+/** The prototype's .note, driven by a real <audio> element.
+ *
+ *  `onHeard` fires once, and only after the audio genuinely played — a second
+ *  of it, or half of a note shorter than that. Rendering a bubble on screen is
+ *  not hearing it, and neither is tapping play and stopping at once.
+ *
+ *  ── On not trusting the file ───────────────────────────────────────────────
+ *  MediaRecorder streams, so it never writes the Duration element into the
+ *  WebM header. Every take already in storage therefore reports
+ *  `duration: Infinity` and `seekable.end(0): Infinity`, and no amount of
+ *  fixing the recorder changes the files the founders recorded this morning.
+ *  Two consequences, both handled here:
+ *
+ *   · Nothing in this component reads `a.duration` or `a.seekable`. The real
+ *     length of a take is `seconds`, straight off the pp_turns row, and that
+ *     is the clock every check below runs on.
+ *   · With preload="metadata" on a remote signed URL, playback can reach the
+ *     edge of the buffered range and just stop producing audio: no `ended`,
+ *     and `paused` stays false, so the screen goes on claiming it is playing
+ *     while the room is silent. A watchdog watches currentTime instead of
+ *     believing the element, nudges a dead note back to life, and treats
+ *     `seconds` as the end of the take whether or not `ended` ever arrives.
+ *     The longer the note the likelier the stall, which is why lifting the
+ *     turn cap from 30 s to two minutes made a rare bug the normal case. */
+function Note({ src, seconds, levels, label, time, mine, state = "idle", ring, status, onHeard }: {
   src: string | null;
   seconds: number;
   levels: number[];
@@ -107,30 +140,145 @@ function Note({ src, seconds, levels, label, time, mine, state = "idle", ring, s
   mine: boolean;
   state?: NoteState;
   ring?: number;
-  status?: "tick" | "rated" | null;
+  status?: "tick" | "heard" | "rated" | null;
+  onHeard?: () => void;
 }) {
   const ref = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
+  const heard = useRef(false);
+  const onHeardRef = useRef(onHeard);
+  onHeardRef.current = onHeard;
+  /** The only length worth trusting; see the note above. */
+  const len = useRef(seconds);
+  len.current = seconds;
+  /** The buffer ran dry (`waiting` / `stalled`), so the watchdog may act sooner. */
+  const dry = useRef(0);
+  /** A pause/play round trip to revive a dead note must not look like a stop. */
+  const reviving = useRef(false);
+
+  const sayHeard = useCallback(() => {
+    if (heard.current || !onHeardRef.current) return;
+    heard.current = true;
+    onHeardRef.current();
+  }, []);
 
   useEffect(() => {
     const a = ref.current;
     if (!a) return;
+    heard.current = false;
+    dry.current = 0;
     const onPlay = () => {
       setPlaying(true);
       document.querySelectorAll("audio").forEach((other) => {
         if (other !== a && !other.paused) other.pause();
       });
     };
-    const onStop = () => setPlaying(false);
+    const onStop = () => {
+      if (!reviving.current) setPlaying(false);
+    };
+    const onProgress = () => {
+      if (a.currentTime >= Math.min(1, Math.max(0.2, len.current * 0.5))) sayHeard();
+    };
+    const onEnded = () => {
+      onStop();
+      sayHeard();
+    };
+    // The buffer ran out. Not an error on its own — it is also what normal
+    // rebuffering looks like — so it only tightens the watchdog's patience.
+    const onDry = () => {
+      dry.current = Date.now();
+    };
+    // `suspend` is deliberately NOT treated as a stall: the browser fires it
+    // whenever it decides it has fetched enough for now, which on a healthy
+    // note is constantly. Reacting to it would nudge playback forever.
+    const onSuspend = () => {};
     a.addEventListener("play", onPlay);
     a.addEventListener("pause", onStop);
-    a.addEventListener("ended", onStop);
+    a.addEventListener("ended", onEnded);
+    a.addEventListener("timeupdate", onProgress);
+    a.addEventListener("waiting", onDry);
+    a.addEventListener("stalled", onDry);
+    a.addEventListener("suspend", onSuspend);
     return () => {
       a.removeEventListener("play", onPlay);
       a.removeEventListener("pause", onStop);
-      a.removeEventListener("ended", onStop);
+      a.removeEventListener("ended", onEnded);
+      a.removeEventListener("timeupdate", onProgress);
+      a.removeEventListener("waiting", onDry);
+      a.removeEventListener("stalled", onDry);
+      a.removeEventListener("suspend", onSuspend);
     };
-  }, [src]);
+  }, [src, sayHeard]);
+
+  /* The watchdog. Only runs while a note claims to be playing. */
+  useEffect(() => {
+    if (!playing || !src) return;
+    let seen = -1;
+    let since = Date.now();
+    let nudges = 0;
+
+    const timers: number[] = [];
+    const revive = (a: HTMLAudioElement, hard: boolean) => {
+      reviving.current = true;
+      // The flag is held a beat past the call on purpose. `pause` and `play`
+      // arrive as their own tasks, so dropping it the moment play() settles
+      // lets the stale `pause` through and blanks the very state we are trying
+      // to keep honest. When the beat is up, whatever the element says is the
+      // truth, so the UI is squared with it.
+      timers.push(
+        window.setTimeout(() => {
+          reviving.current = false;
+          if (a.paused) setPlaying(false);
+        }, 400),
+      );
+      // A soft nudge first; if that has not worked twice over, take the
+      // element down and bring it back up, which shakes a wedged fetch loose.
+      if (hard) a.pause();
+      void a.play().catch(() => {});
+    };
+
+    const id = window.setInterval(() => {
+      const a = ref.current;
+      if (!a || a.paused) return;
+
+      // Healthy: it is still moving. A note that reaches its own end this way
+      // ends the way it always has, on the element's own `ended` event.
+      if (a.currentTime > seen + 0.05) {
+        seen = a.currentTime;
+        since = Date.now();
+        nudges = 0;
+        return;
+      }
+
+      const patience = Date.now() - dry.current < 3_000 ? 700 : 1_400;
+      if (Date.now() - since < patience) return;
+
+      // Stopped. If it stopped at the length the database recorded, the take
+      // is simply over, `ended` or no `ended`. load() puts it back to the top
+      // so the next press of play starts from the beginning: we cannot seek
+      // there, because seeking needs the duration these files do not carry.
+      if (len.current > 0 && a.currentTime >= len.current - 0.3) {
+        sayHeard();
+        a.pause();
+        a.load();
+        return;
+      }
+
+      since = Date.now();
+      if (nudges >= 5) {
+        // Five tries and it still will not play: stop lying about it.
+        a.pause();
+        return;
+      }
+      nudges += 1;
+      revive(a, nudges >= 3);
+    }, 400);
+    return () => {
+      window.clearInterval(id);
+      timers.forEach(window.clearTimeout);
+      reviving.current = false;
+    };
+  }, [playing, src, sayHeard]);
 
   const toggle = () => {
     const a = ref.current;
@@ -163,11 +311,15 @@ function Note({ src, seconds, levels, label, time, mine, state = "idle", ring, s
         <span className="dur">{fmt(seconds)}</span>
         <span className="meta">
           {label} · {time}
-          {mine && (
-            <span className={`st ${state === "uploading" ? "clock" : status ?? ""}`.trim()}>
-              {state === "uploading" ? <IcClock /> : status === "rated" ? "Rated" : status === "tick" ? <IcTick /> : null}
-            </span>
-          )}
+          {mine && (() => {
+            const key = state === "uploading" ? "clock" : status ?? "";
+            if (!key) return null;
+            return (
+              <span className={`st ${key}`} role="img" title={STATUS_WORDS[key]} aria-label={STATUS_WORDS[key]}>
+                {key === "clock" ? <IcClock /> : key === "rated" ? "Rated" : key === "heard" ? <IcTick2 /> : <IcTick />}
+              </span>
+            );
+          })()}
         </span>
       </div>
     </div>
@@ -251,6 +403,62 @@ function pendingPartner(r: RallyState): { turn: number | null; text: string } | 
   return { turn: theirRedo ? redoTurn : r.turn_count + 1, text: `${theirRedo ? "Saying it again" : "Their reply"} · due ${dueLabel(r.due_at)}` };
 }
 
+/* ============================================================================
+   The presence line.
+
+   This is an asynchronous product: two people are hardly ever in a rally at the
+   same second, so a bare "recording now" indicator would be true and almost
+   never seen. So the line degrades, and the rule is that it always says the
+   most informative thing that is *actually true* — and says nothing at all
+   rather than imply somebody is sitting there when they are not.
+
+     recording            "Recording now…"        (held up by the server TTL)
+     seen within 2 min    "In the rally"
+     seen within the hour "Last here 12 min ago"
+     seen within the day  "Last here 5 h ago"
+     longer, or unknown   nothing
+
+   The words carry no alias because the alias is on the line directly above,
+   inside the same plate, and the plate is only about 24 characters wide on a
+   390px phone — "Pearl Xylophone is recording…" truncates to nonsense there.
+   The full sentence, alias and all, goes in the label, so a screen reader
+   hears "Pearl Xylophone is recording now" and nobody loses the subject.
+
+   A closed rally says nothing: presence in a finished conversation is not
+   information, it is noise.
+   ========================================================================= */
+const IN_RALLY_SECONDS = 120;
+
+function presenceLine(r: RallyState): { text: string; label: string; live: boolean } | null {
+  if (!r.has_partner || r.status === "complete" || r.status === "abandoned") return null;
+  const who = r.partner_alias ?? "Your partner";
+  if (r.partner_recording) return { text: "Recording now…", label: `${who} is recording now`, live: true };
+  const ago = r.partner_last_active_seconds;
+  if (ago === null || ago === undefined) return null;
+  if (ago <= IN_RALLY_SECONDS) return { text: "In the rally", label: `${who} is in the rally right now`, live: true };
+  if (ago < 3_600) {
+    const min = Math.round(ago / 60);
+    return { text: `Last here ${min} min ago`, label: `${who} was last here ${min} minutes ago`, live: false };
+  }
+  if (ago < 86_400) {
+    const h = Math.round(ago / 3_600);
+    return { text: `Last here ${h} h ago`, label: `${who} was last here ${h} hour${h === 1 ? "" : "s"} ago`, live: false };
+  }
+  return null;
+}
+
+/* ---------- how fast to poll ----------
+   20 s is the right cadence for a product where a reply is due within 24 h,
+   but presence at 20 s is a lie for up to 20 s, which is most of the time a
+   two-minute take takes. So the screen leans in when there is something to
+   watch — the partner is holding the mic, or was here in the last two minutes,
+   or I have just sent a take and am waiting for the second tick — and falls
+   back to 20 s the moment there isn't. A hidden tab always polls slowly: a
+   backgrounded phone has nobody looking at the header. */
+const POLL_SLOW_MS = 20_000;
+const POLL_FAST_MS = 5_000;
+const AFTER_SEND_MS = 60_000;
+
 function extFor(mime: string): string {
   const base = mime.split(";")[0];
   if (base.includes("mp4")) return "mp4";
@@ -294,9 +502,32 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
   const seenTheirs = useRef<number | null>(null);
   // Mirrors the recorder so load() can check it without taking the recorder as a dependency.
   const capturing = useRef(false);
+  const recording = rec.status === "recording" || rec.status === "requesting" || fake !== null;
   useEffect(() => {
-    capturing.current = rec.status === "recording" || rec.status === "requesting" || fake !== null;
-  }, [rec.status, fake]);
+    capturing.current = recording;
+  }, [recording]);
+
+  /* ---------- presence out: "I am recording in this rally" ----------
+     The flag follows the local recorder rather than each button, so every way
+     a take can end — stop, send, re-record, the two-minute ceiling, leaving the
+     screen — clears it with one rule. The server's TTL is the backstop for the
+     one case no cleanup can cover: the tab that never comes back. */
+  const flagged = useRef(false);
+  const live = r !== null && r.status !== "complete" && r.status !== "abandoned";
+  useEffect(() => {
+    const want = recording && live;
+    if (want === flagged.current) return;
+    flagged.current = want;
+    void setRecording(sessionId, want).catch(() => {});
+  }, [recording, live, sessionId]);
+  useEffect(
+    () => () => {
+      if (!flagged.current) return;
+      flagged.current = false;
+      void setRecording(sessionId, false).catch(() => {});
+    },
+    [sessionId],
+  );
 
   // Demo: act out a recording for a few seconds, then stand in one of the founders' clips. The mic is never touched.
   const startFakeRecording = () => {
@@ -312,9 +543,24 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
     }, 100);
   };
 
+  // The current poll gap, and when I last sent a take, which widens it briefly.
+  const gap = useRef(isDemo() ? 2_500 : POLL_SLOW_MS);
+  const sentAt = useRef(0);
+  const pollGap = (next: RallyState): number => {
+    if (isDemo()) return 2_500;
+    if (next.status === "complete" || next.status === "abandoned") return POLL_SLOW_MS;
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") return POLL_SLOW_MS;
+    const warm =
+      !!next.partner_recording ||
+      (next.partner_last_active_seconds ?? Number.POSITIVE_INFINITY) <= IN_RALLY_SECONDS ||
+      Date.now() - sentAt.current < AFTER_SEND_MS;
+    return warm ? POLL_FAST_MS : POLL_SLOW_MS;
+  };
+
   const load = useCallback(async () => {
     try {
       const next = await loadRally(sessionId);
+      gap.current = pollGap(next);
       // A reply that landed since the last poll. Never buzz mid-take: the mic hears the motor.
       const theirs = next.turns.filter((t) => !t.mine).length;
       if (seenTheirs.current !== null && theirs > seenTheirs.current && !capturing.current) haptic.reply();
@@ -332,10 +578,35 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
     }
   }, [sessionId, urls]);
 
+  // A self-scheduling loop rather than setInterval, so the gap can change
+  // between polls (see pollGap) and a poll can never overlap the one before it.
+  const loadRef = useRef(load);
+  loadRef.current = load;
   useEffect(() => {
-    void load();
-    const id = window.setInterval(() => void load(), isDemo() ? 2_500 : 20_000);
-    return () => window.clearInterval(id);
+    let stopped = false;
+    let timer = 0;
+    let gen = 0;
+    const tick = async (mine: number) => {
+      await loadRef.current();
+      if (stopped || mine !== gen) return;
+      timer = window.setTimeout(() => void tick(mine), gap.current);
+    };
+    const restart = () => {
+      gen += 1;
+      window.clearTimeout(timer);
+      void tick(gen);
+    };
+    restart();
+    // Coming back to the tab should show the truth at once, not in 20 s.
+    const onShow = () => {
+      if (document.visibilityState === "visible") restart();
+    };
+    document.addEventListener("visibilitychange", onShow);
+    return () => {
+      stopped = true;
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onShow);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
@@ -361,6 +632,8 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
       }
       rec.reset();
       setProgress(null);
+      // The anxious minute: poll faster until the second tick turns up.
+      sentAt.current = Date.now();
       haptic.sent();
       setFlash(r.has_partner ? "Sent. Your partner is up next." : "Sent. We'll pair you with a partner; you'll see it here when they reply.");
       await load();
@@ -465,9 +738,9 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
   }
 
   const cardAudio = cardAudioUrl(r.card.audio_path);
+  const presence = presenceLine(r);
   const pending = pendingPartner(r);
   const rateTarget = r.rate_turn_id ? r.turns.find((t) => t.turn_id === r.rate_turn_id) : null;
-  const recording = rec.status === "recording" || rec.status === "requesting" || fake !== null;
   const liveSeconds = fake ? fake.seconds : rec.seconds;
   const liveLevels = fake ? fake.levels : rec.levels;
 
@@ -599,6 +872,12 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
             <div className="p-text">
               <span className="p-name">{r.has_partner ? r.partner_alias ?? "Partner" : "Finding a partner"}</span>
               <span className="p-title">{r.card.title}</span>
+              {presence && (
+                <span className={`p-pres${presence.live ? " on" : ""}`} aria-live="polite" aria-label={presence.label} title={presence.label}>
+                  {presence.live && <i aria-hidden="true" />}
+                  {presence.text}
+                </span>
+              )}
             </div>
           </div>
           <button className="chip chip-cream rulesbtn" type="button" onClick={() => setRules("open")} aria-label="How a rally works">Rules</button>
@@ -665,7 +944,10 @@ export function Rally({ sessionId, onBack }: { sessionId: string; onBack: () => 
                       label={label}
                       time={time}
                       mine={t.mine}
-                      status={t.rating ? "rated" : "tick"}
+                      /* One tick stored, two heard, the word once rated. */
+                      status={t.rating ? "rated" : t.heard_at ? "heard" : "tick"}
+                      /* Their take: played means heard, and only they can be told. */
+                      onHeard={!t.mine && !t.heard_at ? () => void markHeard(t.turn_id).catch(() => {}) : undefined}
                     />
                   </div>
                 </div>

@@ -26,6 +26,8 @@ export interface RallyTurn {
   seconds: number;
   status: "recorded" | "rated" | "redo" | "verified";
   created_at: string;
+  /** When the partner actually played this take. The second tick. Null until they do. */
+  heard_at?: string | null;
   rating: { tone: number; prompt_adherence: number; mood: number; clarity: number; aggregate: number } | null;
 }
 
@@ -56,6 +58,12 @@ export interface Rally {
   i_owe: boolean;
   abandoned_reason: "partner_quiet" | "withdrawn" | "admin" | null;
   flags: string[];
+  /** Partner presence. Optional so an older server (or demo mode) just reads as "no news". */
+  partner_recording?: boolean;
+  /** Seconds since the partner was last seen anywhere in the app. Null when there is no partner. */
+  partner_last_active_seconds?: number | null;
+  /** How long the server keeps a "recording" flag alive without a fresh call. */
+  recording_ttl_seconds?: number;
   turns: RallyTurn[];
 }
 
@@ -105,6 +113,23 @@ export async function rateTurn(turnId: string, r: { tone: number; prompt_adheren
   const { data, error } = await supabase.rpc("pp_rate_turn", { tid: turnId, ...r });
   if (error) throw error;
   return data as { aggregate: number; redo: boolean; complete?: boolean };
+}
+
+/** The second tick: tell the server the partner's take was actually played.
+ *
+ * Idempotent and one-way on the server, so a double call is free and a failed
+ * one is not worth surfacing — the tick simply arrives on a later poll. */
+export async function markHeard(turnId: string): Promise<void> {
+  if (isDemo()) return demo.markHeard(turnId);
+  const { error } = await supabase.rpc("pp_mark_heard", { tid: turnId });
+  if (error) throw error;
+}
+
+/** "I am recording in this rally" / "I am not". Cleared by its own TTL if we never say so. */
+export async function setRecording(sessionId: string, recording: boolean): Promise<void> {
+  if (isDemo()) return demo.setRecording(sessionId, recording);
+  const { error } = await supabase.rpc("pp_set_recording", { sid: sessionId, recording });
+  if (error) throw error;
 }
 
 /** Short-lived playback URL for a turn in a rally the caller belongs to. */

@@ -2977,3 +2977,35 @@ button.tile:hover {
 .ankara .prov .lines li { border-bottom-color: var(--line-soft); }
 .ankara .prov .lines .d { width: 42px; }
 .ankara .prov .lines .amt { color: var(--muted); }
+
+/* ===========================================================================
+   Read receipts and partner presence on the rally screen.
+
+   Two additions, both scoped to .ankara, both built out of tokens and shapes
+   already in the direction above — no new colour, no new face, no new radius.
+
+   1. The double tick. `.st` already sizes a 16px glyph; the heard state draws
+      two ticks in a 34x24 box, so it needs the room and nothing else. The
+      three states are told apart by shape — one tick, two ticks, the word
+      "Rated" — never by colour, and each one carries its words in aria-label
+      and title for anyone who cannot read a glyph.
+
+   2. `.p-pres`, a third line on the cream plate in the header that already
+      holds the alias and the card title. Mono 11px in --muted, the same
+      treatment as every other quiet label here (.turn-label, .c-lab). When
+      the partner really is present it takes the --live dot the chips use,
+      bobbing on the same `dot` keyframes as the waiting bubble's ellipsis,
+      which is this file's existing idiom for "something is happening". The
+      words say the whole thing on their own, so the dot and the darker ink
+      are decoration and carry nothing by themselves.
+   ========================================================================= */
+.ankara .st.heard { min-width: 22px; }
+.ankara .st.heard svg { width: 22px; height: 16px; }
+
+.ankara .p-pres { display: flex; align-items: center; gap: 5px; margin-top: 2px; font: 500 11px/1.2 var(--f-mono); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ankara .p-pres i { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.ankara .p-pres.on { color: var(--ink); }
+.ankara .p-pres.on i { background: var(--live); animation: dot 1.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .ankara .p-pres.on i { animation: none; }
+}
