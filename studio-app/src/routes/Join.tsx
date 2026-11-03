@@ -312,11 +312,12 @@ export function Join() {
       <Page dock={false}>
         <div className="topbar"><Logo height={24} tone="mono" /><span className="chip chip-mint" style={{ marginLeft: "auto" }}>Cast</span></div>
         <Steps current={2} />
-        <Head eyebrow="Signed" title="You're in the cast." lede="Your consent record exists from this moment. We've emailed you a copy. Next comes a short recorded interview with a linguist in your language; we'll email you when it's scheduled." />
+        <Head eyebrow="Signed" title="You're in the cast." lede="Your consent record exists from this moment, and we have emailed you a copy. You can start playing straight away." />
 
         <div className="blk blk-mint pat-zig-6 bal">
           <div className="lab">Speaker ID · what datasets carry instead of your name</div>
           <h3 style={{ fontSize: 26, marginTop: 6, fontFamily: "var(--f-mono)" }}>{rec.speaker_id}</h3>
+          {contributor?.alias && <p style={{ marginTop: 8 }}>In the app you are <b>{contributor.alias}</b>. That is the only name a partner ever sees.</p>}
         </div>
         <ul className="card rows">
           <li><span>Agreement</span><span className="v">v{rec.agreement_version}</span></li>
@@ -328,6 +329,7 @@ export function Join() {
           {agreement && <a className="btn btn-outline btn-sm" style={{ marginTop: 10 }} href={agreement.url}>Download the agreement you signed</a>}
         </div>
         <p className="note-p">Changing your mind: withdraw at any time from You, or email privacy@accentstudio.io. Undelivered recordings are deleted within 30 days. Verified earnings are never cancelled.</p>
+        <button className="btn btn-mint btn-block" type="button" onClick={() => window.location.assign("/studio")}>Open your dashboard</button>
         <button className="btn btn-outline btn-block signout" type="button" onClick={() => void signOut()}>Sign out</button>
       </Page>
     );
