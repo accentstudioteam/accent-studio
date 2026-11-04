@@ -50,6 +50,52 @@ export interface Staff {
 export type StaffRole = "admin" | "linguist";
 
 export type ContributorStatus = "active" | "paused" | "closed" | "withdrawn";
+
+/** One weighted clause the signer initialled, with the exact wording they were shown. */
+export interface ConsentClause {
+  id: string;
+  clause: string;
+  version: string;
+  initials: string;
+  text: string;
+}
+/** The agreement_versions row for the version that was signed. */
+export interface ConsentAgreement {
+  document_id: string;
+  sha256: string;
+  url: string;
+  effective_date: string | null;
+}
+/** The consent record as the admin RPC returns it. Admin-only: `legal_name` is identity data and
+ *  never travels on a contributor- or buyer-facing surface (account_json, delivery_payload). */
+export interface Consent {
+  agreement_version: string;
+  signed_at: string;
+  withdrawn_at: string | null;
+  record_sha256: string;
+  agreement_sha256: string | null;
+  signature_method: string | null;
+  legal_name: string | null;
+  legal_name_attested: boolean | null;
+  clauses_initialled: ConsentClause[];
+  accepted_terms: boolean | null;
+  biometric_consent: boolean | null;
+  speaker_id: string | null;
+  alias: string | null;
+  agreement: ConsentAgreement | null;
+}
+/** Signature methods in plain words. The older one was an email passcode alone; the newer adds a typed legal name and initials. */
+export const SIGNATURE_METHOD_LABEL: Record<string, string> = {
+  app_otp_email: "email one-time passcode",
+  typed_name_initials_email_otp: "typed legal name and initials, after an email one-time passcode",
+};
+/** Headings for the initialled clauses, keyed by the id the sign-agreement function writes. */
+export const CLAUSE_HEADING: Record<string, string> = {
+  biometric: "Your voice as biometric data",
+  buyer_limits: "What buyers may never do",
+  withdrawal: "Your right to withdraw",
+};
+
 export interface ContributorRow {
   id: string;
   speaker_id: string;
@@ -82,7 +128,7 @@ export interface ContributorRow {
   quiet_count: number;
   open_cases: number;
   confirmed_cases: number;
-  consent: { agreement_version: string; signed_at: string; withdrawn_at: string | null; record_sha256: string } | null;
+  consent: Consent | null;
   identity_status: "pending" | "verified" | "rejected" | null;
   payout_rail: string | null;
   open_data_requests: number;

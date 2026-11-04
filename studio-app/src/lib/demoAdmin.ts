@@ -1,6 +1,6 @@
 // The founder's admin screens on an in-memory backend: staff, the contributor roster and the overview.
 // Nothing is saved.
-import type { AdminEvent, ContributorAction, ContributorDetail, ContributorRow, NotifyLog, NotifyRun, Overview, Pulse, Roster, Staff, StaffInvite, StaffPerson, StaffRole } from "@/lib/admin";
+import type { AdminEvent, Consent, ConsentAgreement, ConsentClause, ContributorAction, ContributorDetail, ContributorRow, NotifyLog, NotifyRun, Overview, Pulse, Roster, Staff, StaffInvite, StaffPerson, StaffRole } from "@/lib/admin";
 
 const now = () => new Date().toISOString();
 const ago = (min: number) => new Date(Date.now() - min * 60_000).toISOString();
@@ -8,6 +8,39 @@ const ahead = (days: number) => new Date(Date.now() + days * 86_400_000).toISOSt
 const ME = "edt_00108";
 
 const state: { people: StaffPerson[]; invited: StaffInvite[]; events: AdminEvent[]; contributors: ContributorDetail[]; seq: number } = { people: [], invited: [], events: [], contributors: [], seq: 0 };
+
+/** The agreement registry as the demo knows it: one version, hosted, hashed. */
+const AGREEMENT: ConsentAgreement = { document_id: "ASC-CA-1.2", sha256: "48ff6cdd711040ed76709162c9a3ad45a88c67ca6a6b1b6dcdfc07db883497d1", url: "https://accentstudio.io/legal/Accent_Studio_Contributor_Agreement_v1.2.pdf", effective_date: "2026-09-12" };
+/** The three weighted clauses, worded as the sign-agreement function writes them. */
+const CLAUSES: Omit<ConsentClause, "initials">[] = [
+  { id: "biometric", clause: "4", version: "1", text: "I give my explicit consent to Accent Studio recording my voice and processing it as biometric data, for the purposes set out in clause 4 of the Contributor Agreement." },
+  { id: "buyer_limits", clause: "5", version: "1", text: "I have read clause 5: buyers may never identify me, clone my individual voice, use my voice to verify identity, surveil anyone, or pass the raw data on. Every licence Accent Studio signs says so." },
+  { id: "withdrawal", clause: "6", version: "1", text: "I understand that I may withdraw my consent at any time under clause 6, that new use stops and undelivered recordings are deleted within 30 days, that deliveries already made to a buyer are covered by clause 6, and that verified earnings are still paid." },
+];
+/** A demo legal name from the roster's "Chidi O." style display name: a plausible surname, nothing real. */
+const LEGAL: Record<string, string> = { "Chidi O.": "Chidi Okonkwo", "Ngozi A.": "Ngozi Adeyemi", "Emeka U.": "Emeka Uche", "Bola F.": "Bolanle Fashola", "Seun K.": "Oluwaseun Kolade", "Ife D.": "Ifeoma Dike", "Amara N.": "Amarachi Nwosu" };
+const fakeHash = (seed: string): string => {
+  let h = 2166136261;
+  let out = "";
+  for (let n = 0; n < 64; n++) {
+    h = Math.imul(h ^ seed.charCodeAt(n % seed.length), 16777619) >>> 0;
+    out += (h % 16).toString(16);
+  }
+  return out;
+};
+/** A signed record in the current shape: typed legal name, attested, three clauses initialled. */
+const signed = (speakerId: string, fullName: string | null, at: string, extra: Partial<Consent> = {}): Consent => {
+  const name = (fullName && LEGAL[fullName]) || fullName || "Demo Contributor";
+  const initials = name.split(/\s+/).map((w) => w[0]?.toUpperCase() ?? "").join("").slice(0, 3);
+  return {
+    agreement_version: "1.2", signed_at: at, withdrawn_at: null, record_sha256: fakeHash(`${speakerId}:${at}`),
+    agreement_sha256: AGREEMENT.sha256, signature_method: "typed_name_initials_email_otp",
+    legal_name: name, legal_name_attested: true, clauses_initialled: CLAUSES.map((k) => ({ ...k, initials })),
+    accepted_terms: true, biometric_consent: true, speaker_id: speakerId, alias: ALIAS[speakerId] ?? null, agreement: AGREEMENT,
+    ...extra,
+  };
+};
+const ALIAS: Record<string, string> = { spk_pcm_ng_48213: "Calm Squirrel", spk_pcm_ng_77104: "Pearl Xylophone", spk_pcm_ng_30556: "Brisk Otter", spk_yo_ng_51920: "Amber Heron", spk_pcm_ng_09311: "Quiet Mango", spk_pcm_ng_22007: "Copper Finch", spk_ig_ng_66502: "Velvet Kite" };
 
 const row = (i: Partial<ContributorDetail> & Pick<ContributorDetail, "id" | "speaker_id" | "full_name" | "email">): ContributorDetail => ({
   languages: ["pcm"],
@@ -37,7 +70,7 @@ const row = (i: Partial<ContributorDetail> & Pick<ContributorDetail, "id" | "spe
   quiet_count: 0,
   open_cases: 0,
   confirmed_cases: 0,
-  consent: { agreement_version: "1.2", signed_at: ago(40 * 24 * 60), withdrawn_at: null, record_sha256: "3f1c9a02e7b14d6c8a5f0e9b2c7d4a1f6e3b8c5d2a9f7e4b1c6d3a8f5e2b9c7d" },
+  consent: signed(i.speaker_id, i.full_name, ago(40 * 24 * 60)),
   identity_status: null,
   payout_rail: null,
   open_data_requests: 0,
@@ -87,7 +120,9 @@ function seed() {
         { id: 40, kind: "reply_due", created_at: ago(3 * 24 * 60), sent_at: ago(3 * 24 * 60), attempts: 1, error: null },
       ],
     }),
-    row({ id: "c-77104", speaker_id: "spk_pcm_ng_77104", full_name: "Ngozi A.", email: "ngozi@example.com", rallies: 21, scenes: 3, verified_seconds: 4020, avg_quality: 4.72, earned_usd: 21.4, paid_usd: 15.9, cleared_usd: 5.5, last_active_at: ago(40) }),
+    // signed under the older flow: email passcode alone, no typed name, no initialled clauses
+    row({ id: "c-77104", speaker_id: "spk_pcm_ng_77104", full_name: "Ngozi A.", email: "ngozi@example.com", rallies: 21, scenes: 3, verified_seconds: 4020, avg_quality: 4.72, earned_usd: 21.4, paid_usd: 15.9, cleared_usd: 5.5, last_active_at: ago(40),
+      consent: signed("spk_pcm_ng_77104", "Ngozi A.", ago(58 * 24 * 60), { signature_method: "app_otp_email", legal_name: null, legal_name_attested: false, clauses_initialled: [] }) }),
     row({ id: "c-30556", speaker_id: "spk_pcm_ng_30556", full_name: "Emeka U.", email: "emeka@example.com", rallies: 9, scenes: 0, abandoned: 3, quiet_count: 3, verified_seconds: 1300, avg_quality: 3.9, earned_usd: 4.62, paid_usd: 0, cleared_usd: 4.62, last_active_at: ago(3 * 24 * 60), arena_strikes: 1, open_data_requests: 1,
       data_requests: [{ id: "dr-1", kind: "copy", note: "everything from August", status: "open", created_at: ago(26 * 60), handled_at: null, response: null }] }),
     row({ id: "c-51920", speaker_id: "spk_yo_ng_51920", full_name: "Bola F.", email: "bola@example.com", languages: ["yo", "pcm"], primary_language: "yo", city: "Ibadan", rallies: 4, scenes: 0, verified_seconds: 610, avg_quality: 4.5, earned_usd: 2.71, paid_usd: 0, cleared_usd: 2.71, last_active_at: ago(5 * 24 * 60) }),
@@ -96,6 +131,9 @@ function seed() {
       cases: [{ id: "case-x", reason: "not_live", status: "notice_sent", decision: null, created_at: ago(2 * 24 * 60), decided_at: null }],
     }),
     row({ id: "c-22007", speaker_id: "spk_pcm_ng_22007", full_name: "Ife D.", email: "ife@example.com", status: "closed", closed_at: ago(12 * 24 * 60), closed_reason: "clause 15: replayed audio confirmed", rallies: 6, verified_seconds: 800, avg_quality: 3.2, earned_usd: 1.9, paid_usd: 1.9, cleared_usd: 0, confirmed_cases: 1, last_active_at: ago(13 * 24 * 60) }),
+    // withdrew consent: the record stays, marked, and their sessions leave future deliveries
+    row({ id: "c-66502", speaker_id: "spk_ig_ng_66502", full_name: "Amara N.", email: "amara@example.com", languages: ["ig", "pcm"], primary_language: "ig", city: "Enugu", status: "withdrawn", withdrawn_at: ago(6 * 24 * 60), rallies: 3, verified_seconds: 410, avg_quality: 4.1, earned_usd: 1.4, paid_usd: 1.4, cleared_usd: 0, last_active_at: ago(7 * 24 * 60),
+      consent: signed("spk_ig_ng_66502", "Amara N.", ago(30 * 24 * 60), { withdrawn_at: ago(6 * 24 * 60) }) }),
   ];
 }
 
