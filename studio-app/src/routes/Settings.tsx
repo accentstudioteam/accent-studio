@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/auth/AuthProvider";
 import { LOCALES, RAILS } from "@/lib/labels";
@@ -69,6 +70,11 @@ export function Settings({ onBack }: { onBack: () => void }) {
           <div className="sx-meta">shown as <b>{cleanHandle ? `@${cleanHandle}` : "@yourname"}</b></div>
         </div>
 
+        <div className="sheet" style={{ marginBottom: 12 }}>
+          <div className="tlbl">Appearance</div>
+          <div className="tbody" style={{ marginBottom: 10 }}>System follows this device. Pick Light or Dark to hold one regardless.</div>
+          <ThemeToggle />
+        </div>
         <div className="sheet" style={{ marginBottom: 12 }}>
           <div className="shead"><i className="g" />Language</div>
           <div className="row2" role="radiogroup" aria-label="Language">

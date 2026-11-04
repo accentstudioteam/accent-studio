@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/auth/AuthProvider";
 import { LANG_NAME } from "@/lib/game";
 import { hours } from "@/lib/admin";
@@ -123,6 +124,10 @@ function Languages({ a, onSave }: { a: Account; onSave: (langs: string[], primar
   const changed = [...langs].sort().join() !== [...a.languages].sort().join() || primary !== a.primary_language;
   return (
     <>
+      <div className="sec-h"><h3>Appearance</h3></div>
+      <p className="note-p" style={{ marginTop: 0 }}>System follows your phone. Pick Light or Dark to hold one regardless.</p>
+      <ThemeToggle />
+
       <div className="sec-h"><h3>Your languages</h3></div>
       <div className="card pad">
         <div className="eyebrow">Pick every language you play in</div>
