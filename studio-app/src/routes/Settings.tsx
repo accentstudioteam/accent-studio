@@ -5,6 +5,7 @@ import { LOCALES, RAILS } from "@/lib/labels";
 import type { Locale, PayoutRail } from "@/lib/types";
 import { Logo } from "../components/Logo";
 
+/** The staff member's own booth: handle, language, payout rail. Saves to their profile row. */
 export function Settings({ onBack }: { onBack: () => void }) {
   const { profile, session, refresh, signOut } = useAuth();
   const [handle, setHandle] = useState(profile?.handle ?? "");
@@ -38,26 +39,23 @@ export function Settings({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <div className="app">
+    <div className="app ankara studio-ank">
       <div className="topbar">
-        <button className="brand" onClick={onBack} style={{ background: "none", border: "none" }}>
-          <span style={{ color: "var(--mut)", fontFamily: "var(--mono)", fontSize: "0.9rem" }}>
-            ‹ back
-          </span>
-        </button>
-        <Logo height={22} />
+        <button type="button" className="sx-link" onClick={onBack}>‹ back</button>
+        <Logo height={22} tone="mono" />
       </div>
 
-      <div className="shell">
-        <div className="eyebrow" style={{ marginBottom: 8 }}>
-          Your booth
+      <div className="shell wide">
+        <div className="sx-head">
+          <div>
+            <div className="eyebrow">Your booth</div>
+            <h1 className="h1">Settings</h1>
+          </div>
         </div>
-        <h1 className="h1" style={{ marginBottom: 24 }}>
-          Settings.
-        </h1>
 
-        <div className="stack">
-          <div className="field">
+        <div className={`sheet${busy ? " sx-working" : ""}`} style={{ marginBottom: 12 }}>
+          <div className="shead"><i />Handle</div>
+          <div className="field" style={{ marginBottom: 0 }}>
             <label htmlFor="handle">Handle</label>
             <input
               id="handle"
@@ -67,86 +65,64 @@ export function Settings({ onBack }: { onBack: () => void }) {
               spellCheck={false}
               onChange={(e) => setHandle(e.target.value)}
             />
-            <span className="mono" style={{ fontSize: "0.66rem", color: "var(--faint)" }}>
-              shown as {cleanHandle ? `@${cleanHandle}` : "@yourname"}
-            </span>
           </div>
+          <div className="sx-meta">shown as <b>{cleanHandle ? `@${cleanHandle}` : "@yourname"}</b></div>
+        </div>
 
-          <div>
-            <label
-              className="mono"
-              style={{
-                fontSize: "0.62rem",
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                color: "var(--mut)",
-                display: "block",
-                marginBottom: 10,
-              }}
-            >
-              Language
-            </label>
-            <div className="opt-grid">
-              {LOCALES.map((l) => (
-                <button
-                  key={l.code}
-                  type="button"
-                  className={locale === l.code ? "opt on" : "opt"}
-                  onClick={() => setLocale(l.code)}
-                >
-                  <span className="emoji">{l.flag}</span>
-                  <span className="nm">{l.name}</span>
-                </button>
-              ))}
-            </div>
+        <div className="sheet" style={{ marginBottom: 12 }}>
+          <div className="shead"><i className="g" />Language</div>
+          <div className="row2" role="radiogroup" aria-label="Language">
+            {LOCALES.map((l) => (
+              <button
+                key={l.code}
+                type="button"
+                role="radio"
+                aria-checked={locale === l.code}
+                className={`tile${locale === l.code ? " sx-spine-mint" : ""}`}
+                onClick={() => setLocale(l.code)}
+              >
+                <div className="ttitle"><span aria-hidden="true">{l.flag}</span> {l.name}</div>
+              </button>
+            ))}
           </div>
+        </div>
 
-          <div>
-            <label
-              className="mono"
-              style={{
-                fontSize: "0.62rem",
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                color: "var(--mut)",
-                display: "block",
-                marginBottom: 10,
-              }}
-            >
-              Payout method
-            </label>
-            <div className="opt-grid">
-              {RAILS.map((r) => (
-                <button
-                  key={r.code}
-                  type="button"
-                  className={rail === r.code ? "opt on" : "opt"}
-                  onClick={() => setRail(rail === r.code ? null : r.code)}
-                >
-                  <span className="nm">{r.name}</span>
-                  <span className="sub">{r.min}</span>
-                </button>
-              ))}
-            </div>
+        <div className="sheet" style={{ marginBottom: 12 }}>
+          <div className="shead"><i />Payout method</div>
+          <div className="row2" role="radiogroup" aria-label="Payout method">
+            {RAILS.map((r) => (
+              <button
+                key={r.code}
+                type="button"
+                role="radio"
+                aria-checked={rail === r.code}
+                className={`tile${rail === r.code ? " sx-spine-mint" : ""}`}
+                onClick={() => setRail(rail === r.code ? null : r.code)}
+              >
+                <div className="spread">
+                  <div className="ttitle">{r.name}</div>
+                  <span className="sx-meta">{r.min}</span>
+                </div>
+              </button>
+            ))}
           </div>
+        </div>
 
-          <button className="pill mint" disabled={!canSave || busy} onClick={() => void save()}>
+        <div className="btn-row" style={{ alignItems: "center", marginBottom: 12 }}>
+          <button type="button" className="pill mint" disabled={!canSave || busy} onClick={() => void save()}>
             {busy ? "Saving…" : "Save changes"}
           </button>
-          {msg && (
-            <div className={`msg ${msgKind}`} style={{ textAlign: "center" }}>
-              {msg}
-            </div>
-          )}
-
-          <button
-            className="pill ghost"
-            style={{ marginTop: 10 }}
-            onClick={() => void signOut()}
-          >
-            Sign out
-          </button>
+          {msg && msgKind === "ok" && <span key={msg} className="chip sx-ok sx-pop" role="status">{msg}</span>}
         </div>
+        {msg && msgKind === "err" && (
+          <div className="sx-block sx-block-coral sx-pop" role="alert" style={{ marginBottom: 12 }}>
+            <div className="tlbl">That didn&rsquo;t save</div>
+            <div className="tbody">{msg}</div>
+          </div>
+        )}
+
+        <p className="sx-note">Signing out ends this staff session on this device only.</p>
+        <button type="button" className="pill ghost" onClick={() => void signOut()}>Sign out</button>
       </div>
     </div>
   );

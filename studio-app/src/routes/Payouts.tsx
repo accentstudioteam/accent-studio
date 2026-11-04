@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
+import { Num, useRowMotion } from "@/components/sx-motion";
 import { markPaid, money, payoutsQueue, type PayoutQueue, type QueuedPayout } from "@/lib/earn";
 import { when } from "@/lib/verify";
 
@@ -12,14 +13,19 @@ interface Props {
 export function Payouts({ onBack, embedded }: Props) {
   const [q, setQ] = useState<PayoutQueue | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [reading, setReading] = useState(false);
+  // the last payout marked paid, named at the top of the screen: money left the building
+  const [ack, setAck] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    setReading(true);
     try {
       setQ(await payoutsQueue());
       setErr(null);
     } catch (e) {
       setErr(e instanceof Error ? e.message.replace(/^.*?: /, "") : "Couldn't load the payouts.");
     }
+    setReading(false);
   }, []);
 
   useEffect(() => {
@@ -29,69 +35,117 @@ export function Payouts({ onBack, embedded }: Props) {
   const requested = q?.payouts.filter((p) => p.status === "requested") ?? [];
   const done = q?.payouts.filter((p) => p.status !== "requested") ?? [];
 
+  // one motion map across both lists: a request arriving enters at the top, and
+  // the same row, once paid, flashes mint where it lands in the sent list
+  const rowCls = useRowMotion(q?.payouts, (p) => p.id, (p) => `${p.status}|${p.reference ?? ""}`);
+
   const body = (
-    <div className="shell" style={{ maxWidth: 720 }}>
-      <div className="spread" style={{ marginBottom: 16, alignItems: "flex-start" }}>
+    <div className="shell wide">
+      <div className="sx-head">
         <div>
-          <div className="eyebrow" style={{ marginBottom: 6 }}>Ledger</div>
-          <h1 className="h1">Payouts{q ? ` · ${requested.length} to send` : ""}</h1>
+          <div className="eyebrow">Ledger</div>
+          <h1 className="h1">Payouts{q ? <> · <Num value={requested.length} /> to send</> : ""}</h1>
         </div>
-        <button className="pill ghost" style={{ flex: "none", width: "auto" }} onClick={() => void load()}>Refresh</button>
       </div>
+
       {q && (
-        <div className="row2" style={{ marginBottom: 14 }}>
-          <div className="tile acc"><div className="tlbl">Requested, to send</div><div className="ttitle">{money(q.requested_usd)}</div></div>
-          <div className="tile"><div className="tlbl">Cleared, not yet requested</div><div className="ttitle">{money(q.cleared_usd)}</div></div>
-          <div className="tile"><div className="tlbl">On hold · clause 15</div><div className="ttitle" style={{ color: Number(q.held_usd) > 0 ? "var(--gold)" : undefined }}>{money(q.held_usd)}</div></div>
-          <div className="tile"><div className="tlbl">Paid so far</div><div className="ttitle">{money(q.paid_usd)}</div></div>
+        <div className="stats sx-rise">
+          <div className={`stat${requested.length ? " sx-spine-gold" : ""}`}><div className="n">{money(q.requested_usd)}</div><div className="s">Requested, to send</div></div>
+          <div className="stat"><div className="n">{money(q.cleared_usd)}</div><div className="s">Cleared, not yet requested</div></div>
+          <div className={`stat${Number(q.held_usd) > 0 ? " sx-spine-coral" : ""}`}><div className={`n${Number(q.held_usd) > 0 ? " sx-fig-coral" : ""}`}>{money(q.held_usd)}</div><div className="s">On hold · clause 15</div></div>
+          <div className="stat sx-spine-mint"><div className="n">{money(q.paid_usd)}</div><div className="s">Paid so far</div></div>
         </div>
       )}
-      <div className="tile" style={{ marginBottom: 14 }}>
-        <div className="tbody muted" style={{ fontSize: "0.85rem" }}>Admins only: linguists never see this screen. Send the money by the rail the contributor chose, then mark it paid with the transaction reference. The lines behind the request move to paid and appear on the contributor's statement. Payouts are due within 14 days of the request.</div>
-      </div>
-      {err && <div className="tile" style={{ borderColor: "var(--coral)", marginBottom: 14 }}><div className="tbody" style={{ color: "var(--coral)" }}>{err}</div></div>}
-      {q && requested.length === 0 && <div className="empty" style={{ marginBottom: 14 }}><b>Nothing to send.</b><span>A request appears here the moment a contributor asks for a payout; the money behind it is already verified and cleared.</span></div>}
-      <div className="stack">
-        {requested.map((p) => <PayoutCard key={p.id} p={p} onChanged={load} />)}
-      </div>
-      {done.length > 0 && (
-        <div className="sheet" style={{ marginTop: 18 }}>
-          <div className="handle" />
-          <div className="shead"><i />Sent</div>
-          {done.map((p) => (
-            <div key={p.id} className="tile">
-              <div className="spread">
-                <div className="tbody small">{p.speaker_id} · {p.rail} · {when(p.paid_at ?? p.requested_at)}{p.reference ? ` · ${p.reference}` : ""}{p.paid_by ? ` · by ${p.paid_by}` : ""}</div>
-                <span className="chip" style={{ flex: "none" }}>{money(p.amount_usd)} · {p.status}</span>
-              </div>
-            </div>
-          ))}
+
+      <div className={`sx-bar${reading ? " sx-working" : ""}`}>
+        <span className="sx-bar-lab">Due within 14 days</span>
+        {q && <span className={`chip num${requested.length ? " gold" : ""}`}>{requested.length} to send</span>}
+        {q && <span className="chip num">{done.length} sent</span>}
+        <div className="sx-bar-end">
+          <button type="button" className="pill ghost" onClick={() => void load()}>Refresh</button>
         </div>
+      </div>
+
+      <p className="sx-note">
+        Admins only: linguists never see this screen. Send the money by the rail the contributor chose, then mark it paid with the transaction reference.
+        The lines behind the request move to paid and appear on the contributor&rsquo;s statement. Payouts are due within 14 days of the request.
+      </p>
+
+      {ack && (
+        <div className="sx-block sx-block-mint sx-pop" style={{ marginBottom: 12 }} role="status">
+          <div className="tlbl">Marked paid</div>
+          <div className="tbody">{ack}</div>
+        </div>
+      )}
+      {err && (
+        <div className="sx-block sx-block-coral sx-pop" style={{ marginBottom: 12 }}>
+          <div className="tlbl">The payouts didn&rsquo;t load</div>
+          <div className="tbody">{err}</div>
+        </div>
+      )}
+      {!q && !err && <div className="full-center"><div className="spin" /></div>}
+      {q && requested.length === 0 && (
+        <div className="empty sx-pop" style={{ marginBottom: 12 }}>
+          <b>Nothing to send.</b>
+          <span>A request appears here the moment a contributor asks for a payout; the money behind it is already verified and cleared.</span>
+        </div>
+      )}
+      {requested.length > 0 && (
+        <div className="stack sx-enter">
+          {requested.map((p) => <PayoutCard key={p.id} p={p} cls={rowCls(p)} onChanged={load} onPaid={setAck} />)}
+        </div>
+      )}
+
+      {done.length > 0 && (
+        <>
+          <div className="tlbl" style={{ margin: "18px 2px 6px" }}>Sent · {done.length}</div>
+          <div className="sx-list sx-enter">
+            {done.map((p) => (
+              <div key={p.id} className={`sx-row${p.status === "paid" ? " sx-spine-mint" : " sx-spine-coral"}${rowCls(p)}`}>
+                <div className="sx-row-top">
+                  <div className="sx-row-main">
+                    <div className="sx-row-t">{money(p.amount_usd)} by {p.rail}</div>
+                    <div className="sx-row-s">{p.speaker_id}{p.paid_by ? ` · by ${p.paid_by}` : ""}</div>
+                    <div className="sx-row-m">{when(p.paid_at ?? p.requested_at)}{p.reference ? ` · ${p.reference}` : ""}</div>
+                  </div>
+                  <div className="sx-row-end">
+                    <span className={`chip${p.status === "paid" ? " on" : " coral"}`}>{p.status}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
 
   if (embedded) return body;
   return (
-    <div className="app">
+    <div className="app ankara studio-ank">
       <div className="topbar">
-        <button className="brand" onClick={onBack} style={{ background: "none", border: "none" }}><span style={{ color: "var(--mut)", fontFamily: "var(--mono)", fontSize: "0.9rem" }}>‹ back</span></button>
-        <Logo height={22} />
+        <button type="button" className="sx-link" onClick={onBack}>‹ back</button>
+        <Logo height={22} tone="mono" />
       </div>
       {body}
     </div>
   );
 }
 
-function PayoutCard({ p, onChanged }: { p: QueuedPayout; onChanged: () => Promise<void> }) {
+/** One request to send. Gold spine while it waits; once the reference is saved
+ *  it slides out of this list and the same payout flashes mint under Sent. */
+function PayoutCard({ p, cls, onChanged, onPaid }: { p: QueuedPayout; cls: string; onChanged: () => Promise<void>; onPaid: (msg: string) => void }) {
   const [ref, setRef] = useState("");
   const [busy, setBusy] = useState(false);
+  const [paid, setPaid] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const pay = async () => {
     setBusy(true);
     setErr(null);
     try {
       await markPaid(p.id, ref);
+      setPaid(true);
+      onPaid(`${money(p.amount_usd)} to ${p.speaker_id} by ${p.rail} · ${ref.trim()}. The ${p.lines} ${p.lines === 1 ? "line" : "lines"} behind it are now on their statement as paid.`);
       await onChanged();
     } catch (e) {
       setErr(e instanceof Error ? e.message.replace(/^.*?: /, "") : "Couldn't mark it paid.");
@@ -99,23 +153,27 @@ function PayoutCard({ p, onChanged }: { p: QueuedPayout; onChanged: () => Promis
     setBusy(false);
   };
   return (
-    <div className="sheet">
-      <div className="handle" />
-      <div className="spread" style={{ alignItems: "flex-start" }}>
-        <div>
+    <div className={`sheet sx-spine-gold${cls}${busy ? " sx-working" : ""}${paid ? " sx-leave" : ""}`}>
+      <div className="sx-row-top">
+        <div className="sx-row-main">
           <div className="ttitle">{money(p.amount_usd)} by {p.rail}</div>
-          <div className="tbody muted small" style={{ marginTop: 4, fontFamily: "var(--mono)" }}>{p.speaker_id} · {p.lines} verified {p.lines === 1 ? "rally" : "rallies"} · requested {when(p.requested_at)}</div>
+          <div className="sx-meta">{p.speaker_id} · {p.lines} verified {p.lines === 1 ? "rally" : "rallies"} · requested {when(p.requested_at)}</div>
         </div>
-        <span className="chip" style={{ flex: "none", borderColor: "var(--gold)", color: "var(--gold)" }}>to send</span>
+        <div className="sx-row-end">
+          <span className="chip gold">to send</span>
+        </div>
       </div>
       {p.details && Object.keys(p.details).length > 0 ? (
-        <div className="tile"><div className="tlbl">Send to</div><div className="tbody small" style={{ fontFamily: "var(--mono)" }}>{Object.entries(p.details).map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`).join(" · ")}</div>{p.identity && <div className="tbody muted small" style={{ marginTop: 4 }}>identity {p.identity}</div>}</div>
+        <div className="tile"><div className="tlbl">Send to</div><div className="tbody small mono">{Object.entries(p.details).map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`).join(" · ")}</div>{p.identity && <div className="sx-meta" style={{ marginTop: 4 }}>identity {p.identity}</div>}</div>
       ) : (
-        <div className="tile dash"><div className="tbody muted small">No payout details on file for this rail; ask the contributor to add them in Account.</div></div>
+        <div className="tile dash sx-spine-coral"><div className="tbody muted small">No payout details on file for this rail; ask the contributor to add them in Account.</div></div>
       )}
-      <div className="field"><label>Transaction reference</label><input value={ref} onChange={(e) => setRef(e.target.value)} placeholder="e.g. M-Pesa QGH7… or USDC tx 0x…" /></div>
-      <button className="pill mint" disabled={busy || ref.trim().length < 3} onClick={() => void pay()}>{busy ? "Saving…" : "Mark paid"}</button>
-      {err && <div className="tbody small" style={{ color: "var(--coral)" }}>{err}</div>}
+      <div className="field" style={{ marginBottom: 0 }}><label>Transaction reference</label><input value={ref} onChange={(e) => setRef(e.target.value)} placeholder="e.g. M-Pesa QGH7… or USDC tx 0x…" /></div>
+      <div className="btn-row" style={{ alignItems: "center" }}>
+        <button type="button" className="pill mint" disabled={busy || paid || ref.trim().length < 3} onClick={() => void pay()}>{busy ? "Saving…" : paid ? "Paid" : "Mark paid"}</button>
+        {paid && <span className="chip sx-ok sx-pop" role="status">✓ paid</span>}
+      </div>
+      {err && <div className="sx-block sx-block-coral sx-pop"><div className="tbody">{err}</div></div>}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { Application, ApplicationSample, ApplicationStatus, Project } from "@/lib/types";
 import { Logo } from "@/components/Logo";
+import { Num, useRowMotion } from "@/components/sx-motion";
 
 const STATUSES: ApplicationStatus[] = ["submitted", "invited", "interview_scheduled", "interviewed", "in_review", "accepted", "accepted_to_project", "onboarded", "waitlisted", "rejected"];
 const LANG: Record<string, string> = {
@@ -44,6 +45,24 @@ function toCsv(rows: Application[]): string {
   return [CSV_COLUMNS.join(","), ...rows.map(line)].join("\n");
 }
 
+const word = (s: string) => s.replace(/_/g, " ");
+
+/** Where an applicant is, as the row's spine: mint once they are in, gold while
+ *  the ball is in their court, coral if they were turned down. Everything else
+ *  is a plain row, which is most of two hundred. */
+function spineOf(s: ApplicationStatus): string {
+  if (s === "onboarded" || s === "accepted_to_project" || s === "accepted") return " sx-spine-mint";
+  if (s === "invited" || s === "interview_scheduled") return " sx-spine-gold";
+  if (s === "rejected") return " sx-spine-coral";
+  return "";
+}
+function chipOf(s: ApplicationStatus): string {
+  if (s === "onboarded" || s === "accepted_to_project") return " on";
+  if (s === "invited" || s === "interview_scheduled" || s === "accepted") return " gold";
+  if (s === "rejected") return " coral";
+  return "";
+}
+
 /** Founder view of the waitlist: read, listen, triage, export. */
 export function Applications({ onBack }: { onBack: () => void }) {
   const [rows, setRows] = useState<Application[]>([]);
@@ -57,6 +76,8 @@ export function Applications({ onBack }: { onBack: () => void }) {
   const [projectPick, setProjectPick] = useState<Record<string, string>>({});
   const [inviting, setInviting] = useState<string | null>(null);
   const [inviteMsg, setInviteMsg] = useState<Record<string, string>>({});
+  // which applicant's notes were just saved: the tick beside the button
+  const [savedNotes, setSavedNotes] = useState<string | null>(null);
 
   useEffect(() => {
     void supabase.from("projects").select("*").eq("status", "open").order("created_at").then(({ data }) => setProjects((data ?? []) as Project[]));
@@ -95,7 +116,12 @@ export function Applications({ onBack }: { onBack: () => void }) {
     return c;
   }, [rows]);
 
-  const visible = filter === "all" ? rows : rows.filter((r) => r.status === filter);
+  // memoised so the row-motion snapshot only moves when the list really does
+  const visible = useMemo(() => (filter === "all" ? rows : rows.filter((r) => r.status === filter)), [rows, filter]);
+
+  // the list arriving enters; an applicant whose status flips (invited, accepted,
+  // rejected, or just moved by the select) washes once in its new colour
+  const rowCls = useRowMotion(visible, (a) => a.id, (a) => a.status);
 
   const setStatus = async (id: string, status: ApplicationStatus) => {
     const prev = rows;
@@ -111,7 +137,10 @@ export function Applications({ onBack }: { onBack: () => void }) {
     const notes = (notesDraft[id] ?? "").slice(0, 4000);
     const { error } = await supabase.from("applications").update({ notes: notes || null }).eq("id", id);
     if (error) setErr(`Couldn't save notes: ${error.message}`);
-    else setRows((rs) => rs.map((r) => (r.id === id ? { ...r, notes: notes || null } : r)));
+    else {
+      setRows((rs) => rs.map((r) => (r.id === id ? { ...r, notes: notes || null } : r)));
+      setSavedNotes(id);
+    }
   };
 
   const play = async (path: string) => {
@@ -132,136 +161,176 @@ export function Applications({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <div className="app">
+    <div className="app ankara studio-ank">
       <div className="topbar">
-        <button className="brand" onClick={onBack} style={{ background: "none", border: "none" }}>
-          <span style={{ color: "var(--mut)", fontFamily: "var(--mono)", fontSize: "0.9rem" }}>‹ back</span>
-        </button>
-        <Logo height={22} />
+        <button type="button" className="sx-link" onClick={onBack}>‹ back</button>
+        <Logo height={22} tone="mono" />
       </div>
 
-      <div className="shell" style={{ maxWidth: 720 }}>
-        <div className="spread" style={{ marginBottom: 16, alignItems: "flex-start" }}>
+      <div className="shell wide">
+        <div className="sx-head">
           <div>
-            <div className="eyebrow" style={{ marginBottom: 6 }}>Waitlist</div>
-            <h1 className="h1">Applications · {rows.length}</h1>
-          </div>
-          <div className="btn-row" style={{ flex: "none" }}>
-            <button className="pill ghost" onClick={load} disabled={loading}>Refresh</button>
-            <button className="pill ghost" onClick={exportCsv} disabled={rows.length === 0}>CSV</button>
+            <div className="eyebrow">Waitlist</div>
+            <h1 className="h1">Applications{!loading || rows.length ? <> · <Num value={rows.length} /></> : ""}</h1>
           </div>
         </div>
 
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
+        <div className={`sx-bar${loading ? " sx-working" : ""}`} role="group" aria-label="Status">
           {(["all", ...STATUSES] as const).map((s) => (
             <button
               key={s}
               type="button"
-              className="chip"
+              aria-pressed={filter === s}
+              className={`chip num${filter === s ? " on" : ""}`}
               onClick={() => setFilter(s)}
-              style={{ cursor: "pointer", background: filter === s ? "var(--acc)" : undefined, color: filter === s ? "#0d0b08" : undefined, borderColor: filter === s ? "var(--acc)" : undefined }}
             >
-              {s.replace("_", " ")} · {counts[s] ?? 0}
+              {word(s)} {counts[s] ?? 0}
             </button>
           ))}
+          <div className="sx-bar-end">
+            <button type="button" className="pill ghost" onClick={load} disabled={loading}>Refresh</button>
+            <button type="button" className="pill ghost" onClick={exportCsv} disabled={rows.length === 0}>CSV</button>
+          </div>
         </div>
+
+        <p className="sx-note">
+          Everyone who applied at accentstudio.io/apply, newest first. Open a row to hear their clips, invite them to a project,
+          move their status or leave a note. An invitation emails them a signing link; the row turns gold until they sign, mint once they are onboarded.
+        </p>
 
         {err && (
-          <div className="tile" style={{ borderColor: "var(--coral)", marginBottom: 14 }}>
-            <div className="tbody" style={{ color: "var(--coral)" }}>{err}</div>
+          <div className="sx-block sx-block-coral sx-pop" style={{ marginBottom: 12 }}>
+            <div className="tlbl">That didn&rsquo;t work</div>
+            <div className="tbody">{err}</div>
           </div>
         )}
-        {loading && <div className="muted">Loading…</div>}
-        {!loading && visible.length === 0 && <div className="muted">Nothing here yet. Share accentstudio.io/apply.</div>}
+        {loading && rows.length === 0 && <div className="full-center"><div className="spin" /></div>}
+        {!loading && visible.length === 0 && (
+          <div className="empty sx-pop">
+            <b>{rows.length === 0 ? "Nothing here yet." : "Nobody at this stage."}</b>
+            <span>{rows.length === 0 ? "Share accentstudio.io/apply." : "Pick another status above."}</span>
+          </div>
+        )}
 
-        <div className="stack">
-          {visible.map((a) => {
-            const isOpen = open === a.id;
-            return (
-              <div key={a.id} className="sheet">
-                <div className="handle" />
-                <button type="button" onClick={() => setOpen(isOpen ? null : a.id)} style={{ width: "100%", textAlign: "left", cursor: "pointer" }}>
-                  <div className="spread" style={{ alignItems: "flex-start", gap: 12 }}>
-                    <div>
-                      <div className="ttitle">{a.full_name}</div>
-                      <div className="tbody muted" style={{ marginTop: 4, fontSize: "0.85rem" }}>
-                        {a.languages.map((l) => LANG[l] ?? l).join(", ")} · {a.country}{a.city ? ` · ${a.city}` : ""} · {a.device ?? "device?"} · {when(a.created_at)}
+        {visible.length > 0 && (
+          <div className="sx-list sx-enter">
+            {visible.map((a) => {
+              const isOpen = open === a.id;
+              const clips = samplesOf(a);
+              const secs = Math.round(clips.reduce((n, s) => n + Number(s.seconds || 0), 0));
+              const cls = rowCls(a);
+              const flash = cls === " sx-flash" ? (a.status === "rejected" ? " sx-flash sx-flash-coral" : a.status === "invited" ? " sx-flash sx-flash-gold" : cls) : cls;
+              return [
+                <button
+                  key={a.id}
+                  type="button"
+                  className={`sx-row${spineOf(a.status)}${flash}`}
+                  aria-expanded={isOpen}
+                  onClick={() => setOpen(isOpen ? null : a.id)}
+                >
+                  <div className="sx-row-top">
+                    <div className="sx-row-main">
+                      <div className="sx-row-t">{a.full_name}</div>
+                      <div className="sx-row-s">
+                        {a.languages.map((l) => LANG[l] ?? l).join(", ")} · {a.country}{a.city ? ` · ${a.city}` : ""} · {a.device ?? "device?"}
+                      </div>
+                      <div className="sx-row-m">
+                        {clips.length > 0 ? `${clips.length} clip${clips.length > 1 ? "s" : ""} · ${secs} s` : "no clips"} · applied {when(a.created_at)}
                       </div>
                     </div>
-                    <div className="chip" style={{ flex: "none" }}>{samplesOf(a).length > 0 ? `🎙 ${samplesOf(a).length} clip${samplesOf(a).length > 1 ? "s" : ""}` : "no clips"}</div>
+                    <div className="sx-row-end">
+                      <span className={`chip${chipOf(a.status)}`}>{word(a.status)}</span>
+                    </div>
                   </div>
-                </button>
+                </button>,
 
-                {isOpen && (
-                  <>
-                    <div className="tile">
-                      <div className="tlbl">Contact</div>
-                      <div className="tbody">
-                        <a href={`mailto:${a.email}`} style={{ color: "var(--acc)" }}>{a.email}</a>
-                        {a.phone ? ` · ${a.phone}` : ""}
+                isOpen && (
+                  <div key={`${a.id}-open`} className={`sx-row sx-view${spineOf(a.status)}`}>
+                    <div className="sx-pair">
+                      {/* who they are, and what they sound like */}
+                      <div className="stack">
+                        <div className="tile">
+                          <div className="tlbl">Contact</div>
+                          <div className="tbody">
+                            <a href={`mailto:${a.email}`}>{a.email}</a>
+                            {a.phone ? ` · ${a.phone}` : ""}
+                          </div>
+                        </div>
+                        <div className="tile">
+                          <div className="tlbl">Profile</div>
+                          <div className="tbody small">
+                            Strongest: <b>{LANG[a.primary_language] ?? a.primary_language}{a.other_language ? ` (${a.other_language})` : ""}</b>
+                          </div>
+                          <div className="sx-meta">Age {a.age_band ?? "?"} · {a.gender ?? "gender n/a"} · {a.hours_per_week ?? "?"} h/week · pay via {a.payout_pref ?? "?"}</div>
+                          {a.motivation && <div className="tbody muted small" style={{ marginTop: 4 }}>Why: {a.motivation}</div>}
+                          {a.referral && <div className="tbody muted small">Heard via: {a.referral}</div>}
+                          <div className="sx-meta" style={{ marginTop: 4 }}>Consent: contact {a.consent_contact ? "yes" : "no"} · sample {a.consent_sample ? "yes" : "no"}</div>
+                        </div>
+                        {clips.map((s) => (
+                          <div className="tile" key={s.path}>
+                            <div className="tlbl">{LANG[s.language] ?? s.language}{s.part ? ` · ${s.part}` : ""} · {Math.round(s.seconds)} s</div>
+                            {audio[s.path] ? (
+                              <audio controls src={audio[s.path]} className="sx-pop" style={{ width: "100%", marginTop: 6 }} />
+                            ) : (
+                              <button type="button" className="pill ghost" style={{ marginTop: 4 }} onClick={() => play(s.path)}>Load the clip</button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* what you can do about it */}
+                      <div className="stack">
+                        <div className={`tile sx-spine-gold${inviting === a.id ? " sx-working" : ""}`}>
+                          <div className="tlbl">Invite to the cast</div>
+                          <div className="field">
+                            <label>Project</label>
+                            <select value={projectPick[a.id] ?? projects[0]?.id ?? ""} onChange={(e) => setProjectPick((p) => ({ ...p, [a.id]: e.target.value }))}>
+                              {projects.map((p) => (
+                                <option key={p.id} value={p.id}>{p.name} · {LANG[p.language] ?? p.language}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <button type="button" className="pill mint" disabled={inviting === a.id || a.status === "onboarded"} onClick={() => void invite(a)}>
+                            {inviting === a.id ? "Sending…" : a.status === "onboarded" ? "Signed and onboarded" : a.status === "invited" ? "Resend invitation" : "Send invitation"}
+                          </button>
+                          {inviteMsg[a.id] && (
+                            <div className={`sx-block sx-pop ${inviteMsg[a.id].startsWith("Invited") ? "sx-block-mint" : "sx-block-coral"}`} style={{ marginTop: 10 }} role="status">
+                              <div className="tlbl">{inviteMsg[a.id].startsWith("Invited") ? "Invitation sent" : "Not sent"}</div>
+                              <div className="tbody">{inviteMsg[a.id]}</div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="tile">
+                          <div className="field">
+                            <label>Status</label>
+                            <select value={a.status} onChange={(e) => setStatus(a.id, e.target.value as ApplicationStatus)}>
+                              {STATUSES.map((s) => (
+                                <option key={s} value={s}>{word(s)}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="field">
+                            <label>Notes</label>
+                            <textarea
+                              rows={3}
+                              value={notesDraft[a.id] ?? a.notes ?? ""}
+                              onChange={(e) => { setSavedNotes(null); setNotesDraft((d) => ({ ...d, [a.id]: e.target.value })); }}
+                              placeholder="Voice quality, accent region, follow-ups…"
+                            />
+                          </div>
+                          <div className="btn-row" style={{ alignItems: "center" }}>
+                            <button type="button" className="pill ghost" onClick={() => saveNotes(a.id)} disabled={(notesDraft[a.id] ?? a.notes ?? "") === (a.notes ?? "")}>Save notes</button>
+                            {savedNotes === a.id && <span className="chip sx-ok sx-pop" role="status">✓ saved</span>}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="tile">
-                      <div className="tlbl">Profile</div>
-                      <div className="tbody muted" style={{ fontSize: "0.88rem", lineHeight: 1.6 }}>
-                        Strongest: <b style={{ color: "var(--ink)" }}>{LANG[a.primary_language] ?? a.primary_language}{a.other_language ? ` (${a.other_language})` : ""}</b>
-                        <br />Age {a.age_band ?? "?"} · {a.gender ?? "gender n/a"} · {a.hours_per_week ?? "?"} h/week · pay via {a.payout_pref ?? "?"}
-                        {a.motivation && <><br />Why: {a.motivation}</>}
-                        {a.referral && <><br />Heard via: {a.referral}</>}
-                        <br />Consent: contact {a.consent_contact ? "yes" : "no"} · sample {a.consent_sample ? "yes" : "no"}
-                      </div>
-                    </div>
-                    {samplesOf(a).map((s) => (
-                      <div className="tile" key={s.path}>
-                        <div className="tlbl">{LANG[s.language] ?? s.language}{s.part ? ` · ${s.part}` : ""} · {Math.round(s.seconds)}s</div>
-                        {audio[s.path] ? (
-                          <audio controls src={audio[s.path]} style={{ width: "100%", marginTop: 8 }} />
-                        ) : (
-                          <button className="pill ghost" style={{ marginTop: 8 }} onClick={() => play(s.path)}>Load sample</button>
-                        )}
-                      </div>
-                    ))}
-                    <div className="tile acc">
-                      <div className="tlbl">Invite to the cast</div>
-                      <div className="field" style={{ marginBottom: 10 }}>
-                        <label>Project</label>
-                        <select value={projectPick[a.id] ?? projects[0]?.id ?? ""} onChange={(e) => setProjectPick((p) => ({ ...p, [a.id]: e.target.value }))}>
-                          {projects.map((p) => (
-                            <option key={p.id} value={p.id}>{p.name} · {LANG[p.language] ?? p.language}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <button className="pill mint" disabled={inviting === a.id || a.status === "onboarded"} onClick={() => void invite(a)}>
-                        {inviting === a.id ? "Sending…" : a.status === "onboarded" ? "Signed and onboarded" : a.status === "invited" ? "Resend invitation" : "Send invitation"}
-                      </button>
-                      {inviteMsg[a.id] && <div className="tbody" style={{ marginTop: 8, color: inviteMsg[a.id].startsWith("Invited") ? "var(--acc)" : "var(--coral)" }}>{inviteMsg[a.id]}</div>}
-                    </div>
-                    <div className="tile">
-                      <div className="field" style={{ marginBottom: 10 }}>
-                        <label>Status</label>
-                        <select value={a.status} onChange={(e) => setStatus(a.id, e.target.value as ApplicationStatus)}>
-                          {STATUSES.map((s) => (
-                            <option key={s} value={s}>{s.replace("_", " ")}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="field" style={{ marginBottom: 10 }}>
-                        <label>Notes</label>
-                        <textarea
-                          rows={3}
-                          value={notesDraft[a.id] ?? a.notes ?? ""}
-                          onChange={(e) => setNotesDraft((d) => ({ ...d, [a.id]: e.target.value }))}
-                          placeholder="Voice quality, accent region, follow-ups…"
-                        />
-                      </div>
-                      <button className="pill ghost" onClick={() => saveNotes(a.id)} disabled={(notesDraft[a.id] ?? a.notes ?? "") === (a.notes ?? "")}>Save notes</button>
-                    </div>
-                  </>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                  </div>
+                ),
+              ];
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

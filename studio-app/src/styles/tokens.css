@@ -3956,3 +3956,36 @@ button.tile:hover {
   .ankara.studio-ank .sx-row,
   .ankara.studio-ank .need{ transition: none; }
 }
+
+/* ---- Navigation strip: pin the chips (pass one follow-up) ----------------------
+   Below the sidebar breakpoint the nav is a flex row and its chips had no height
+   of their own. In a tall grid track they stretched to 172px (tablet); in a short
+   one they collapsed to 33px of padding (phone), under the 44px a thumb needs.
+   Scoped to the strip only: the desk sidebar reuses .snav-item as a column and
+   must not inherit either change. */
+@media (max-width: 899px){
+  .ankara.studio-ank .snav{ align-items: center; }
+  .ankara.studio-ank .snav-item{ min-height: 44px; }
+}
+/* Row actions on a phone: 36px reads fine with a mouse, not with a thumb. */
+@media (max-width: 480px){
+  .ankara.studio-ank .pill,
+  .ankara.studio-ank button.chip{ min-height: 44px; }
+}
+
+/* ---- Active nav item, and phone form fields (QA follow-up) -------------------
+   The active item is filled mint in both themes, so its label must stay ink no
+   matter what --fg does; in dark mode --fg is cream, and cream on mint is 1.46:1.
+   A note for whoever measures this next: read contrast with transitions disabled.
+   Flipping the theme and sampling inside the 160ms background transition reports
+   the previous theme's colour and looks exactly like a real failure. It is not. */
+.ankara.studio-ank .snav-item.on{ color: var(--ink); }
+/* Phone form fields. The admin's own .field rule sets 36px at one class more
+   specificity than a bare element selector, so this has to match it to win. */
+@media (max-width: 480px){
+  .ankara.studio-ank .field input:not([type="checkbox"]):not([type="radio"]),
+  .ankara.studio-ank .field select,
+  .ankara.studio-ank .field textarea,
+  .ankara.studio-ank input.sx-sel,
+  .ankara.studio-ank .sx-sel{ min-height: 44px; }
+}
