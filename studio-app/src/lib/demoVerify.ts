@@ -173,7 +173,7 @@ function seed() {
   for (const t of okadaTurns) t.verification = { verified_text: NOTES[t.clip].text, english_gloss: NOTES[t.clip].en, emotion_label: "playful", confidence: 0.92, issues: [], verified_seconds: t.seconds, rating_check: "fair", updated_at: ago(3 * 24 * 60), draft_wer: 0.31, draft_engine: "whisper-large-v3", alignments: [], aligned_at: null, aligner: null };
   const okadaEarnings: EarningPost[] = (["a", "b"] as Speaker[]).map((sp) => {
     const sec = okadaTurns.filter((t) => t.speaker === sp).reduce((n, t) => n + t.seconds, 0);
-    return { speaker: sp, speaker_id: sp === "a" ? A1 : B2, seconds: sec, peer_score: 4.5, quality_score: 4.5, tier: "gold", multiplier: 1.0, base_rate_usd: 16, amount_usd: Math.round((sec / 3600) * 16 * 10000) / 10000, status: "cleared" };
+    return { speaker: sp, speaker_id: sp === "a" ? A1 : B2, seconds: sec, peer_score: 4.5, quality_score: 4.5, tier: "gold", multiplier: 1.0, base_rate_usd: 20, amount_usd: Math.round((sec / 3600) * 20 * 10000) / 10000, status: "cleared" };
   });
   const okada: DemoSession = {
     id: "demo-s0", title: "Okada Price", situation: "Okada man wan carry you go Yaba. The price wey e call too high. You wan price am down before you climb.",
@@ -303,7 +303,7 @@ export const demoVerify = {
       }
     }
     const draftWer = wers.length ? Math.round((wers.reduce((a, b) => a + b, 0) / wers.length) * 1000) / 1000 : null;
-    // one line per speaker, priced per verified hour at $16 times that speaker's own tier
+    // one line per speaker, priced per verified hour at $20 times that speaker's own tier
     s.earnings = (["a", "b"] as Speaker[]).map((sp) => {
       const mine = latest(s).filter((t) => t.speaker === sp);
       const sec = mine.reduce((n, t) => n + (t.verification?.verified_seconds ?? t.seconds), 0);
@@ -312,7 +312,7 @@ export const demoVerify = {
       const q2 = p2 == null ? editorScore : Math.round(((p2 + editorScore) / 2) * 100) / 100;
       const t2 = TIERS.find((t) => q2 >= t.min) ?? TIERS[TIERS.length - 1];
       const open = state.cases.some((c) => c.status !== "decided" && c.contributor === s.speakers[sp] && c.sessions.some((x) => x.session_id === s.id));
-      return { speaker: sp, speaker_id: s.speakers[sp], seconds: sec, peer_score: p2, quality_score: q2, tier: t2.tier, multiplier: t2.x, base_rate_usd: 16, amount_usd: Math.round((sec / 3600) * 16 * t2.x * 10000) / 10000, status: open ? "held" : "cleared" };
+      return { speaker: sp, speaker_id: s.speakers[sp], seconds: sec, peer_score: p2, quality_score: q2, tier: t2.tier, multiplier: t2.x, base_rate_usd: 20, amount_usd: Math.round((sec / 3600) * 20 * t2.x * 10000) / 10000, status: open ? "held" : "cleared" };
     });
     s.result = { peer_score: peer, quality_score: q, quality_tier: tier.tier, multiplier: tier.x, verified_seconds: secs, hold, draft_wer: draftWer, aligned_turns: latest(s).filter((t) => (t.verification?.alignments?.length ?? 0) > 0).length, earnings: s.earnings };
     s.editor_score = editorScore;

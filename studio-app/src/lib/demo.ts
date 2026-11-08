@@ -144,7 +144,7 @@ function summary(s: DemoSession): RallySummary {
 
 const RAILS = [{ key: "mpesa", name: "M-Pesa", min: 5 }, { key: "paystack", name: "Paystack", min: 5 }, { key: "flutterwave", name: "Flutterwave", min: 5 }, { key: "stripe", name: "Stripe", min: 10 }, { key: "paypal", name: "PayPal", min: 10 }, { key: "usdc", name: "USDC · USDT", min: 2 }];
 const daysAgo = (d: number) => new Date(Date.now() - d * 86_400_000).toISOString();
-const line = (id: string, title: string, d: number, secs: number, tier: string, x: number, status: EarningLine["status"]): EarningLine => ({ id, session_id: id, title, date: daysAgo(d), language: "pcm", verified_seconds: secs, quality_tier: tier, multiplier: x, base_rate_usd: 16, amount_usd: Math.round((secs / 3600) * 16 * x * 10000) / 10000, status, month: daysAgo(d).slice(0, 7) });
+const line = (id: string, title: string, d: number, secs: number, tier: string, x: number, status: EarningLine["status"]): EarningLine => ({ id, session_id: id, title, date: daysAgo(d), language: "pcm", verified_seconds: secs, quality_tier: tier, multiplier: x, base_rate_usd: 20, amount_usd: Math.round((secs / 3600) * 20 * x * 10000) / 10000, status, month: daysAgo(d).slice(0, 7) });
 /** A month of play: nine rallies paid last month, six ready now, one on hold under clause 15. */
 const ledger: { lines: EarningLine[]; payouts: PayoutRow[] } = {
   lines: [
@@ -159,11 +159,11 @@ const ledger: { lines: EarningLine[]; payouts: PayoutRow[] } = {
 /* --- Recorded, not checked yet ---------------------------------------------
    my_provisional_earnings, in memory. The server prices unverified seconds at
    the lowest tier in quality_tiers; the demo config is the live one, so that is
-   $16 an hour times 0.5. Four rallies are seeded as already closed and waiting
+   $20 an hour times 0.5. Four rallies are seeded as already closed and waiting
    on a linguist, one is seeded under a clause 15 check so the held branch has
    something to show, and anything you record in the demo is added on top: the
    figure moves as you play, which is the whole point of the screen. */
-const PROV_RATE = 16;
+const PROV_RATE = 20;
 const PROV_CUR = 1; // the demo contributor sits at gold, the headline rate
 const PROV_TOP = 1.2;
 const provSeedRows = (): ProvisionalRally[] =>
@@ -209,7 +209,7 @@ export const demo = {
   /** The player's earnings screen on the in-memory ledger. */
   myEarnings: async (): Promise<MyEarnings> => {
     const sum = (st: EarningLine["status"]) => Math.round(ledger.lines.filter((l) => l.status === st).reduce((n, l) => n + l.amount_usd, 0) * 100) / 100;
-    return { cleared_usd: sum("cleared"), held_usd: sum("held"), requested_usd: sum("requested"), paid_usd: sum("paid"), forfeited_usd: sum("forfeited"), ap_per_usd: 1000, payout_days: 14, base_rates: { standard: 16, scarce: 25 }, my_rate_usd: 16, rails: RAILS, my_rail: "usdc", rail_min: 2, open_request: ledger.payouts.some((p) => p.status === "requested"), lines: [...ledger.lines].sort((a, b) => (a.date < b.date ? 1 : -1)), payouts: [...ledger.payouts] };
+    return { cleared_usd: sum("cleared"), held_usd: sum("held"), requested_usd: sum("requested"), paid_usd: sum("paid"), forfeited_usd: sum("forfeited"), ap_per_usd: 1000, payout_days: 14, base_rates: { standard: 20, scarce: 25 }, my_rate_usd: 20, rails: RAILS, my_rail: "usdc", rail_min: 2, open_request: ledger.payouts.some((p) => p.status === "requested"), lines: [...ledger.lines].sort((a, b) => (a.date < b.date ? 1 : -1)), payouts: [...ledger.payouts] };
   },
   requestPayout: async (rail: string): Promise<{ amount_usd: number }> => {
     const r = RAILS.find((x) => x.key === rail);

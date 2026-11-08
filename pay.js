@@ -2,9 +2,9 @@
    (Earn section and FAQ), read by the agreement generator for clause 7, and by the
    delivery bundle. Change numbers here only. Dates are the day the terms changed. */
 window.ACCENT_PAY = {
-  "last_updated": "2026-09-11",
+  "last_updated": "2026-11-08",
   "unit": "per speaker, per verified hour of session audio",
-  "base_rates_usd": { "standard": 16, "scarce": 25 },
+  "base_rates_usd": { "standard": 20, "scarce": 25 },
   "standard_languages": ["Nigerian Pidgin", "Yoruba", "Hausa", "Igbo", "Swahili", "Zulu"],
   "scarce_note": "Scarce registers such as Nairobi Sheng and commissioned specialist domains pay the higher base rate, shown in the app before the session.",
   "multiplier": [
@@ -14,7 +14,7 @@ window.ACCENT_PAY = {
   ],
   "quality_floor": { "below": 3.50, "x": 0.5, "note": "A redo is offered first. A good-faith session that still rates below Silver pays the floor, never zero." },
   "integrity": { "x": 0, "note": "Confirmed dishonesty, after human review, notice and a chance to respond, forfeits pay for the affected sessions only. Agreement clause 15." },
-  "range_usd": { "min": 8, "max": 30 },
+  "range_usd": { "min": 10, "max": 30 },
   "rails": [
     { "name": "M-Pesa", "min": 5 },
     { "name": "Paystack · Flutterwave", "min": 5 },
