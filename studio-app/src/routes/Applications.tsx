@@ -69,6 +69,7 @@ export function Applications({ onBack }: { onBack: () => void }) {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | ApplicationStatus>("all");
+  const [search, setSearch] = useState("");
   const [open, setOpen] = useState<string | null>(null);
   const [audio, setAudio] = useState<Record<string, string>>({});
   const [notesDraft, setNotesDraft] = useState<Record<string, string>>({});
@@ -116,8 +117,20 @@ export function Applications({ onBack }: { onBack: () => void }) {
     return c;
   }, [rows]);
 
-  // memoised so the row-motion snapshot only moves when the list really does
-  const visible = useMemo(() => (filter === "all" ? rows : rows.filter((r) => r.status === filter)), [rows, filter]);
+  // memoised so the row-motion snapshot only moves when the list really does.
+  // The search runs over whatever the status chips left: name, email, phone,
+  // city, country and languages. Every word typed has to land somewhere.
+  const visible = useMemo(() => {
+    const byStatus = filter === "all" ? rows : rows.filter((r) => r.status === filter);
+    const words = search.trim().toLowerCase().split(/s+/).filter(Boolean);
+    if (words.length === 0) return byStatus;
+    return byStatus.filter((a) => {
+      const langs = a.languages ?? [];
+      const hay = [a.full_name, a.email, a.phone, a.city, a.country, a.primary_language, a.other_language, ...langs, ...langs.map((l) => LANG[l] ?? l)]
+        .filter(Boolean).join(" ").toLowerCase();
+      return words.every((w) => hay.includes(w));
+    });
+  }, [rows, filter, search]);
 
   // the list arriving enters; an applicant whose status flips (invited, accepted,
   // rejected, or just moved by the select) washes once in its new colour
@@ -187,7 +200,16 @@ export function Applications({ onBack }: { onBack: () => void }) {
               {word(s)} {counts[s] ?? 0}
             </button>
           ))}
-          <div className="sx-bar-end">
+          <div className="sx-bar-end" style={{ flex: "1 1 220px" }}>
+            <input
+              className="sx-sel"
+              type="search"
+              aria-label="Find an applicant"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="name, email, phone, city"
+              style={{ flex: 1, minWidth: 0, cursor: "text" }}
+            />
             <button type="button" className="pill ghost" onClick={load} disabled={loading}>Refresh</button>
             <button type="button" className="pill ghost" onClick={exportCsv} disabled={rows.length === 0}>CSV</button>
           </div>
@@ -207,8 +229,8 @@ export function Applications({ onBack }: { onBack: () => void }) {
         {loading && rows.length === 0 && <div className="full-center"><div className="spin" /></div>}
         {!loading && visible.length === 0 && (
           <div className="empty sx-pop">
-            <b>{rows.length === 0 ? "Nothing here yet." : "Nobody at this stage."}</b>
-            <span>{rows.length === 0 ? "Share accentstudio.io/apply." : "Pick another status above."}</span>
+            <b>{rows.length === 0 ? "Nothing here yet." : search.trim() ? "Nobody matches." : "Nobody at this stage."}</b>
+            <span>{rows.length === 0 ? "Share accentstudio.io/apply." : search.trim() ? "Try a shorter search, or clear it." : "Pick another status above."}</span>
           </div>
         )}
 
