@@ -97,7 +97,7 @@ export function Earnings({ onBack, embedded }: Props) {
               <span className="chip chip-cream">Paid {money(e.paid_usd)}</span>
             </div>
             <p style={{ fontSize: 13, lineHeight: 1.4, marginTop: 10, fontWeight: 500 }}>
-              {Number(e.held_usd) > 0 ? "What is on hold waits for a clause 15 decision. " : ""}Base rate {money(e.base_rates.standard)} per speaker per verified hour, times your tier after a linguist verifies the rally: Platinum ×1.2, Gold ×1.0, Silver ×0.7, floor ×0.5. Only a confirmed decision forfeits a rally, and only that rally.
+              {Number(e.held_usd) > 0 ? "What is on hold waits for a clause 15 decision. " : ""}Base rate {money(e.my_rate_usd ?? e.base_rates.standard)} per speaker per verified hour, times your tier after a linguist verifies the rally: Platinum ×1.2, Gold ×1.0, Silver ×0.7, floor ×0.5. Only a confirmed decision forfeits a rally, and only that rally.
             </p>
           </div>
 

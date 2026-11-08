@@ -209,7 +209,7 @@ export const demo = {
   /** The player's earnings screen on the in-memory ledger. */
   myEarnings: async (): Promise<MyEarnings> => {
     const sum = (st: EarningLine["status"]) => Math.round(ledger.lines.filter((l) => l.status === st).reduce((n, l) => n + l.amount_usd, 0) * 100) / 100;
-    return { cleared_usd: sum("cleared"), held_usd: sum("held"), requested_usd: sum("requested"), paid_usd: sum("paid"), forfeited_usd: sum("forfeited"), ap_per_usd: 1000, payout_days: 14, base_rates: { standard: 16, scarce: 25 }, rails: RAILS, my_rail: "usdc", rail_min: 2, open_request: ledger.payouts.some((p) => p.status === "requested"), lines: [...ledger.lines].sort((a, b) => (a.date < b.date ? 1 : -1)), payouts: [...ledger.payouts] };
+    return { cleared_usd: sum("cleared"), held_usd: sum("held"), requested_usd: sum("requested"), paid_usd: sum("paid"), forfeited_usd: sum("forfeited"), ap_per_usd: 1000, payout_days: 14, base_rates: { standard: 16, scarce: 25 }, my_rate_usd: 16, rails: RAILS, my_rail: "usdc", rail_min: 2, open_request: ledger.payouts.some((p) => p.status === "requested"), lines: [...ledger.lines].sort((a, b) => (a.date < b.date ? 1 : -1)), payouts: [...ledger.payouts] };
   },
   requestPayout: async (rail: string): Promise<{ amount_usd: number }> => {
     const r = RAILS.find((x) => x.key === rail);

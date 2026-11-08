@@ -120,7 +120,7 @@ export function PlayerHome({ me, onOpenRally, onNotices, onEarnings, onBooth, on
             </div>
           )}
           <div className="row">
-            <span style={{ fontSize: 12.5, fontWeight: 500, lineHeight: 1.35 }}>{money(earn.base_rates.standard)} per verified hour × your tier · paid so far {money(earn.paid_usd)}</span>
+            <span style={{ fontSize: 12.5, fontWeight: 500, lineHeight: 1.35 }}>{money(earn.my_rate_usd ?? earn.base_rates.standard)} per verified hour × your tier · paid so far {money(earn.paid_usd)}</span>
             <span className="chip chip-ink" style={{ flex: "none" }}>Open</span>
           </div>
         </button>

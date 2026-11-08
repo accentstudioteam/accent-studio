@@ -42,6 +42,11 @@ export interface MyEarnings {
   ap_per_usd: number;
   payout_days: number;
   base_rates: { standard: number; scarce: number };
+  /** What this person actually earns per verified hour: the rate of the project
+   *  they are on, falling back to the global rate for their language. When they
+   *  are on several projects at different rates it is the lowest, so the number
+   *  on Home never promises more than a rally can pay. Null only on an older server. */
+  my_rate_usd?: number | null;
   rails: Rail[];
   my_rail: string | null;
   rail_min: number | null;
