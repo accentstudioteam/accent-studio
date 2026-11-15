@@ -296,6 +296,7 @@ export function Arena({ sessionId, onBack }: Props) {
         <div className="card pad" style={{ marginTop: 16 }}>
           <div className="eyebrow">{sub}</div>
           <p>{scene.partner_joined ? "Your partner is in the room." : `Waiting for ${scene.partner ?? "your partner"} to arrive. The scene starts the moment you are both here; if they are not in within ${isDemo() ? "a few seconds (demo)" : "ten minutes"}, you are credited and free to go.`}</p>
+          <p className="note-p">The scene runs for {fmt(scene.scene_seconds)} and ends automatically when the time is up. You can also end it early with the button that appears once you are live.</p>
           {!isDemo() && <p className="note-p">Microphone {micRef.current ? "ready" : "opening…"} · call {callState}. Keep this screen open.</p>}
         </div>
       )}
@@ -326,8 +327,15 @@ export function Arena({ sessionId, onBack }: Props) {
             <div className="prog" aria-hidden="true"><i style={{ width: `${Math.max(2, chem * 10)}%` }} /></div>
             <p>Fills when you both speak, take turns and keep it flowing. It is a live quality signal, not your pay.</p>
           </div>
+          {remaining <= 30 && remaining > 0 && (
+            <div className="blk blk-lilac pat-zig-6 livecard">
+              <div className="lab">Winding down</div>
+              <h3 style={{ marginTop: 4 }}>{fmt(remaining)} left — wrap up your conversation naturally.</h3>
+            </div>
+          )}
           {isDemo() && <button className="btn btn-outline btn-block" type="button" style={{ marginTop: 12 }} onMouseDown={() => setDemoSpeaking(true)} onMouseUp={() => setDemoSpeaking(false)} onTouchStart={() => setDemoSpeaking(true)} onTouchEnd={() => setDemoSpeaking(false)}>Hold to act out speaking (demo)</button>}
           <button className="btn btn-mint btn-block" type="button" style={{ marginTop: 12 }} onClick={() => void endScene()}>End the scene</button>
+          <p className="note-p" style={{ marginTop: 8, textAlign: "center" }}>The scene ends automatically at {fmt(0)}. Your recording stops and uploads when it does.</p>
         </>
       )}
 

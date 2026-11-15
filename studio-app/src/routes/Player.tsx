@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/auth/AuthProvider";
 import { PlayerHome } from "@/routes/PlayerHome";
@@ -18,6 +18,7 @@ import { demoOnboarding, isDemo } from "@/lib/demo";
 import { Page } from "@/components/ankara-ui";
 
 type Tab = "home" | "play" | "live" | "money" | "you";
+interface NavState { tab: Tab; rally: string | null; scene: string | null; notices: boolean }
 
 /** The contributor's app: five places (Home, Play, Live, Money, You) on a floating dock on phones and a sidebar on a desk,
  * where Play splits into the rally list and the open rally. A scene or a notice opens on top. Falls back to Join if they never signed. */
@@ -32,6 +33,38 @@ export function Player() {
   const [scene, setScene] = useState<string | null>(null);
   const [notices, setNotices] = useState(false);
   const [counts, setCounts] = useState({ play: 0, live: 0, soon: false });
+
+  // --- Browser-history integration so the OS back button navigates within the app ---
+  const navRef = useRef<NavState>({ tab: "home", rally: null, scene: null, notices: false });
+  const fromPop = useRef(false);
+
+  useEffect(() => {
+    window.history.replaceState(navRef.current, "");
+    const onPop = (e: PopStateEvent) => {
+      const s = e.state as NavState | null;
+      if (!s) return;
+      fromPop.current = true;
+      navRef.current = s;
+      setTab(s.tab);
+      setRally(s.rally);
+      setScene(s.scene);
+      setNotices(s.notices);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  useEffect(() => {
+    if (fromPop.current) { fromPop.current = false; return; }
+    const next: NavState = { tab, rally, scene, notices };
+    if (next.tab === navRef.current.tab && next.rally === navRef.current.rally && next.scene === navRef.current.scene && next.notices === navRef.current.notices) return;
+    navRef.current = next;
+    window.history.pushState(next, "");
+  }, [tab, rally, scene, notices]);
+
+  const back = useCallback(() => window.history.back(), []);
+  // --- end history integration ---
+
   const reloadMe = () => {
     if (isDemo()) return;
     void supabase.rpc("my_onboarding").then(({ data }) => setMe((data as Onboarding) ?? null));
@@ -109,24 +142,24 @@ export function Player() {
   const frame = (node: JSX.Element) => (desk ? <div className="player-desk">{side}<main className="player-main">{node}</main></div> : node);
 
   // Leaf screens stand alone on a phone (their own back link); on a desk they sit in the main column beside the sidebar.
-  if (scene) return frame(<Arena sessionId={scene} onBack={() => { setScene(null); setTab("live"); }} />);
-  if (notices) return frame(<CaseNotice onBack={() => setNotices(false)} />);
-  if (rally && !desk) return <Rally sessionId={rally} onBack={() => setRally(null)} />;
+  if (scene) return frame(<Arena sessionId={scene} onBack={back} />);
+  if (notices) return frame(<CaseNotice onBack={back} />);
+  if (rally && !desk) return <Rally sessionId={rally} onBack={back} />;
 
   const homeProps = { me, onOpenRally: openRally, onNotices: () => setNotices(true), onEarnings: () => go("money"), onBooth: () => go("live"), onPlayTab: () => go("play"), onJoinScene: (sid: string) => setScene(sid), onAccount: () => go("you"), onCounts: setCounts };
   // Play: the projects this contributor is on, the rallies inside one, and joining.
   const playProps = { projectId: pid, onPickProject: setPid, onOpenRally: openRally, onHome: home };
   let screen: JSX.Element;
-  if (tab === "you") screen = <Account onBack={home} onChanged={reloadMe} avatar={me.contributor?.avatar} />;
-  else if (tab === "money") screen = <Earnings onBack={home} />;
-  else if (tab === "live") screen = <Booth language={me.contributor.primary_language ?? "pcm"} onBack={home} onJoin={(sid) => setScene(sid)} />;
+  if (tab === "you") screen = <Account onBack={back} onChanged={reloadMe} avatar={me.contributor?.avatar} />;
+  else if (tab === "money") screen = <Earnings onBack={back} />;
+  else if (tab === "live") screen = <Booth language={me.contributor.primary_language ?? "pcm"} onBack={back} onJoin={(sid) => setScene(sid)} />;
   else if (tab === "play" && desk) {
     screen = (
       <div className="split">
         <div className="split-list"><PlayerPlay {...playProps} /></div>
         <div className="split-detail">
           {rally ? (
-            <Rally key={rally} sessionId={rally} onBack={() => setRally(null)} />
+            <Rally key={rally} sessionId={rally} onBack={back} />
           ) : (
             <Page dock={false}>
               <div className="card pad" style={{ marginTop: 32 }}>

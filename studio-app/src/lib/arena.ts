@@ -55,6 +55,7 @@ export interface Twist {
 }
 export interface Scene {
   ice?: { urls: string | string[]; username?: string; credential?: string }[];
+  metered?: { app: string; key: string } | null;
   session_id: string;
   status: "waiting" | "active" | "complete" | "abandoned";
   language: string;
@@ -85,7 +86,24 @@ export const book = (lang: string, startsAt: Date): Promise<BookResult> => (isDe
 export const reschedule = (slotId: string, startsAt: Date): Promise<BookResult> =>
   isDemo() ? demoArena.reschedule(slotId, startsAt) : rpc<BookResult>("arena_reschedule", { slot_id: slotId, new_starts_at: startsAt.toISOString() });
 export const cancel = (slotId: string): Promise<{ strike: boolean }> => (isDemo() ? demoArena.cancel(slotId) : rpc<{ strike: boolean }>("arena_cancel", { slot_id: slotId }));
-export const join = (sid: string): Promise<Scene> => (isDemo() ? demoArena.join(sid) : rpc<Scene>("arena_join", { sid }));
+async function fetchTurn(metered: { app: string; key: string }): Promise<Scene["ice"]> {
+  try {
+    const r = await fetch(`https://${metered.app}.metered.live/api/v1/turn/credentials?apiKey=${metered.key}`);
+    if (!r.ok) return [];
+    return (await r.json()) as Scene["ice"];
+  } catch {
+    return [];
+  }
+}
+export const join = async (sid: string): Promise<Scene> => {
+  if (isDemo()) return demoArena.join(sid);
+  const scene = await rpc<Scene>("arena_join", { sid });
+  if (scene.metered?.app && scene.metered?.key) {
+    const turn = await fetchTurn(scene.metered);
+    if (turn?.length) scene.ice = [...(scene.ice ?? []), ...turn];
+  }
+  return scene;
+};
 export const finish = (sid: string, path: string, secs: number, chemistry: number): Promise<{ complete: boolean }> =>
   isDemo() ? demoArena.finish(sid, path, secs, chemistry) : rpc<{ complete: boolean }>("arena_finish", { sid, path, secs, chemistry });
 export const rate = (sid: string, r: { tone: number; prompt_adherence: number; mood: number; clarity: number }): Promise<void> =>

@@ -37,7 +37,7 @@ const CORAL = "#E08A5C";
 const LILAC = "#A78BFA";
 const INK_BODY = "#4A4034"; // body text on cream
 const INK_MUTED = "#6E6354"; // labels, footer
-const DEEP = "#0B6B47"; // the lockup's own green; mint is unreadable as text
+export const DEEP = "#0B6B47"; // the lockup's own green; mint is unreadable as text
 const RULE = "#E2D8C4";
 
 // Bricolage Grotesque is the brand face; it is never loaded (no web font

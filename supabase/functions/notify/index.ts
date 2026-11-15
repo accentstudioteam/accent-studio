@@ -5,7 +5,7 @@
 // crash or a mail failure retries up to three times and nothing is sent twice.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { SITE, button, esc, p, send, shell, tile, who } from "./mail.ts";
+import { SITE, button, esc, p, send, shell, tile, who, DEEP } from "./mail.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -15,7 +15,7 @@ const APP = `${SITE}/studio`;
 
 interface Item {
   id: number;
-  kind: "reply_due" | "booking_soon" | "case_window_closing" | "payout_paid" | "statement";
+  kind: "reply_due" | "booking_soon" | "slot_booked" | "slot_paired" | "case_window_closing" | "payout_paid" | "statement";
   ref: string;
   detail: Record<string, unknown>;
   contributor_id: string;
@@ -44,6 +44,12 @@ const str = (v: unknown) => (v == null ? "" : String(v));
 const when = (iso: unknown) => (iso ? new Date(String(iso)).toLocaleString("en-GB", { timeZone: "Africa/Lagos", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + " Lagos time" : "");
 const day = (iso: unknown) => (iso ? new Date(String(iso)).toLocaleDateString("en-GB", { timeZone: "Africa/Lagos", day: "numeric", month: "short" }) : "");
 const monthName = (ym: string) => new Date(`${ym}-01T00:00:00Z`).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
+function gcalLink(title: string, startsAt: string): string {
+  const s = new Date(startsAt);
+  const e = new Date(s.getTime() + 5 * 60_000);
+  const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d+Z/, "Z");
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${fmt(s)}/${fmt(e)}&details=${encodeURIComponent(`Open the booth: ${APP}`)}`;
+}
 const TIER: Record<string, string> = { platinum: "Platinum", gold: "Gold", silver: "Silver", floor: "Floor" };
 const STATUS: Record<string, string> = { held: "on hold", cleared: "ready", requested: "on its way", paid: "paid", forfeited: "forfeited" };
 const REASON: Record<string, string> = {
@@ -98,6 +104,38 @@ function compose(it: Item): Mail {
       inner: `${who(partnerFace, partner, "You are on with")}${tile("Starts", esc(at))}${tile("Bring", "Headphones, a quiet place, a charged phone.")}
         ${p("The room opens five minutes before. If you are not in within ten minutes of the start your partner is credited and you take a strike, so cancel now if you cannot make it.")}${button(APP, "Open the booth")}`,
       text: `Your live scene starts at ${at} with ${partner}. The room opens five minutes before. If you are not in within ten minutes of the start your partner is credited and you take a strike; cancel now if you cannot make it. ${APP}`,
+      footer: FOOTER,
+    };
+  }
+  if (it.kind === "slot_booked") {
+    const at = when(d.starts_at);
+    const booker = str(d.booker) || "Someone";
+    const bookerFace = str(d.booker_avatar) || null;
+    const lang = str(d.language);
+    const cal = gcalLink(`Live Scene · ${lang}`, String(d.starts_at));
+    return {
+      subject: `${booker} wants to do a live ${lang} scene at ${at}`,
+      eyebrow: "Live Arena",
+      title: `${esc(booker)} is looking for a partner.`,
+      inner: `${who(bookerFace, booker, "Wants to play")}${tile("Language", esc(lang))}${tile("Time", esc(at))}
+        ${p("Book the same time and you are paired at once. Scenes last five minutes, on your phones, each of you recorded separately.")}${button(APP, "Book the same time")}
+        ${p(`<a href="${esc(cal)}" style="color:${DEEP};text-decoration:underline;font-size:13px">Add to Google Calendar</a> so you don't forget.`)}`,
+      text: `${booker} wants to do a live ${lang} scene at ${at}. Book the same time and you're paired at once. ${APP}\n\nAdd to calendar: ${cal}`,
+      footer: FOOTER,
+    };
+  }
+  if (it.kind === "slot_paired") {
+    const at = when(d.starts_at);
+    const lang = str(d.language);
+    const cal = gcalLink(`Live Scene · ${lang}`, String(d.starts_at));
+    return {
+      subject: `You're paired with ${partner} at ${at}`,
+      eyebrow: "Live Arena",
+      title: "You have a partner. Be there.",
+      inner: `${who(partnerFace, partner, "You are on with")}${tile("Language", esc(lang))}${tile("Starts", esc(at))}${tile("Bring", "Headphones, a quiet place, a charged phone.")}
+        ${p("The room opens five minutes before. If you're not in within ten minutes of the start your partner is credited and you take a strike.")}${button(APP, "Open the booth")}
+        ${p(`<a href="${esc(cal)}" style="color:${DEEP};text-decoration:underline;font-size:13px">Add to Google Calendar</a>`)}`,
+      text: `You're paired with ${partner} for a live ${lang} scene at ${at}. The room opens five minutes before. ${APP}\n\nAdd to calendar: ${cal}`,
       footer: FOOTER,
     };
   }

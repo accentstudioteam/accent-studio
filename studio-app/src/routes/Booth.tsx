@@ -23,6 +23,7 @@ const STATUS_WORD: Record<string, string> = { open: "waiting for a partner", pai
    ========================================================================= */
 export function Booth({ language, onBack, onJoin }: Props) {
   const [m, setM] = useState<Mine | null>(null);
+  const [lang, setLang] = useState(language);
   const [day, setDay] = useState(0);
   const [avail, setAvail] = useState<Availability[]>([]);
   const [pick, setPick] = useState<Date | null>(null);
@@ -56,15 +57,15 @@ export function Booth({ language, onBack, onJoin }: Props) {
     const d = dayDate(day);
     const slots = slotsForDay(d, m.config);
     if (!slots.length) return;
-    void availability(language, slots[0], slots[slots.length - 1]).then(setAvail).catch(() => setAvail([]));
-  }, [m, day, language]);
+    void availability(lang, slots[0], slots[slots.length - 1]).then(setAvail).catch(() => setAvail([]));
+  }, [m, day, lang]);
 
   const confirm = async () => {
     if (!pick) return;
     setBusy(true);
     setErr(null);
     try {
-      const r = moving ? await reschedule(moving.slot_id, pick) : await book(language, pick);
+      const r = moving ? await reschedule(moving.slot_id, pick) : await book(lang, pick);
       setFlash(r.paired ? `Paired for ${lagos(r.starts_at)}. Be in the room five minutes early; the other player is counting on you.` : `Booked ${lagos(r.starts_at)}. You are paired the moment someone else picks that time; we tell you here.`);
       setPick(null);
       setMoving(null);
@@ -96,7 +97,17 @@ export function Booth({ language, onBack, onJoin }: Props) {
 
   return (
     <Page>
-      <TopBar onBack={onBack} backLabel="Back home" eyebrow={`Live Arena · ${LANG_NAME[language] ?? language} · Lagos time`} title={moving ? "Pick the new time." : "Book a scene."} />
+      <TopBar onBack={onBack} backLabel="Back home" eyebrow={`Live Arena · ${LANG_NAME[lang] ?? lang} · Lagos time`} title={moving ? "Pick the new time." : "Book a scene."} />
+
+      {m && m.languages.length > 1 && (
+        <div className="chips" style={{ marginBottom: 4 }}>
+          {m.languages.map((l) => (
+            <button key={l} type="button" className={`chip ${lang === l ? "chip-ink" : "chip-cream"}`} onClick={() => { setLang(l); setPick(null); }}>
+              {LANG_NAME[l] ?? l}
+            </button>
+          ))}
+        </div>
+      )}
 
       {err && <Notice tone="coral">{err}</Notice>}
       {flash && <Notice>{flash}</Notice>}
