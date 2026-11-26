@@ -99,5 +99,5 @@ $function$;
 
 -- 3. Upgrade default gloss model to Sonnet.
 update public.game_config
-set value = '{"engine":"anthropic","model":"claude-sonnet-4-20250514"}'::jsonb
+set value = '{"engine":"anthropic","model":"claude-sonnet-4-6"}'::jsonb
 where key = 'gloss_model';

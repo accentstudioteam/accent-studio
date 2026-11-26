@@ -302,8 +302,12 @@ async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
 
 export const overview = (): Promise<Overview> => (isDemo() ? demoAdmin.overview() : rpc<Overview>("admin_overview"));
 export const staff = (): Promise<Staff> => (isDemo() ? demoAdmin.staff() : rpc<Staff>("staff_list"));
-export const staffInvite = (email: string, role: StaffRole, note: string): Promise<{ email: string; already_signed_up: boolean }> =>
-  isDemo() ? demoAdmin.staffInvite(email, role, note) : rpc("staff_invite", { email, role, note });
+export const staffInvite = async (email: string, role: StaffRole, note: string): Promise<{ email: string; already_signed_up: boolean }> => {
+  if (isDemo()) return demoAdmin.staffInvite(email, role, note);
+  const { data, error } = await supabase.functions.invoke("invite-staff", { body: { email, role, note } });
+  if (error) throw new Error(error.message);
+  return data as { email: string; already_signed_up: boolean };
+};
 export const staffSet = (uid: string, role: StaffRole, on: boolean): Promise<{ editor_id: string | null }> =>
   isDemo() ? demoAdmin.staffSet(uid, role, on) : rpc("staff_set", { uid, role, on_: on });
 export const staffUninvite = (email: string): Promise<{ removed: number }> => (isDemo() ? demoAdmin.staffUninvite(email) : rpc("staff_uninvite", { email }));

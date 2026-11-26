@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@/auth/AuthProvider";
 import { Logo } from "@/components/Logo";
 import { Dock, StudioNav, type DockTab, type NavItem } from "@/components/StudioNav";
@@ -17,8 +17,10 @@ import { Team } from "@/routes/Team";
 import { Contributors } from "@/routes/Contributors";
 import { Audit } from "@/routes/Audit";
 import { RallyBoard } from "@/routes/RallyBoard";
+import { LinguistEarnings } from "@/routes/LinguistEarnings";
 
-type View = "home" | "settings" | "applications" | "labs" | "cards" | "rallies" | "verify" | "audit" | "integrity" | "payouts" | "projects" | "team" | "contributors";
+type View = "home" | "settings" | "applications" | "labs" | "cards" | "rallies" | "verify" | "audit" | "integrity" | "payouts" | "projects" | "team" | "contributors" | "earnings";
+interface NavState { view: View; sessionId: string | null }
 
 /** The signed-in studio: one shell, a sidebar (or a strip on phones) with what is waiting, and the current screen inside it. */
 export function Studio() {
@@ -28,6 +30,35 @@ export function Studio() {
   const [ov, setOv] = useState<Overview | null>(null);
   const admin = !!profile?.is_admin;
   const staff = admin || !!profile?.is_linguist;
+
+  // --- Browser-history integration so the OS back button navigates within the app ---
+  const navRef = useRef<NavState>({ view: "home", sessionId: null });
+  const fromPop = useRef(false);
+
+  useEffect(() => {
+    window.history.replaceState(navRef.current, "");
+    const onPop = (e: PopStateEvent) => {
+      const s = e.state as NavState | null;
+      if (!s) return;
+      fromPop.current = true;
+      navRef.current = s;
+      setView(s.view);
+      setSessionId(s.sessionId);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  useEffect(() => {
+    if (fromPop.current) { fromPop.current = false; return; }
+    const next: NavState = { view, sessionId };
+    if (next.view === navRef.current.view && next.sessionId === navRef.current.sessionId) return;
+    navRef.current = next;
+    window.history.pushState(next, "");
+  }, [view, sessionId]);
+
+  const back = useCallback(() => window.history.back(), []);
+  // --- end history integration ---
 
   const refresh = useCallback(() => {
     if (!admin) return;
@@ -51,6 +82,7 @@ export function Studio() {
           { key: "verify", label: "Queue", group: "Cutting Room", count: ov?.cutting_room.queue },
           { key: "audit", label: "Audit", group: "Cutting Room", count: ov?.cutting_room.audit_pending },
           { key: "integrity", label: "Cases", group: "Cutting Room", count: ov?.cutting_room.cases_open, accent: "gold" as const },
+          { key: "earnings", label: "Earnings", group: "Your work" },
         ]
       : []),
     ...(admin
@@ -79,51 +111,54 @@ export function Studio() {
         { key: "home", label: "Home", icon: "home" },
         { key: "verify", label: "Queue", icon: "queue" },
         { key: "audit", label: "Audit", icon: "audit" },
-        { key: "integrity", label: "Cases", icon: "cases" },
+        { key: "earnings", label: "Money", icon: "money" },
         { key: "settings", label: "You", icon: "you" },
       ];
-  const dockActive = dockTabs.some((t) => t.key === view) ? view : view === "audit" || view === "integrity" || view === "rallies" ? "verify" : view === "applications" || view === "team" ? "contributors" : view === "labs" || view === "cards" ? "projects" : "home";
+  const dockActive = dockTabs.some((t) => t.key === view) ? view : view === "audit" || view === "integrity" || view === "rallies" ? "verify" : view === "applications" || view === "team" ? "contributors" : view === "labs" || view === "cards" ? "projects" : view === "earnings" ? "earnings" : "home";
   let content: ReactNode;
   switch (view) {
     case "rallies":
-      content = <RallyBoard onBack={() => go("home")} embedded />;
+      content = <RallyBoard onBack={back} embedded />;
       break;
     case "settings":
-      content = <Settings onBack={() => go("home")} />;
+      content = <Settings onBack={back} />;
       break;
     case "applications":
-      content = <Applications onBack={() => go("home")} />;
+      content = <Applications onBack={back} />;
       break;
     case "labs":
-      content = <LabInquiries onBack={() => go("home")} />;
+      content = <LabInquiries onBack={back} />;
       break;
     case "cards":
-      content = <Cards onBack={() => go("home")} />;
+      content = <Cards onBack={back} />;
       break;
     case "integrity":
-      content = <Integrity onBack={() => go("home")} embedded />;
+      content = <Integrity onBack={back} embedded />;
       break;
     case "payouts":
-      content = <Payouts onBack={() => go("home")} embedded />;
+      content = <Payouts onBack={back} embedded />;
       break;
     case "projects":
-      content = <Projects onBack={() => go("home")} embedded />;
+      content = <Projects onBack={back} embedded />;
       break;
     case "team":
-      content = <Team onBack={() => go("home")} embedded />;
+      content = <Team onBack={back} embedded />;
+      break;
+    case "earnings":
+      content = <LinguistEarnings onBack={back} embedded />;
       break;
     case "contributors":
-      content = <Contributors onBack={() => go("home")} embedded />;
+      content = <Contributors onBack={back} embedded />;
       break;
     case "audit":
       content = sessionId
-        ? <Workbench sessionId={sessionId} onBack={() => setSessionId(null)} onCases={() => go("integrity")} embedded />
-        : <Audit onBack={() => go("home")} onOpen={setSessionId} embedded />;
+        ? <Workbench sessionId={sessionId} onBack={back} onCases={() => go("integrity")} embedded />
+        : <Audit onBack={back} onOpen={setSessionId} embedded />;
       break;
     case "verify":
       content = sessionId
-        ? <Workbench sessionId={sessionId} onBack={() => setSessionId(null)} onCases={() => go("integrity")} embedded />
-        : <Verify onBack={() => go("home")} onOpen={setSessionId} onCases={() => go("integrity")} embedded />;
+        ? <Workbench sessionId={sessionId} onBack={back} onCases={() => go("integrity")} embedded />
+        : <Verify onBack={back} onOpen={setSessionId} onCases={() => go("integrity")} embedded />;
       break;
     default:
       content = <Home ov={ov} onGo={go} onRefresh={refresh} />;

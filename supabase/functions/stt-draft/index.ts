@@ -152,7 +152,7 @@ async function glossWith(model: GlossModel, language: string, card: Card, person
   const anthropic = Deno.env.get("ANTHROPIC_API_KEY");
   const openai = Deno.env.get("OPENAI_API_KEY");
   if (model.engine !== "openai" && anthropic) {
-    const m = model.model ?? "claude-sonnet-4-20250514";
+    const m = model.model ?? "claude-sonnet-4-6";
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "x-api-key": anthropic, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
