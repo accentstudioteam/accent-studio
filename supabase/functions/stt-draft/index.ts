@@ -24,6 +24,7 @@ interface Item { turn_id: string; audio_path: string; language: string; seconds:
 interface Route { engine: string; language: string | null; show?: boolean; note?: string; prompt?: string | null }
 interface Card { title?: string; situation?: string; english_note?: string | null }
 interface GlossModel { engine?: string; model?: string }
+interface Prior { turn_no: number; persona?: string | null; text?: string | null; gloss?: string | null }
 interface Result { engine: string; text: string; confidence: number | null; detected_language: string | null; segments: unknown; words: unknown }
 
 function json(body: unknown, status = 200): Response {
@@ -92,11 +93,11 @@ async function spitch(audioUrl: string, path: string, lang: string | null): Prom
   return { engine: "spitch", text: String(out.text ?? ""), confidence: null, detected_language: lang, segments: out.timestamps ?? null, words: null };
 }
 
-function resolve(route: Route): { run?: (url: string, path: string, lang: string | null) => Promise<Result>; reason?: string } {
+function resolve(route: Route, prompt: string | null): { run?: (url: string, path: string, lang: string | null) => Promise<Result>; reason?: string } {
   switch (route.engine) {
     case "whisper":
-      if (Deno.env.get("OPENAI_API_KEY")) return { run: (u, p, l) => openaiWhisper(u, p, l, route.prompt) };
-      if (Deno.env.get("REPLICATE_API_TOKEN")) return { run: (u, _p, l) => replicateWhisper(u, l, route.prompt) };
+      if (Deno.env.get("OPENAI_API_KEY")) return { run: (u, p, l) => openaiWhisper(u, p, l, prompt) };
+      if (Deno.env.get("REPLICATE_API_TOKEN")) return { run: (u, _p, l) => replicateWhisper(u, l, prompt) };
       return { reason: "no speech vendor key is set (add OPENAI_API_KEY or REPLICATE_API_TOKEN to the function secrets)" };
     case "spitch":
       if (Deno.env.get("SPITCH_API_KEY")) return { run: (u, p, l) => spitch(u, p, l) };
@@ -110,25 +111,48 @@ function resolve(route: Route): { run?: (url: string, path: string, lang: string
   }
 }
 
+// ---------------------------------------------------------------- context-aware prompts
+
+/** Build a richer Whisper prompt from the static language sample, the card, and prior transcripts. Whisper uses this (~224 tokens) to bias vocabulary and spelling. */
+function buildSttPrompt(route: Route, card: Card, prior: Prior[]): string | null {
+  const parts: string[] = [];
+  if (route.prompt) parts.push(route.prompt);
+  if (card.situation) parts.push(card.situation);
+  // Tail of the most recent prior transcript primes conversation vocabulary
+  const last = [...prior].reverse().find((p) => p.text && p.text.length > 5);
+  if (last?.text) parts.push(last.text.slice(-200));
+  const full = parts.join(" ").trim();
+  return full ? full.slice(0, 600) : null;
+}
+
 // ---------------------------------------------------------------- the gloss model
-function glossPrompt(language: string, card: Card, persona: string | null | undefined): string {
+function glossPrompt(language: string, card: Card, persona: string | null | undefined, prior: Prior[] = []): string {
   const name = LANG_NAME[language] ?? language;
-  return [
+  const lines = [
     `You write the English gloss of one short spoken line of ${name} for a speech dataset: the plain English meaning of what was actually said, nothing else.`,
     `Return only the gloss, one or two sentences, no quotes, no notes. Keep names, amounts and units. Keep the tone: a question stays a question, an exclamation stays one.`,
     `The line may be a machine transcript with English spellings or guessed words; read it as ${name} and gloss the intended meaning. If a word is unreadable, gloss what the context makes likely rather than leaving a gap.`,
     card.situation ? `Scene: ${card.situation}` : "",
     card.english_note ? `Scene note in English: ${card.english_note}` : "",
     persona ? `The speaker's role: ${persona}` : "",
-  ].filter(Boolean).join("\n");
+  ];
+  if (prior.length) {
+    lines.push("Previous lines in this conversation (for context only — do not repeat or reference these in your output):");
+    for (const p of prior.slice(-4)) {
+      const who = p.persona ?? `Turn ${p.turn_no}`;
+      if (p.text && p.gloss) lines.push(`[${who}]: "${p.text}" → ${p.gloss}`);
+      else if (p.text) lines.push(`[${who}]: "${p.text}"`);
+    }
+  }
+  return lines.filter(Boolean).join("\n");
 }
 
-async function glossWith(model: GlossModel, language: string, card: Card, persona: string | null | undefined, text: string): Promise<{ engine: string; gloss: string }> {
-  const system = glossPrompt(language, card, persona);
+async function glossWith(model: GlossModel, language: string, card: Card, persona: string | null | undefined, text: string, prior: Prior[] = []): Promise<{ engine: string; gloss: string }> {
+  const system = glossPrompt(language, card, persona, prior);
   const anthropic = Deno.env.get("ANTHROPIC_API_KEY");
   const openai = Deno.env.get("OPENAI_API_KEY");
   if (model.engine !== "openai" && anthropic) {
-    const m = model.model ?? "claude-haiku-4-5-20251001";
+    const m = model.model ?? "claude-sonnet-4-20250514";
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "x-api-key": anthropic, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
@@ -180,7 +204,7 @@ Deno.serve(async (req: Request) => {
     const { data: ctx, error } = await caller.rpc("stt_turn_context", { tid: body.turn_id });
     if (error || !ctx) return json({ error: error?.message ?? "no such turn" }, 404);
     try {
-      const g = await glossWith((ctx.gloss ?? {}) as GlossModel, ctx.language as string, (ctx.card ?? {}) as Card, ctx.persona as string | null, text);
+      const g = await glossWith((ctx.gloss ?? {}) as GlossModel, ctx.language as string, (ctx.card ?? {}) as Card, ctx.persona as string | null, text, (ctx.prior ?? []) as Prior[]);
       return json({ ok: true, gloss: g.gloss, engine: g.engine });
     } catch (e) {
       return json({ ok: false, error: e instanceof Error ? e.message : String(e) }, 409);
@@ -195,12 +219,14 @@ Deno.serve(async (req: Request) => {
   const card = (q?.card ?? {}) as Card;
   const glossModel = (q?.gloss ?? {}) as GlossModel;
   const language = String(q?.language ?? route.language ?? "");
+  const prior = (q?.prior ?? []) as Prior[];
+  const sttPrompt = buildSttPrompt(route, card, prior);
   const store = (tid: string, status: "done" | "failed" | "skipped", r: Partial<Result> & { error?: string | null }, ms: number) =>
     caller.rpc("stt_store", { tid, status, engine: r.engine ?? route.engine, text_: r.text ?? null, confidence: r.confidence ?? null, detected_language: r.detected_language ?? null, segments: r.segments || r.words ? { segments: r.segments ?? null, words: r.words ?? null } : null, error: r.error ?? null, ms });
   const storeGloss = (tid: string, gloss: string | null, engine: string | null, error: string | null) => caller.rpc("stt_gloss_store", { tid, gloss, engine, error });
 
   if (items.length === 0) return json({ ok: true, done: 0, failed: 0, skipped: 0 });
-  const picked = resolve(route);
+  const picked = resolve(route, sttPrompt);
   if (!picked.run) {
     await Promise.all(items.map((it) => store(it.turn_id, "skipped", { error: picked.reason }, 0)));
     return json({ ok: true, done: 0, failed: 0, skipped: items.length, reason: picked.reason });
@@ -221,7 +247,7 @@ Deno.serve(async (req: Request) => {
       done += 1;
       if (r.text.trim()) {
         try {
-          const g = await glossWith(glossModel, language, card, it.persona, r.text);
+          const g = await glossWith(glossModel, language, card, it.persona, r.text, prior);
           await storeGloss(it.turn_id, g.gloss, g.engine, null);
           glossed += 1;
         } catch (e) {
